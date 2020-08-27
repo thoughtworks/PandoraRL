@@ -1,0 +1,9 @@
+name: rl-virtual-screening
+channels:
+  - conda-forge
+  - plotly
+dependencies:
+  - python=3.6
+  - numpy=1.19.1
+  - matplotlib=3.3.1
+  - ipython=7.16.1
