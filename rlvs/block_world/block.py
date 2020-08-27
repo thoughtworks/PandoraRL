@@ -1,4 +1,5 @@
 from random import randint
+from scipy import ndimage
 import numpy as np
 class Block:
     masks = [
@@ -56,12 +57,27 @@ class Block:
 
 
     def __init__(self, width, height, mask):
-        template = np.ones((width, height), dtype=int)
-        max_shift = template.shape[1] - mask.shape[1]
-        shift = randint(0, max_shift)
+        template = np.ones((width, height)).astype('float64')
+        max_y_shift = template.shape[1] - mask.shape[1]
+        max_x_shift = template.shape[0] - mask.shape[0]
+        self.shift_x = randint(0, max_x_shift)
+        self.shift_y = randint(0, max_y_shift)
 
         mask_index = np.where(mask == 1)
-        shifted_mask_index = (mask_index[0], mask_index[1] + shift)
-        template[shifted_mask_index] = 0
+        shifted_mask_index = (mask_index[0] + self.shift_x, mask_index[1] + self.shift_y)
+        template[shifted_mask_index] = np.NaN
         self.surface = template
-        self.block = mask
+        self._rotate_angle = randint(-180, 180)
+        self._block = ndimage.rotate(mask.astype('float64'), angle=self._rotate_angle, mode='nearest',  reshape=False)
+
+    @property
+    def block(self):
+        return np.round(self._block)
+
+    @property
+    def rotated_block(self):
+        return np.round(ndimage.rotate(self._block, angle=-self._rotate_angle, mode='nearest',  reshape=False))
+
+    def rotate_block(self, angle):
+        return np.round(ndimage.rotate(self._block, angle=-angle, mode='nearest',  reshape=False))
+
