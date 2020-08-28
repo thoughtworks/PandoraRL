@@ -2,8 +2,12 @@ name: rl-virtual-screening
 channels:
   - conda-forge
   - plotly
+  - anaconda
 dependencies:
   - python=3.6
   - numpy=1.19.1
   - matplotlib=3.3.1
   - ipython=7.16.1
+  - h5py=2.10.0
+  - notebook=6.1.1
+  - openbabel=3.1.1
