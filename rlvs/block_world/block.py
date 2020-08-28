@@ -69,6 +69,9 @@ class Block:
         self.surface = template
         self._rotate_angle = randint(-180, 180)
         self._block = ndimage.rotate(mask.astype('float64'), angle=self._rotate_angle, mode='nearest',  reshape=False)
+        self.sandbox = np.zeros((2*width + 1, 2*height + 1))
+        self.sandbox[width:2*width, height:2*height] = self.surface
+        self.sandbox[1:self._block.shape[0] + 1, 1:self._block.shape[1] + 1] = self._block
 
     @property
     def block(self):
