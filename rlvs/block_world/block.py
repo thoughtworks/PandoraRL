@@ -65,13 +65,15 @@ class Block:
 
         mask_index = np.where(mask == 1)
         shifted_mask_index = (mask_index[0] + self.shift_x, mask_index[1] + self.shift_y)
-        template[shifted_mask_index] = np.NaN
+        template[shifted_mask_index] = 2
         self.surface = template
         self._rotate_angle = randint(-180, 180)
-        self._block = ndimage.rotate(mask.astype('float64'), angle=self._rotate_angle, mode='nearest',  reshape=False)
-        self.sandbox = np.zeros((2*width + 1, 2*height + 1))
-        self.sandbox[width:2*width, height:2*height] = self.surface
-        self.sandbox[1:self._block.shape[0] + 1, 1:self._block.shape[1] + 1] = self._block
+        self._block = ndimage.rotate((mask * 3).astype('float64'), angle=self._rotate_angle, mode='nearest',  reshape=False)
+        self.sandbox = np.zeros((4*width, 4*height))
+        surface_index = np.random.randint(0, 3)
+        block_index = 3 - surface_index
+        self.sandbox[surface_index * width:( surface_index + 1 ) * width, surface_index * height:( surface_index + 1 ) * height] = self.surface
+        self.sandbox[(block_index*width): (block_index*width) + self._block.shape[0], (block_index*height) : (block_index*height) + self._block.shape[1]] = self._block
 
     @property
     def block(self):
@@ -82,5 +84,5 @@ class Block:
         return np.round(ndimage.rotate(self._block, angle=-self._rotate_angle, mode='nearest',  reshape=False))
 
     def rotate_block(self, angle):
-        return np.round(ndimage.rotate(self._block, angle=-angle, mode='nearest',  reshape=False))
+        return ndimage.rotate(self._block, angle=angle, mode='nearest',  reshape=False)
 
