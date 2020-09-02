@@ -25,9 +25,9 @@ def molecule_to_grid(max_dist, resolution, coords, features, display=False):
     box_size = int(np.ceil(2 * max_dist / resolution + 1))
     grid = np.zeros((box_size, box_size, box_size, num_features))
     
-    #grid_coords = (coords + max_dist) / resolutions
+    grid_coords = (coords + max_dist) / resolution
     
-    grid_coords = coords.round().astype(int)
+    grid_coords = grid_coords.round().astype(int)
     X, Y, Z,atom_type = [], [], [], []
 
     for (x,y,z), f in zip(grid_coords, features):
