@@ -57,25 +57,42 @@ class Block:
 
 
     def __init__(self, width, height, mask):
-        self.surface = np.ones((width, height)).astype('float64')
+
+        self.sandbox_width = 5 * width
+        self.sandbox_height = 5 * height
+        self.surface_width = 2 * width
+        self.surface_height = 2 * height
+
+        
         self.width = width
         self.height = height
         self.max_score = 99999.0
         
-        self._block = (mask * 3).astype('float64')
-        max_y_shift = self.surface.shape[1] - mask.shape[1]
-        max_x_shift = self.surface.shape[0] - mask.shape[0]
-
+        self._block = (mask * 3).astype('float32')
+        
+        max_y_shift = self.surface_height - mask.shape[1]
+        max_x_shift = self.surface_width - mask.shape[0]
 
         self.rotate_angle = randint(-180, 180)
-        self.surface_index = np.random.randint(1, 3)
-        self.shift_x = randint(0, max_x_shift) + (self.surface_index * self.width)
-        self.shift_y = randint(0, max_y_shift) + (self.surface_index * self.height)
+        self.surface_index = 1
+        self.shift_x = randint(0, max_x_shift) + (self.surface_index * self.surface_width)
+        self.shift_y = randint(0, max_y_shift) + (self.surface_index * self.surface_height)
 
-        block_index = 3 - self.surface_index
+        self.block_x, self.block_y = [
+            [1,1],
+            [1, self.sandbox_height - self._block.shape[1]],
+            [self.sandbox_width - self._block.shape[0], 1],
+            [self.sandbox_width - self._block.shape[0], self.sandbox_height - self._block.shape[1]]
+        ][randint(0,3)]
 
-        self.update_sandbox(block_index * self.width, block_index * self.height)
+
+        self.update_sandbox()
         self.original_sandbox = np.copy(self.sandbox)
+
+    @property
+    def action_bounds(self):
+        #return [[-self._block.shape[0], -self._block.shape[1], -180], [self._block.shape[0], self._block.shape[1], 180]]
+        return [[-(self.sandbox_width - self._block.shape[0]), -(self.sandbox_height - self._block.shape[1]), -180], [self.sandbox_width - self._block.shape[0], self.sandbox_height - self._block.shape[1], 180]]
         
     @property
     def block(self):
@@ -89,14 +106,15 @@ class Block:
         mask_index = np.where(self._block == 3.0)
         shifted_mask_index = (mask_index[0] + self.shift_x,  + mask_index[1] + self.shift_y)
         
-        new_x = int(np.round(np.abs(translate_x)))
-        new_y = int(np.round(np.abs(translate_y)))
+        new_x = int(np.round(translate_x)) + self.block_x
+        new_y = int(np.round(translate_y)) + self.block_y
 
-        self.sandbox = np.zeros((4 * self.width, 4 * self.height))
+        self.sandbox = np.zeros((self.sandbox_width, self.sandbox_height))
         self.sandbox[
-            self.surface_index * self.width:( self.surface_index + 1 ) * self.width,
-            self.surface_index * self.height:( self.surface_index + 1 ) * self.height
+            self.surface_index * self.surface_width:( self.surface_index + 1 ) * self.surface_width,
+            self.surface_index * self.surface_height:( self.surface_index + 1 ) * self.surface_height
         ] = 1
+
         self.sandbox[
             self.shift_x : self.shift_x + self._block.shape[0],
             self.shift_y : self.shift_y + self._block.shape[1]
@@ -107,12 +125,21 @@ class Block:
             new_y : new_y + self._block.shape[1]
         ] += self.rotate_block(-self.rotate_angle + rotate_angle)
 
+        self.rotate_angle -= rotate_angle
+        self.block_x = new_x
+        self.block_y = new_y
         
     
     def rotate_block(self, angle):
         return ndimage.rotate(self._block, angle=angle, mode='nearest',  reshape=False)
 
     def score(self, shift_x, shift_y, rotate_angle):
+        surface_bonus = 0
+        surface_x = range(self.surface_index * self.surface_width, ( self.surface_index + 1 ) * self.surface_width)
+        surface_y = range(self.surface_index * self.surface_height, ( self.surface_index + 1 ) * self.surface_height)
+        if round(shift_x) in surface_x and round(shift_y) in surface_y:
+            surface_bonus = 100
+            
         pi_2 = np.deg2rad(90)
         r = np.sqrt(shift_x**2 + shift_y**2)
         phi =  pi_2 if shift_x == 0 else np.arctan(shift_y/shift_x)
@@ -124,4 +151,4 @@ class Block:
 
         dist = np.sqrt(r**2 + r_actual**2 - 2*(r * r_actual * np.cos(theta - theta_actual)))
 
-        return self.max_score if dist == 0 else 1/dist
+        return self.max_score if dist == 0 else (1/dist) + surface_bonus
