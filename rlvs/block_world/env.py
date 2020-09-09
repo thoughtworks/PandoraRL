@@ -31,7 +31,7 @@ class Env:
             reward = -0.1
             self.block.update_sandbox()
         else: 
-            reward = self.block.score(*action)
+            reward = self.block.score()
             
         state = np.expand_dims(self.block.sandbox.reshape(self.input_shape), axis=0)
         terminal = reward in [self.block.max_score]

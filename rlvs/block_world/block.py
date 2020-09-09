@@ -133,22 +133,21 @@ class Block:
     def rotate_block(self, angle):
         return ndimage.rotate(self._block, angle=angle, mode='nearest',  reshape=False)
 
-    def score(self, shift_x, shift_y, rotate_angle):
+    def score(self):
         surface_bonus = 0
         surface_x = range(self.surface_index * self.surface_width, ( self.surface_index + 1 ) * self.surface_width)
         surface_y = range(self.surface_index * self.surface_height, ( self.surface_index + 1 ) * self.surface_height)
-        if round(shift_x) in surface_x and round(shift_y) in surface_y:
+        if round(self.block_x) in surface_x and round(self.block_y) in surface_y:
             surface_bonus = 100
             
         pi_2 = np.deg2rad(90)
-        r = np.sqrt(shift_x**2 + shift_y**2)
-        phi =  pi_2 if shift_x == 0 else np.arctan(shift_y/shift_x)
-        theta = phi + np.deg2rad(rotate_angle)
+        r = np.sqrt(self.block_x**2 + self.block_y**2)
+        phi =  pi_2 if self.block_x == 0 else np.arctan(self.block_y/self.block_x)
+        theta = phi + np.deg2rad(self.rotate_angle)
 
         r_actual = np.sqrt(self.shift_x**2 + self.shift_y**2)
         phi_actual = pi_2 if self.shift_x == 0 else np.arctan(self.shift_y/self.shift_x)
-        theta_actual = phi_actual + np.deg2rad(self.rotate_angle)
+        theta_actual = phi_actual
 
         dist = np.sqrt(r**2 + r_actual**2 - 2*(r * r_actual * np.cos(theta - theta_actual)))
-
-        return self.max_score if dist == 0 else (1/dist) + surface_bonus
+        return self.max_score if dist < 0.01 else (1/dist) + surface_bonus
