@@ -1,28 +1,19 @@
-'''
-## Ornstein-Uhlenbeck (OU) Noise ##
-# Taken from: https://github.com/openai/baselines/blob/master/baselines/ddpg/noise.py
-# Creates OU noise process to add temporally-correlated noise to the action space during training for exploration purposes.
-'''
-
 import numpy as np
-
-class OrnsteinUhlenbeckActionNoise:
-    def __init__(self, mu, sigma=0.3, theta=0.15, dt=1e-2, x0=None):
+class OrnsteinUhlenbeckActionNoise(object):
+    """ Ornstein-Uhlenbeck Noise (original code by @slowbull)
+    """
+    def __init__(self, theta=0.15, mu=0, sigma=1, x0=0, dt=1e-2, n_steps_annealing=100, size=1):
         self.theta = theta
-        self.mu = mu
         self.sigma = sigma
-        self.dt = dt
+        self.n_steps_annealing = n_steps_annealing
+        self.sigma_step = - self.sigma / float(self.n_steps_annealing)
         self.x0 = x0
-        self.reset()
+        self.mu = mu
+        self.dt = dt
+        self.size = size
 
-    def __call__(self):
-        x = self.x_prev + self.theta * (self.mu - self.x_prev) * self.dt + \
-                self.sigma * np.sqrt(self.dt) * np.random.normal(size=self.mu.shape)
-        self.x_prev = x
+    def generate(self, step):
+        sigma = max(0, self.sigma_step * step + self.sigma)
+        x = self.x0 + self.theta * (self.mu - self.x0) * self.dt + sigma * np.sqrt(self.dt) * np.random.normal(size=self.size)
+        self.x0 = x
         return x
-
-    def reset(self):
-        self.x_prev = self.x0 if self.x0 is not None else np.zeros_like(self.mu)
-
-    def __repr__(self):
-        return 'OrnsteinUhlenbeckActionNoise(mu={}, sigma={})'.format(self.mu, self.sigma)

@@ -28,11 +28,11 @@ class Env:
         try:
             self.block.update_sandbox(*action)
         except:
-            reward = -0.1
+            reward = -0.0001
             self.block.update_sandbox()
         else: 
             reward = self.block.score()
             
         state = np.expand_dims(self.block.sandbox.reshape(self.input_shape), axis=0)
-        terminal = reward in [self.block.max_score]
+        terminal = (reward == -0.0001 or self.block.perfect_fit)
         return state.astype(dtype='float32'), reward, terminal

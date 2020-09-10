@@ -1,4 +1,5 @@
-# refered from https://github.com/sol0invictus/RL_Codes/blob/master/DDPG/v1/ddpg.py
+# refered from https://github.com/germain-hug/Deep-RL-Keras
+
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import Sequential, Model
@@ -10,129 +11,138 @@ from .network import Actor, Critic
 from .noise import OrnsteinUhlenbeckActionNoise
 
 class DDPGAgent:
-    MAX_EPSILON = 1
-    MIN_EPSILON = 0.01
-    ACTOR_LEARNING_RATE = 1e-3,
-    CRITIQ_LEARNING_RATE = 1e-3,
-    EPSILON_MIN_ITER = 5000
-    DELAY_TRAINING = 300
-    GAMMA = 0.95
-    BATCH_SIZE = 32
-    TAU = 0.08
-    RANDOM_REWARD_STD = 1.0
-    NOISE_SCALE = 0.1
+    ACTOR_LEARNING_RATE  = 0.00005
+    CRITIQ_LEARNING_RATE = 0.00005
+    TAU                  = 0.001
+
+    DELAY_TRAINING       = 300
+    GAMMA                = 0.99
+
+    BATCH_SIZE           = 32
+    BUFFER_SIZE          = 20000
+
+    RANDOM_REWARD_STD    = 1.0
+    NOISE_SCALE          = 0.001
+    
     
     def __init__(self, env):
-        '''
-Create a DDPG agent
-Parameters: 
-action_bounds (array): array with min and max action values, with shape (2, number of output values)
-        example: 
-        np.array([
-          [x_min, y_min, theta_min], 
-          [x_max, y_max, theta_max]
-        ])
-        
-        '''
         self.input_shape = env.input_shape
-        self.multi_output_count = env.action_space.n_outputs
+        self.action_shape = env.action_space.n_outputs
         self.eps = 0.9
         self.action_bounds = env.action_space.action_bounds
-        self.memory = Memory(500000)
+        self.memory = Memory(self.BUFFER_SIZE)
         self.env = env
-        self.exploration_noise = OrnsteinUhlenbeckActionNoise(mu=np.zeros(env.action_space.n_outputs))
+        self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs)
         self.noise_scaling = self.NOISE_SCALE * (self.action_bounds[1] - self.action_bounds[0])
 
-        self._actor = Actor(self.input_shape, self.multi_output_count, 1e-3)
-        self._critiq = Critic(self.input_shape, self.multi_output_count, 1e-3)
+        self._actor = Actor(
+            self.input_shape,
+            self.action_shape,
+            self.ACTOR_LEARNING_RATE,
+            self.TAU
+        )
 
-    def get_action(self, state, noise_scale):
+        self._critiq = Critic(
+            self.input_shape,
+            self.action_shape,
+            self.CRITIQ_LEARNING_RATE,
+            self.TAU
+        )
+
+    def get_action(self, state, step=None):
+        # Try Brownian Motion as a candidate for stochastic noise, currently using Ornstein–Uhlenbeck process
         # Explore AdaptiveParamNoiseSpec, with normalized action space
         # https://github.com/l5shi/Multi-DDPG-with-parameter-noise/blob/master/Multi_DDPG_with_parameter_noise.ipynb
         action = self.action_bounds[1] * self._actor.predict(state).flatten()
-        action += self.exploration_noise() * self.noise_scaling
-        #import random
 
-        #return [random.uniform(*bounds) for bounds in self.action_bounds.transpose()]
-        return np.clip(action, *self.action_bounds)
-    
+        if step is not None:
+            action += self.exploration_noise.generate(step)
+            
+        x, y, t = np.clip(action, *self.action_bounds)
+        return np.array([np.round(x), np.round(y), t])
+
     def play(self, num_train_episodes):
-        returns = []
-        q_losses = []
-        mu_losses = []
-        num_steps = 0
-        action_noise=0.99
-        max_episode_length=500
-        decay = 0.99
-        noise_ep = 10
+        returns      = []
+        q_losses     = []
+        mu_losses    = []
+        num_steps    = 0
+        action_noise = 0.99
+        max_episode_length = 500
+        decay        = 0.99
+        noise_ep     = 10
         r = False
 
         for i_episode in range(num_train_episodes):
             state_t, episode_return, episode_length, terminal = self.env.reset(), 0, 0, False
-            self.exploration_noise.reset()
-            print("Actual states: ", [self.env.block.shift_x, self.env.block.shift_y], [self.env.block.block_x, self.env.block.block_y, self.env.block.rotate_angle])
+            self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs)
             while not (terminal or (episode_length == max_episode_length)):
                 # For the first `start_steps` steps, use randomly sampled actions
                 # in order to encourage exploration.
-                
-                if i_episode < noise_ep:
-                  action = self.get_action(state_t, action_noise)
-                  r = True
-                else:
-                  action = self.env.action_space.sample()
-                  r = False
-                
-                # Keep track of the number of steps done
-                num_steps += 1                
-                # Step the env
+                action = self.get_action(state_t, episode_length)
                 state_t_1, reward, terminal = self.env.step(action)
-                episode_return += reward
-                episode_length += 1
-                
-                # Ignore the "done" signal if it comes from hitting the time
-                # horizon (that is, when it's an artificial terminal signal
-                # that isn't based on the agent's state)
                 d_store = False if episode_length == max_episode_length else terminal
                 
-                # Store experience to replay buffer
-                self.memory.add_sample([state_t[0], action, reward, state_t_1[0], d_store])
+                self.memorize(state_t[0], action, reward, state_t_1[0], d_store)
+
+                num_steps += 1                
                 
-                # Assign next state to be the current state on the next round
+                episode_return += reward
+                episode_length += 1
                 state_t = state_t_1
-                # returns.append([self.env.block.sandbox, self.env.block.original_sandbox, reward])
-
-                print(r, action, reward, episode_length, [self.env.block.block_x, self.env.block.block_y, self.env.block.rotate_angle])
                 
-            self.update_network(mu_losses, q_losses)
-            decay *= decay
-            action_noise *= 0.7
-            print("Episode:", i_episode + 1, "Return:", episode_return, 'episode_length:', episode_length)
+                print(r, action, reward, episode_length, [self.env.block.block_x, self.env.block.block_y, self.env.block.rotate_angle, self.env.block.shift_x, self.env.block.shift_y])
+                self.update_network()
+                
+            mean, stdev = self.gather_stats()
+            returns.append([i_episode + 1, episode_length, mean, stdev])
 
-        return (returns,q_losses,mu_losses)
+            print("Episode:", i_episode + 1, "Return:", episode_return, 'episode_length:', episode_length, 'stats (m, s)', [mean, stdev])
 
+        return returns
 
-    def update_network(self, mu_losses, q_losses):
+    def memorize(self, state, action, reward, next_state, done):
+        self.memory.add_sample({
+            'state': state,
+            'action': action,
+            'reward': reward,
+            'next_state': next_state,
+            'done': done
+        })
+        
+    def update_network(self):
         batch = self.memory.sample(self.BATCH_SIZE)
         batch_len = len(batch)
         
-        states = np.array([val[0] for val in batch])
-        actions = np.array([val[1] for val in batch])
-        rewards = np.array([val[2] for val in batch])
-        next_states = np.array([val[3] for val in batch ])
-        terminals = np.array([val[4] for val in batch ])
-
-        state_tensor=tf.convert_to_tensor(states)
+        states = np.array([val['state'] for val in batch])
+        actions = np.array([val['action'] for val in batch])
+        rewards = np.array([val['reward'] for val in batch])
+        next_states = np.array([val['next_state'] for val in batch ])
+        terminals = np.array([val['done'] for val in batch ])
 
         target_actions = self._actor.predict_target(next_states)
-        target_q = self._critiq.predict_target(next_states, target_actions)
-            
-        train_q = (rewards + (1 - terminals) * self.GAMMA * target_q.reshape((batch_len,))).reshape((batch_len,1))
-        self._critiq.fit(states, actions, train_q)
-        predicted_actions = self._actor.tensors(states)
+        target_q = self._critiq.predict_target([next_states, target_actions])
+        
+        critic_target = (
+            rewards + (1 - terminals) * self.GAMMA * target_q.reshape((batch_len,))
+        ).reshape((batch_len,1))
+        
+        self._critiq.train_on_batch(states, actions, critic_target)
+        predicted_actions = self._actor.predict(states)
 
-        action_grads, state_grads = self._critiq.action_gradients(state_tensor, predicted_actions)
-        self._actor.fit(states, action_grads)
+        action_grads = self._critiq.action_gradients(states, predicted_actions)
+        self._actor.train(states, actions, action_grads[0])
 
         self._actor.update_target_network()
         self._critiq.update_target_network()
         
+    def gather_stats(self):
+        score = []
+        for k in range(10):
+            old_state = self.env.reset()
+            cumul_r, done = 0, False
+            while not done:
+                a = self.get_action(old_state)
+                old_state, r, done = self.env.step(a)
+                cumul_r += r
+                score.append(cumul_r)
+        return np.mean(np.array(score)), np.std(np.array(score))

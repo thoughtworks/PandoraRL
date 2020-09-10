@@ -58,8 +58,8 @@ class Block:
 
     def __init__(self, width, height, mask):
 
-        self.sandbox_width = 5 * width
-        self.sandbox_height = 5 * height
+        self.sandbox_width = 6 * width
+        self.sandbox_height = 6 * height
         self.surface_width = 2 * width
         self.surface_height = 2 * height
 
@@ -77,22 +77,32 @@ class Block:
         self.surface_index = 1
         self.shift_x = randint(0, max_x_shift) + (self.surface_index * self.surface_width)
         self.shift_y = randint(0, max_y_shift) + (self.surface_index * self.surface_height)
-
-        self.block_x, self.block_y = [
-            [1,1],
-            [1, self.sandbox_height - self._block.shape[1]],
-            [self.sandbox_width - self._block.shape[0], 1],
-            [self.sandbox_width - self._block.shape[0], self.sandbox_height - self._block.shape[1]]
-        ][randint(0,3)]
-
+        self._max_dist = self._max_distance()
+        self.block_x, self.block_y = randint(1, self.sandbox_width - self._block.shape[0]), randint(1, self.sandbox_height - self._block.shape[1])
 
         self.update_sandbox()
         self.original_sandbox = np.copy(self.sandbox)
 
+    
+    def _max_distance(self):
+        bounds = np.array([
+            [0, 0, -180],
+            [0, self.sandbox_height, -180 ],
+            [self.sandbox_width, 0, -180],
+            [self.sandbox_width, self.sandbox_height, -180],
+            [0, 0, 180],
+            [0, self.sandbox_height, 180 ],
+            [self.sandbox_width, 0, 180],
+            [self.sandbox_width, self.sandbox_height, 180]
+        ])
+
+        return max(self.distance(x, y, t) for x,y,t in bounds)
+        
+    
     @property
     def action_bounds(self):
-        #return [[-self._block.shape[0], -self._block.shape[1], -180], [self._block.shape[0], self._block.shape[1], 180]]
-        return [[-(self.sandbox_width - self._block.shape[0]), -(self.sandbox_height - self._block.shape[1]), -180], [self.sandbox_width - self._block.shape[0], self.sandbox_height - self._block.shape[1], 180]]
+        return [[-2*self._block.shape[0], -2*self._block.shape[1], -10], [2*self._block.shape[0], 2*self._block.shape[1], 10]]
+        #return [[-(self.sandbox_width - self._block.shape[0]), -(self.sandbox_height - self._block.shape[1]), -180], [self.sandbox_width - self._block.shape[0], self.sandbox_height - self._block.shape[1], 180]]
         
     @property
     def block(self):
@@ -129,28 +139,40 @@ class Block:
         ] += self.rotate_block(-self.rotate_angle + rotate_angle)
 
         self.rotate_angle -= rotate_angle
+        if self.rotate_angle < -180:
+           self.rotate_angle += 360
+
+        if self.rotate_angle > 180:
+           self.rotate_angle -= 360
+           
         self.block_x = new_x
         self.block_y = new_y
         
-    
-    def rotate_block(self, angle):
-        return ndimage.rotate(self._block, angle=angle, mode='nearest',  reshape=False)
-
-    def score(self):
-        surface_bonus = 0
-        surface_x = range(self.surface_index * self.surface_width, ( self.surface_index + 1 ) * self.surface_width)
-        surface_y = range(self.surface_index * self.surface_height, ( self.surface_index + 1 ) * self.surface_height)
-        if round(self.block_x) in surface_x and round(self.block_y) in surface_y:
-            surface_bonus = 100
-            
+    def distance(self, x, y, theta):
         pi_2 = np.deg2rad(90)
-        r = np.sqrt(self.block_x**2 + self.block_y**2)
-        phi =  pi_2 if self.block_x == 0 else np.arctan(self.block_y/self.block_x)
-        theta = phi + np.deg2rad(self.rotate_angle)
+        r = np.sqrt(x**2 + y**2)
+        phi =  pi_2 if x == 0 else np.arctan(y/x)
+        theta = phi + np.deg2rad(theta)
 
         r_actual = np.sqrt(self.shift_x**2 + self.shift_y**2)
         phi_actual = pi_2 if self.shift_x == 0 else np.arctan(self.shift_y/self.shift_x)
         theta_actual = phi_actual
 
-        dist = np.sqrt(r**2 + r_actual**2 - 2*(r * r_actual * np.cos(theta - theta_actual)))
-        return self.max_score if dist < 0.01 else (1/dist) + surface_bonus
+        return np.sqrt(r**2 + r_actual**2 - 2*(r * r_actual * np.cos(theta - theta_actual)))
+        
+    def rotate_block(self, angle):
+        return ndimage.rotate(self._block, angle=angle, mode='nearest',  reshape=False)
+
+    @property
+    def perfect_fit(self):
+        return 0 == self.distance(self.block_x, self.block_y, self.rotate_angle)
+    
+    def score(self):
+        surface_bonus = 0
+        surface_x = range(self.surface_index * self.surface_width, ( self.surface_index + 1 ) * self.surface_width)
+        surface_y = range(self.surface_index * self.surface_height, ( self.surface_index + 1 ) * self.surface_height)
+        if round(self.block_x) in surface_x and round(self.block_y) in surface_y:
+            surface_bonus = 0.1
+            
+        dist = self.distance(self.block_x, self.block_y, self.rotate_angle)
+        return 1 - (dist/self._max_dist)**0.4 + 0.1
