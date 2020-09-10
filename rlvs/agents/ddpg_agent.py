@@ -70,7 +70,7 @@ action_bounds (array): array with min and max action values, with shape (2, numb
         for i_episode in range(num_train_episodes):
             state_t, episode_return, episode_length, terminal = self.env.reset(), 0, 0, False
             self.exploration_noise.reset()
-            print("Actiual states: ", self.env.block.shift_x, self.env.block.shift_y, self.env.block.rotate_angle)
+            print("Actual states: ", [self.env.block.shift_x, self.env.block.shift_y], [self.env.block.block_x, self.env.block.block_y, self.env.block.rotate_angle])
             while not (terminal or (episode_length == max_episode_length)):
                 # For the first `start_steps` steps, use randomly sampled actions
                 # in order to encourage exploration.
@@ -99,9 +99,9 @@ action_bounds (array): array with min and max action values, with shape (2, numb
                 
                 # Assign next state to be the current state on the next round
                 state_t = state_t_1
-                returns.append([self.env.block.sandbox, self.env.block.original_sandbox, reward])
+                # returns.append([self.env.block.sandbox, self.env.block.original_sandbox, reward])
 
-                print(r, action, reward, episode_length)
+                print(r, action, reward, episode_length, [self.env.block.block_x, self.env.block.block_y, self.env.block.rotate_angle])
                 
             self.update_network(mu_losses, q_losses)
             decay *= decay

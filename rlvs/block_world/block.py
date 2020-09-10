@@ -109,6 +109,9 @@ class Block:
         new_x = int(np.round(translate_x)) + self.block_x
         new_y = int(np.round(translate_y)) + self.block_y
 
+        if new_x < 0 or new_y < 0 or new_x > self.sandbox_width or new_y > self.sandbox_height:
+            raise Exception('out of bounds')
+
         self.sandbox = np.zeros((self.sandbox_width, self.sandbox_height))
         self.sandbox[
             self.surface_index * self.surface_width:( self.surface_index + 1 ) * self.surface_width,
