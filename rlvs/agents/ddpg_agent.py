@@ -136,11 +136,14 @@ class DDPGAgent:
         self._critiq.update_target_network()
         
     def gather_stats(self):
+        print("Gatthering Stats")
         score = []
+        step_count = 0
         for k in range(10):
             old_state = self.env.reset()
             cumul_r, done = 0, False
-            while not done:
+            while not (done or step_count == 500):
+                step_count += 1
                 a = self.get_action(old_state)
                 old_state, r, done = self.env.step(a)
                 cumul_r += r
