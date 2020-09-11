@@ -90,7 +90,7 @@ class DDPGAgent:
                 episode_length += 1
                 state_t = state_t_1
                 
-                print(r, action, reward, episode_length, [self.env.block.block_x, self.env.block.block_y, self.env.block.rotate_angle, self.env.block.shift_x, self.env.block.shift_y])
+                print(r, action, reward, episode_length, [self.env.block.block_x, self.env.block.block_y, self.env.block.rotate_angle, self.env.block.shift_x, self.env.block.shift_y, self.env.block.distance()])
                 self.update_network()
                 
             mean, stdev = self.gather_stats()

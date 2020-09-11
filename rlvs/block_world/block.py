@@ -82,6 +82,7 @@ class Block:
 
         self.update_sandbox()
         self.original_sandbox = np.copy(self.sandbox)
+        self.prev_dist = None
 
     
     def _max_distance(self):
@@ -148,7 +149,11 @@ class Block:
         self.block_x = new_x
         self.block_y = new_y
         
-    def distance(self, x, y, theta):
+    def distance(self, x=None, y=None, theta=None):
+        x = self.block_x if x is None else x
+        y = self.block_y if y is None else y
+        theta = self.rotate_angle if theta is None else theta
+        
         pi_2 = np.deg2rad(90)
         r = np.sqrt(x**2 + y**2)
         phi =  pi_2 if x == 0 else np.arctan(y/x)
@@ -175,4 +180,11 @@ class Block:
             surface_bonus = 0.1
             
         dist = self.distance(self.block_x, self.block_y, self.rotate_angle)
-        return 1 - (dist/self._max_dist)**0.4 + 0.1
+
+        if self.prev_dist is None: # First dist
+            self.prev_dist = dist
+            
+        score = (1 - (dist/self._max_dist)**0.4) if dist < self.prev_dist else 0
+        self.prev_dist = dist if dist < self.prev_dist else self.prev_dist
+
+        return score

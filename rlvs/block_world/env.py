@@ -25,14 +25,16 @@ class Env:
         return state.astype(dtype='float32')
 
     def step(self, action):
+        terminal = False
         try:
             self.block.update_sandbox(*action)
         except:
             reward = 0
+            terminal = True
             self.block.update_sandbox()
         else: 
             reward = self.block.score()
             
         state = np.expand_dims(self.block.sandbox.reshape(self.input_shape), axis=0)
-        terminal = (reward == 0 or self.block.perfect_fit)
+        terminal = (terminal or self.block.perfect_fit)
         return state.astype(dtype='float32'), reward, terminal
