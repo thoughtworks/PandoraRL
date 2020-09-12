@@ -29,7 +29,7 @@ class Env:
         try:
             self.block.update_sandbox(*action)
         except:
-            reward = 0
+            reward = -1
             terminal = True
             self.block.update_sandbox()
         else: 
