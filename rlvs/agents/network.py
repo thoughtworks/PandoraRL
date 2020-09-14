@@ -42,9 +42,11 @@ class Critic:
         conv_model = Input(shape=self._state_shape)
 
         conv_model_1 = Conv2D(64, 5, 5,  activation='relu')(conv_model)
-        conv_model_1 = Conv2D(64, 4, 4,  activation='relu')(conv_model)
-        conv_model_1 = Conv2D(64, 3, 3,  activation='relu')(conv_model)
-
+        conv_model_1 = Conv2D(64, 4, 4,  activation='relu')(conv_model_1)
+        conv_model_1 = Conv2D(64, 3, 3,  activation='relu')(conv_model_1)
+        conv_model_1 = MaxPooling2D(pool_size=(3, 3))(conv_model_1)
+        
+        
         conv_model_1 = Flatten()(conv_model_1)
         conv_model_1 = Dense(256, activation='relu')(conv_model_1)
         conv_model_1 = Model(inputs=conv_model, outputs=conv_model_1)
@@ -99,9 +101,10 @@ class Actor:
         conv_model = Input(shape=self._state_shape)
 
         conv_model_1 = Conv2D(64, 5, 5,  activation='relu')(conv_model)
-        conv_model_1 = Conv2D(64, 4, 4,  activation='relu')(conv_model)
-        conv_model_1 = Conv2D(64, 3, 3,  activation='relu')(conv_model)
-
+        conv_model_1 = Conv2D(64, 4, 4,  activation='relu')(conv_model_1)
+        conv_model_1 = Conv2D(64, 3, 3,  activation='relu')(conv_model_1)
+        conv_model_1 = MaxPooling2D(pool_size=(3, 3))(conv_model_1)
+        
         conv_model_1 = Flatten()(conv_model_1)
         conv_model_1 = Dense(256, activation='relu')(conv_model_1)
         conv_model_1 = Dense(128, activation='relu')(conv_model_1)
