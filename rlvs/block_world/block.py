@@ -102,8 +102,8 @@ class Block:
     
     @property
     def action_bounds(self):
-        #return [[-8, -, -10], [2*self._block.shape[0], 2*self._block.shape[1], 10]]
-        return [[-self.sandbox_width, -self.sandbox_height, -180], [self.sandbox_width, self.sandbox_height, 180]]
+        return [[-8, -8, -10], [8, 8, 10]]
+        #return [[-self.sandbox_width, -self.sandbox_height, -180], [self.sandbox_width, self.sandbox_height, 180]]
         
     @property
     def block(self):
