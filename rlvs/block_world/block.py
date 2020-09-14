@@ -182,17 +182,14 @@ class Block:
         if self.prev_dist is None: # First dist
             self.prev_dist = dist
 
-        if dist > self.prev_dist:
+        if dist >= self.prev_dist:
             return 0 # quickly learn to avoid going out of bounds.
 
         if self.perfect_fit:
             return self.max_score
         
         
-        if inside_surface:
-            score = (dist)**-2
-        else: 
-            score = (dist)**-1
+        score = (dist)**-2
         
         self.prev_dist = dist if dist < self.prev_dist else self.prev_dist
 
