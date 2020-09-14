@@ -98,9 +98,10 @@ class DDPGAgent:
                 episode_length += 1
                 state_t = state_t_1
                 
-                print(r, action, reward, episode_length, [self.env.block.block_x, self.env.block.block_y, self.env.block.rotate_angle, self.env.block.shift_x, self.env.block.shift_y, self.env.block.distance()])
+                print(action, reward, episode_length, [self.env.block.block_x, self.env.block.block_y, self.env.block.rotate_angle, self.env.block.shift_x, self.env.block.shift_y, self.env.block.distance()])
                 
-                self.update_network()
+                xx, xy = self.update_network()
+                print("critic loss", xx)
                 
             #mean, stdev = self.gather_stats()
             returns.append([i_episode + 1, episode_length, mean, stdev])
@@ -149,14 +150,16 @@ class DDPGAgent:
             rewards + (1 - terminals) * self.GAMMA * target_q.reshape((batch_len,))
         ).reshape((batch_len,1))
         
-        self._critiq.train_on_batch(states, actions, critic_target)
+        critic_lose = self._critiq.train_on_batch(states, actions, critic_target)
         predicted_actions = self._actor.predict(states)
 
         action_grads = self._critiq.action_gradients(states, predicted_actions)
-        self._actor.train(states, actions, action_grads[0])
+        actor_lose = self._actor.train(states, actions, action_grads[0])
 
         self._actor.update_target_network()
         self._critiq.update_target_network()
+
+        return critic_lose, actor_lose
         
     def gather_stats(self):
         print("Gatthering Stats")

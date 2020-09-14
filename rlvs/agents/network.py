@@ -34,7 +34,6 @@ class Critic:
     def train_on_batch(self, states, actions, critic_target):
         return self.critic.train_on_batch([states, actions], critic_target)
 
-
     def action_gradients(self, states, actions):
         return self._action_gradients([states, actions])
 
@@ -79,7 +78,7 @@ class Actor:
         self.optimizer = self._create_optimizer()
 
     def train(self, states, actions, action_gradients):
-        self.optimizer([states, action_gradients])
+        return self.optimizer([states, action_gradients])
         
     def predict(self, input_state):
         return self.actor.predict(input_state)
