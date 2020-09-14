@@ -173,7 +173,6 @@ class Block:
         return 0.1 <= self.distance(self.block_x, self.block_y, self.rotate_angle)
     
     def score(self):
-        inside_surface
         surface_x = range(self.surface_index * self.surface_width, ( self.surface_index + 1 ) * self.surface_width)
         surface_y = range(self.surface_index * self.surface_height, ( self.surface_index + 1 ) * self.surface_height)
         inside_surface = round(self.block_x) in surface_x and round(self.block_y) in surface_y
