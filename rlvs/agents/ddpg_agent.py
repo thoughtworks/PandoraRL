@@ -98,7 +98,7 @@ class DDPGAgent:
                 state_t = state_t_1
                 xx, xy = self.update_network()
                 
-                print("Action:", action, "Reward:", np.round(reward, 4), "E_i:", episode_length, "Block state:", [self.env.block.block_x, self.env.block.block_y, np.round(self.env.block.rotate_angle, 2), self.env.block.shift_x, self.env.block.shift_y, np.round(self.env.block.distance(), 4)], "critic loss", np.round(xx, 5))
+                print("Action:", action, "Reward:", np.round(reward, 4), "E_i:", episode_length, "Block state:", [self.env.block.block_x, self.env.block.block_y, np.round(self.env.block.rotate_angle, 2), self.env.block.shift_x, self.env.block.shift_y], "Dist:",  np.round(self.env.block.distance(), 4), "critic loss", np.round(xx, 5))
                 
             #mean, stdev = self.gather_stats()
             returns.append([i_episode + 1, episode_length, mean, stdev])
