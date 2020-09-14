@@ -53,10 +53,12 @@ class DDPGAgent:
         # Try Brownian Motion as a candidate for stochastic noise, currently using Ornstein–Uhlenbeck process
         # Explore AdaptiveParamNoiseSpec, with normalized action space
         # https://github.com/l5shi/Multi-DDPG-with-parameter-noise/blob/master/Multi_DDPG_with_parameter_noise.ipynb
-        action = self.action_bounds[1] * self._actor.predict(state).flatten()
+        action = self._actor.predict(state).flatten()
 
         if step is not None:
             action += self.exploration_noise.generate(step)
+
+        action *= self.action_bounds[1]
             
         x, y, t = np.clip(action, *self.action_bounds)
         return np.array([np.round(x), np.round(y), t])
@@ -91,6 +93,8 @@ class DDPGAgent:
                 state_t = state_t_1
                 
                 print(r, action, reward, episode_length, [self.env.block.block_x, self.env.block.block_y, self.env.block.rotate_angle, self.env.block.shift_x, self.env.block.shift_y, self.env.block.distance()])
+                #self.learn_current_action(state_t, action, reward, state_t_1, d_store)
+                
                 self.update_network()
                 
             mean, stdev = self.gather_stats()
@@ -108,6 +112,20 @@ class DDPGAgent:
             'next_state': next_state,
             'done': done
         })
+
+    def learn_current_action(self, state, action, reward, next_state, terminal):
+        target_action = self._actor.predict_target(next_state)
+        target_q = self._critiq.predict_target([next_state, target_action])
+        
+        critic_target = (
+            reward + (1 - terminal) * self.GAMMA * target_q.reshape((1,))
+        ).reshape((1,1))
+        
+        self._critiq.train_on_batch(state, np.array([action]), critic_target)
+        predicted_action = self._actor.predict(state)
+
+        action_grads = self._critiq.action_gradients(state, predicted_action)
+        self._actor.train(state, action, action_grads[0])
         
     def update_network(self):
         batch = self.memory.sample(self.BATCH_SIZE)
