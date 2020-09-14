@@ -181,11 +181,11 @@ class Block:
 
         if self.prev_dist is None: # First dist
             self.prev_dist = dist
-        
+            
         if inside_surface:
-            score = (1 - (dist/self._max_dist)**0.8)
+            score = (1 - (dist/self._max_dist)**2.1)
         else: 
-            score = (1 - (dist/self._max_dist)**0.4)
+            score = (1 - (dist/self._max_dist)**0.3)
         
         self.prev_dist = dist if dist < self.prev_dist else self.prev_dist
 
