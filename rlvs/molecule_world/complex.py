@@ -13,7 +13,7 @@ class Complex:
         self.num_features = ligand.num_features
 
         self.box_size = int(np.ceil(2 * self.max_dist / self.resolution + 1))
-        self.mols = np.array(protein, ligand)
+        self.mols = [protein, ligand]
         self.update_tensor()
         
         
