@@ -82,8 +82,8 @@ class Featurizer():
                 features.append(feats)
         coords = np.array(coords)
         features = np.array(features)
-        print(f"Shape of coords: {coords.shape}")
-        print(f"Shape of features: {features.shape}")
+        # print(f"Shape of coords: {coords.shape}")
+        # print(f"Shape of features: {features.shape}")
         if bond_verbose:
             print(f"Bond information:\n")
             for bond in ob.OBMolBondIter(obmol):

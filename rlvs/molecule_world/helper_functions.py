@@ -22,7 +22,7 @@ def read_to_OB(filename, filetype):
     obmol = ob.OBMol()
 
     notatend = obconversion.ReadFile(obmol, filename)
-    print(obmol.GetFormula())
+    # print(obmol.GetFormula())
     return obmol
 
 def OB_to_mol(obmol, mol_type):

@@ -20,9 +20,9 @@ class Molecule:
         
         self.origin = np.array(origin, copy=True).astype(float).reshape(1,3) #initially coords are wrt (0,0,0)
         
-        print(f"Number of heavy atoms in molecule = {self.num_atoms}")
-        print(f"Number of features = {self.num_features}")
-        print(f"Max distance between atoms along\nx:{self.atom_range(0)}\ny:{self.atom_range(1)}\nz:{self.atom_range(2)}")
+        # print(f"Number of heavy atoms in molecule = {self.num_atoms}")
+        # print(f"Number of features = {self.num_features}")
+        # print(f"Max distance between atoms along\nx:{self.atom_range(0)}\ny:{self.atom_range(1)}\nz:{self.atom_range(2)}")
         
         self.T = lambda x,y,z : np.array([[1,0,0,x], [0,1,0,y], [0,0,1,z], [0,0,0,1]]).astype(float)
         

@@ -3,7 +3,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
 class Complex:
-    def __init__(self, protein, ligand, max_dist=10, resolution=0.1):
+    def __init__(self, protein, ligand, max_dist=10, resolution=1):
         '''
         max_dist : maximum distance between any atom and box center
         '''

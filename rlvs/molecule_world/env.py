@@ -16,17 +16,17 @@ class ActionSpace:
 
 class Env:
     def __init__(self):
-        self.ligand, self.protein = get_molecules()
+        self.protein, self.ligand = get_molecules()
         self._complex = Complex(self.protein, self.ligand)
-        self.input_shape = (1, *self._complex.tensor4D.shape)
+        self.input_shape = self._complex.tensor4D.shape
         single_step = np.array([10, 10, 10, 10, 10, 10])
         action_bounds = np.array([-1*single_step, single_step])
         self.action_space = ActionSpace(action_bounds)
 
     def reset(self):
-        self.ligand, self.protein = get_molecules()
+        self.protein, self.ligand = get_molecules()
         self._complex = Complex(self.protein, self.ligand)
-        self.input_shape = (1, *self._complex.tensor4D.shape)
+        self.input_shape = self._complex.tensor4D.shape
         state = np.expand_dims(self._complex.tensor4D.reshape(self.input_shape), axis=0)
         return state
 
