@@ -76,7 +76,7 @@ class DDPGAgent:
         noise_ep     = 10
         mean         = 0
         stdev        = 0
-        r = False
+        r = 0
 
         for i_episode in range(num_train_episodes):
             state_t, episode_return, episode_length, terminal = self.env.reset(), 0, 0, False
@@ -96,16 +96,14 @@ class DDPGAgent:
                 episode_return += reward
                 episode_length += 1
                 state_t = state_t_1
-                
-                print(action, reward, episode_length, [self.env.block.block_x, self.env.block.block_y, self.env.block.rotate_angle, self.env.block.shift_x, self.env.block.shift_y, self.env.block.distance()])
-                
                 xx, xy = self.update_network()
-                print("critic loss", xx)
+                
+                print("Action:", action, "Reward:", np.round(reward, 4), "E_i:", episode_length, "Block state:", [self.env.block.block_x, self.env.block.block_y, np.round(self.env.block.rotate_angle, 2), self.env.block.shift_x, self.env.block.shift_y, np.round(self.env.block.distance(), 4)], "critic loss", np.round(xx, 5))
                 
             #mean, stdev = self.gather_stats()
             returns.append([i_episode + 1, episode_length, mean, stdev])
-
-            print("Episode:", i_episode + 1, "Return:", episode_return, 'episode_length:', episode_length, 'stats (m, s)', [mean, stdev])
+            r = r if r > episode_return else episode_return
+            print("Episode:", i_episode + 1, "Return:", episode_return, 'episode_length:', episode_length, 'Max Reward', r)
 
         return returns
 
