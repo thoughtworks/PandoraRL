@@ -1,51 +1,8 @@
-import numpy as np
-import h5py
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.pyplot as plt
 from openbabel import pybel
+from openbabel import openbabel as ob
 import os
-
-
-def center_molecule(coords):
-    '''
-    shift origin to the center of molecule
-    '''
-    centroid = coords.mean(axis = 0).reshape(-1, 3)
-    shifted_coords = coords - centroid
-    
-    return shifted_coords
-
-def molecule_to_grid(max_dist, resolution, coords, features, display=False):
-    '''
-    create a 3d grid (a box)
-    
-    max_dist: maximum distance between any atom and box center
-    '''
-    num_features = features.shape[1]
-    box_size = int(np.ceil(2 * max_dist / resolution + 1))
-    grid = np.zeros((box_size, box_size, box_size, num_features))
-    
-    grid_coords = (coords + max_dist) / resolution
-    
-    grid_coords = grid_coords.round().astype(int)
-    X, Y, Z,atom_type = [], [], [], []
-
-    for (x,y,z), f in zip(grid_coords, features):
-        X.append(x)
-        Y.append(y)
-        Z.append(z)
-        atom_type.append(f[0]) #first feature channel
-        grid[x,y,z] += f
-        
-    if display:
-        fig = plt.figure(figsize=(6,6))
-        ax = fig.add_subplot(111, projection='3d')
-
-        img = ax.scatter(X,Y,Z, c = atom_type, s = 100)
-        fig.colorbar(img)
-        plt.show()
-        
-    return grid
+import numpy as np
+from molecule import Molecule
 
 class Featurizer():    
     def __init__(self):
@@ -82,7 +39,7 @@ class Featurizer():
         #TODO: add SMARTS patterns 
         '''
         INPUT
-        atom: pybel Atom object
+        atom: OB Atom object
         molecule_type: 1 for ligand, -1 for protein
         
         OUTPUT
@@ -98,33 +55,54 @@ class Featurizer():
         '''
         features = []
         
-        features.append(self.atom_codes[atom.atomicnum])
+        features.append(self.atom_codes[atom.GetAtomicNum()])
         
         # one hot encode atomic number
         encoding = np.zeros(self.num_classes)
-        encoding[self.atom_codes[atom.atomicnum]] = 1
+        encoding[self.atom_codes[atom.GetAtomicNum()]] = 1
         features.extend(encoding)
         
         # hybridization, heavy valence, hetero valence, partial charge
-        named_features = [atom.hyb, atom.heavydegree, atom.heterodegree, atom.partialcharge]
+        named_features = [atom.GetHyb(), atom.GetHvyDegree(), atom.GetHeteroDegree(), atom.GetPartialCharge()]
         features.extend(named_features)
         
         #molecule type
         molecule_type = molecule_type
         features.append(molecule_type)
         
-        return atom.coords, features
+        return [atom.GetX(), atom.GetY(), atom.GetZ()], features
     
-    def get_mol_features(self, mol, molecule_type):
-        num_atoms = len(mol.atoms)
+    def get_mol_features(self, obmol, molecule_type, bond_verbose=False):
+        num_atoms = obmol.NumAtoms()
         coords, features = [], []
-        for atom in mol.atoms:
+        for atom in ob.OBMolAtomIter(obmol):
             # add only heavy atoms
-            if atom.atomicnum > 1:
+            if atom.GetAtomicNum() > 1:
                 crds, feats = self.get_atom_features(atom, molecule_type)
                 coords.append(crds)
                 features.append(feats)
         coords = np.array(coords)
         features = np.array(features)
-
+        print(f"Shape of coords: {coords.shape}")
+        print(f"Shape of features: {features.shape}")
+        if bond_verbose:
+            print(f"Bond information:\n")
+            for bond in ob.OBMolBondIter(obmol):
+                print(bond.GetBeginAtom().GetType(), bond.GetEndAtom().GetType())
         return coords, features
+    
+def read_to_OB(filename, filetype):
+    obconversion = ob.OBConversion()
+    obconversion.SetInFormat(filetype)
+    obmol = ob.OBMol()
+
+    notatend = obconversion.ReadFile(obmol, filename)
+    print(obmol.GetFormula())
+    return obmol
+
+def OB_to_mol(obmol, mol_type):
+    
+    f = Featurizer()
+    coords, feats = f.get_mol_features(obmol=obmol, molecule_type=mol_type, bond_verbose=0)
+    mol = Molecule(coords=coords, features=feats)
+    return mol

@@ -1,0 +1,87 @@
+import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+
+class Complex:
+    def __init__(self, max_dist, resolution, num_features):
+        '''
+        max_dist : maximum distance between any atom and box center
+        '''
+
+        self.max_dist = max_dist
+        self.resolution = resolution
+        self.num_features = num_features
+
+        self.box_size = int(np.ceil(2 * self.max_dist / self.resolution + 1))      
+        
+    def convert_to_grid_coords(self, coords):
+        
+        assert(coords.shape[1]==3)
+        return ((coords + self.max_dist) / self.resolution).round().astype(int)
+        
+    def new_3D_display(self, fullbox):
+
+        fig = plt.figure(figsize=(4,4))
+        self.ax = fig.add_subplot(111, projection='3d')
+        if fullbox:
+            self.ax.set_xlim(0, self.box_size)
+            self.ax.set_ylim(0, self.box_size)
+            self.ax.set_zlim(0, self.box_size)
+            
+        self.ax.set_xlabel('X')
+        self.ax.set_ylabel('Y')
+        self.ax.set_zlabel('Z')
+        
+    def update_tensor(self, mols, update_mols=False):
+        '''
+        create a new 4D tensor
+
+        - mols : list of molecule objects to join in same tensor
+
+            '''
+
+        self.tensor4D = np.zeros((self.box_size, self.box_size, self.box_size, self.num_features))
+        for mol in mols:
+            grid_coords = self.convert_to_grid_coords(mol.coords)
+            features = mol.features
+
+            in_box = ((grid_coords >= 0) & (grid_coords < self.box_size)).all(axis=1)
+            if update_mols:
+                mol.apply_crop_mask(mask = in_box)
+            if all(in_box)==False:
+                print("Some atoms are outside the box and will be discarded.")
+
+            for (x,y,z), f in zip(grid_coords[in_box, :], features[in_box, :]):
+                self.tensor4D[x,y,z] += f
+        
+
+    def plot_tensor(self, feature_axis, protein_alpha=0.1, protein_color='orange', ligand_alpha=1, ligand_color='blue',fullbox=1):
+
+        self.new_3D_display(fullbox=fullbox)
+        x,y,z = np.where(self.tensor4D[:,:,:,feature_axis])
+
+        for coords in zip(x,y,z):
+            if self.tensor4D[coords][feature_axis]==-1:
+                self.ax.scatter(*coords, alpha=protein_alpha, color=protein_color)
+            elif self.tensor4D[coords][feature_axis]==1:
+                self.ax.scatter(*coords, alpha=ligand_alpha, color=ligand_color)
+                
+    def crop_tensor(self, center_coord, x, y, z):
+        '''
+        - assumes center is wrt 0,0,0
+        '''
+
+        grid_center_coord = self.convert_to_grid_coords(center_coord)
+        transform = lambda x: int(round(x/self.resolution))
+        x,y,z = transform(x), transform(y), transform(z)
+
+        min_x, max_x = grid_center_coord[:,0][0] - x, grid_center_coord[:,0][0] + x
+        min_y, max_y = grid_center_coord[:,1][0] - y, grid_center_coord[:,1][0] + y
+        min_z, max_z = grid_center_coord[:,2][0] - z, grid_center_coord[:,2][0] + z
+
+        print(min_x, max_x, min_y, max_y, min_z, max_z)
+        print(self.tensor4D.shape)
+        mask = np.zeros(self.tensor4D.shape[0:3], dtype=bool)
+        mask[min_x:max_x, min_y:max_y, min_z:max_z] = True
+        self.tensor4D[~mask] = np.zeros(self.tensor4D.shape[3])
+        print(self.tensor4D.shape)
