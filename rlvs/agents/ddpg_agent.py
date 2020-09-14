@@ -49,7 +49,7 @@ class DDPGAgent:
             self.TAU
         )
 
-    def get_action(self, state, step=None):
+    def get_predicted_action(self, state, step=None):
         # Try Brownian Motion as a candidate for stochastic noise, currently using Ornstein–Uhlenbeck process
         # Explore AdaptiveParamNoiseSpec, with normalized action space
         # https://github.com/l5shi/Multi-DDPG-with-parameter-noise/blob/master/Multi_DDPG_with_parameter_noise.ipynb
@@ -58,11 +58,14 @@ class DDPGAgent:
         if step is not None:
             action += self.exploration_noise.generate(step)
 
+        return action
+        
+    def get_action(self, action):
         action *= self.action_bounds[1]
-            
+        
         x, y, t = np.clip(action, *self.action_bounds)
         return np.array([np.round(x), np.round(y), t])
-
+    
     def play(self, num_train_episodes):
         returns      = []
         q_losses     = []
@@ -72,6 +75,8 @@ class DDPGAgent:
         max_episode_length = 500
         decay        = 0.99
         noise_ep     = 10
+        mean         = 0
+        stdev        = 0
         r = False
 
         for i_episode in range(num_train_episodes):
@@ -80,11 +85,12 @@ class DDPGAgent:
             while not (terminal or (episode_length == max_episode_length)):
                 # For the first `start_steps` steps, use randomly sampled actions
                 # in order to encourage exploration.
-                action = self.get_action(state_t, episode_length)
+                predicted_action = self.get_predicted_action(state_t, episode_length)
+                action = self.get_action(predicted_action)
                 state_t_1, reward, terminal = self.env.step(action)
                 d_store = False if episode_length == max_episode_length else terminal
                 
-                self.memorize(state_t[0], action, reward, state_t_1[0], d_store)
+                self.memorize(state_t[0], predicted_action, reward, state_t_1[0], d_store)
 
                 num_steps += 1                
                 
@@ -93,11 +99,10 @@ class DDPGAgent:
                 state_t = state_t_1
                 
                 print(r, action, reward, episode_length, [self.env.block.block_x, self.env.block.block_y, self.env.block.rotate_angle, self.env.block.shift_x, self.env.block.shift_y, self.env.block.distance()])
-                #self.learn_current_action(state_t, action, reward, state_t_1, d_store)
                 
                 self.update_network()
                 
-            mean, stdev = self.gather_stats()
+            #mean, stdev = self.gather_stats()
             returns.append([i_episode + 1, episode_length, mean, stdev])
 
             print("Episode:", i_episode + 1, "Return:", episode_return, 'episode_length:', episode_length, 'stats (m, s)', [mean, stdev])
