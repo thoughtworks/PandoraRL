@@ -184,7 +184,7 @@ class Block:
         if self.prev_dist is None: # First dist
             self.prev_dist = dist
             
-        score = (1 - (dist/self._max_dist)**0.4) if dist <= self.prev_dist else 0
+        score = (1 - (dist/self._max_dist)**0.4) if dist < self.prev_dist else 0
         self.prev_dist = dist if dist < self.prev_dist else self.prev_dist
 
         return score
