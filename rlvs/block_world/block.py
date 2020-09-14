@@ -170,21 +170,20 @@ class Block:
 
     @property
     def perfect_fit(self):
-        return 0 == self.distance(self.block_x, self.block_y, self.rotate_angle)
+        return 0.1 <= self.distance(self.block_x, self.block_y, self.rotate_angle)
     
     def score(self):
-        surface_bonus = 0
+        inside_surface
         surface_x = range(self.surface_index * self.surface_width, ( self.surface_index + 1 ) * self.surface_width)
         surface_y = range(self.surface_index * self.surface_height, ( self.surface_index + 1 ) * self.surface_height)
-        if round(self.block_x) in surface_x and round(self.block_y) in surface_y:
-            surface_bonus = 0.1
+        inside_surface = round(self.block_x) in surface_x and round(self.block_y) in surface_y
             
         dist = self.distance(self.block_x, self.block_y, self.rotate_angle)
 
         if self.prev_dist is None: # First dist
             self.prev_dist = dist
             
-        score = (1 - (dist/self._max_dist)**0.4) if dist < self.prev_dist else 0
+        score = (1 - (dist/self._max_dist)**0.4) if inside_surface else 0
         self.prev_dist = dist if dist < self.prev_dist else self.prev_dist
 
-        return score
+        return score + (100 if self.perfect_fit else 0)
