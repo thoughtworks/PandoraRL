@@ -185,12 +185,7 @@ class Block:
         if dist >= self.prev_dist:
             return 0 # quickly learn to avoid going out of bounds.
 
-        if self.perfect_fit:
-            return self.max_score
+        score = (1 - (dist/self._max_dist)**0.4)
         
-        
-        score = (dist)**-2
-        
-        self.prev_dist = dist if dist < self.prev_dist else self.prev_dist
-
+        self.prev_dist = dist
         return score
