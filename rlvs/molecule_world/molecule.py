@@ -42,6 +42,10 @@ class Molecule:
     def homogeneous(self):
         ''' returns homogeneous form of coordinates (column major form) for translation and rotation matrix multiplication '''
         return np.concatenate((self.coords, np.ones((self.coords.shape[0], 1))), axis = 1).T
+
+    def update_pose(self, x, y, z, roll, pitch, yaw):
+        self.translate(x, y, z)
+        self.rotate('xyz', [roll, pitch, yaw], True)
         
     def translate(self,x,y,z):
         ''' translate along axes '''

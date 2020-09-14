@@ -3,16 +3,19 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
 class Complex:
-    def __init__(self, max_dist, resolution, num_features):
+    def __init__(self, protein, ligand, max_dist=10, resolution=0.1):
         '''
         max_dist : maximum distance between any atom and box center
         '''
 
         self.max_dist = max_dist
         self.resolution = resolution
-        self.num_features = num_features
+        self.num_features = ligand.num_features
 
-        self.box_size = int(np.ceil(2 * self.max_dist / self.resolution + 1))      
+        self.box_size = int(np.ceil(2 * self.max_dist / self.resolution + 1))
+        self.mols = np.array(protein, ligand)
+        self.update_tensor()
+        
         
     def convert_to_grid_coords(self, coords):
         
@@ -32,7 +35,7 @@ class Complex:
         self.ax.set_ylabel('Y')
         self.ax.set_zlabel('Z')
         
-    def update_tensor(self, mols, update_mols=False):
+    def update_tensor(self, update_mols=False):
         '''
         create a new 4D tensor
 
@@ -40,8 +43,10 @@ class Complex:
 
             '''
 
+        invalid = False
         self.tensor4D = np.zeros((self.box_size, self.box_size, self.box_size, self.num_features))
-        for mol in mols:
+        
+        for mol in self.mols:
             grid_coords = self.convert_to_grid_coords(mol.coords)
             features = mol.features
 
@@ -50,10 +55,25 @@ class Complex:
                 mol.apply_crop_mask(mask = in_box)
             if all(in_box)==False:
                 print("Some atoms are outside the box and will be discarded.")
+                invalid = True
 
             for (x,y,z), f in zip(grid_coords[in_box, :], features[in_box, :]):
                 self.tensor4D[x,y,z] += f
-        
+
+        if invalid:
+            raise Exception("Some atoms are outside the box and will be discarded.")
+
+    def score(self):
+        # TODO
+        return 0.1
+
+    @property
+    def perfect_fit(self):
+        # TODO: Active site information
+        # if rmse < good_value
+        # return true
+
+        return False
 
     def plot_tensor(self, feature_axis, protein_alpha=0.1, protein_color='orange', ligand_alpha=1, ligand_color='blue',fullbox=1):
 

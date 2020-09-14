@@ -33,7 +33,6 @@ class DDPGAgent:
         self.memory = Memory(self.BUFFER_SIZE)
         self.env = env
         self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs)
-        self.noise_scaling = self.NOISE_SCALE * (self.action_bounds[1] - self.action_bounds[0])
 
         self._actor = Actor(
             self.input_shape,
