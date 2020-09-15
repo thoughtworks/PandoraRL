@@ -4,7 +4,7 @@ import numpy as np
 
 from .memory import Memory
 from .noise import OrnsteinUhlenbeckActionNoise
-from rlvs.network import Actor, Critic
+from rlvs.network import Actor, Critic, Actor3D, Critic3D
 
 class DDPGAgent:
     ACTOR_LEARNING_RATE  = 0.00005
@@ -86,7 +86,7 @@ class DDPGAgent:
                 state_t = state_t_1
                 critic_lose, actor_loss = self.update_network()
 
-                self.log(action, reward, episode_length, critic_lose)
+                self.log(action, np.round(reward, 4), episode_length, critic_lose)
                 
             #mean, stdev = self.gather_stats()
             returns.append([i_episode + 1, episode_length])
@@ -160,3 +160,52 @@ class DDPGAgent:
                 cumul_r += max_reward
                 score.append(cumul_r)
         return np.mean(np.array(score)), np.std(np.array(score))
+
+
+class DDPGAgent3D(DDPGAgent):
+    ACTOR_LEARNING_RATE  = 0.00005
+    CRITIQ_LEARNING_RATE = 0.00005
+    TAU                  = 0.001
+    
+    GAMMA                = 0.99
+
+    BATCH_SIZE           = 32
+    BUFFER_SIZE          = 20000
+        
+    def __init__(self, env):
+        self.input_shape = env.input_shape
+        self.action_shape = env.action_space.n_outputs
+        self.eps = 0.9
+        self.action_bounds = env.action_space.action_bounds
+        self.memory = Memory(self.BUFFER_SIZE)
+        self.env = env
+        self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs)
+
+        self._actor = Actor3D(
+            self.input_shape,
+            self.action_shape,
+            self.ACTOR_LEARNING_RATE,
+            self.TAU
+        )
+
+        self._critiq = Critic3D(
+            self.input_shape,
+            self.action_shape,
+            self.CRITIQ_LEARNING_RATE,
+            self.TAU
+        )
+
+    def get_action(self, action):
+        action *= self.action_bounds[1]
+        
+        x, y, z, r, p, y = np.clip(action, *self.action_bounds)
+        return np.array([np.round(x), np.round(y), np.round(z), r, p, y])
+    
+    def log(self, action, reward, episode_length, network_loss):
+        print(
+            "Action:", action,
+            "Reward:", np.round(reward, 4),
+            "E_i:", episode_length,
+            "Critic loss", np.round(network_loss, 5)
+        )
+
