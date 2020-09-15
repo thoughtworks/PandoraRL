@@ -17,8 +17,8 @@ class Critic:
         self.critic_target, _, __ = self._create_network()
 
         self._action_gradients = keras_backend.function(
-            [self.critic.input[0], self.critic.input[1]], keras_backend.gradients(
-                self.critic.output, [self.critic.input[1]]
+            [self._input_layer, self._action_layer], keras_backend.gradients(
+                self.critic.output, [self._action_layer]
             )
         )
 
@@ -36,6 +36,13 @@ class Critic:
 
     def action_gradients(self, states, actions):
         return self._action_gradients([states, actions])
+
+    def save(self, path):
+        self.critic.save_weights(path + '_critic.h5')
+
+    def load_weights(self, path):
+        self.critic.load_weights(path)
+
 
     def _create_network(self):
         conv_model = Input(shape=self._state_shape)
@@ -86,12 +93,18 @@ class Actor:
     def predict_target(self, input_state):
         return self.actor_target.predict(input_state)
 
+    def save(self, path):
+        self.actor.save_weights(path + '_actor.h5')
+
+    def load_weights(self, path):
+        self.actor.load_weights(path)
+
     def _create_optimizer(self):
         action_gdts = keras_backend.placeholder(shape=(None, self._action_shape))
         params_grad = tf.gradients(self.actor.output, self.actor.trainable_weights, -action_gdts)
         grads = zip(params_grad, self.actor.trainable_weights)
         return keras_backend.function(
-            inputs=[self.actor.input, action_gdts],
+            inputs=[self._input_layer, action_gdts],
             outputs=[keras_backend.constant(1)],
             updates=[tf.train.AdamOptimizer(self._learning_rate).apply_gradients(grads)]
         )

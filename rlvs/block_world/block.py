@@ -150,21 +150,13 @@ class Block:
         self.block_y = new_y
         
     def distance(self, x=None, y=None, theta=None):
+
         x = self.block_x if x is None else x
         y = self.block_y if y is None else y
         theta = self.rotate_angle if theta is None else theta
-        
-        pi_2 = np.deg2rad(90)
-        r = np.sqrt(x**2 + y**2)
-        phi =  pi_2 if x == 0 else np.arctan(y/x)
-        theta = phi + np.deg2rad(theta)
 
-        r_actual = np.sqrt(self.shift_x**2 + self.shift_y**2)
-        phi_actual = pi_2 if self.shift_x == 0 else np.arctan(self.shift_y/self.shift_x)
-        theta_actual = phi_actual
-
-        return np.sqrt(r**2 + r_actual**2 - 2*(r * r_actual * np.cos(theta - theta_actual)))
-        
+        return np.sqrt((self.shift_x - x)**2 + (self.shift_y - y )**2) + (1 - np.cos(np.deg2rad(theta/2)))
+    
     def rotate_block(self, angle):
         return ndimage.rotate(self._block, angle=angle, mode='nearest',  reshape=False)
 
