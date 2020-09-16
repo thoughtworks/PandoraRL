@@ -1,9 +1,11 @@
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
+import copy
 
 class Complex:
-    def __init__(self, protein, ligand, max_dist=10, resolution=1):
+    __GOOD_FIT = 0.006
+    def __init__(self, protein, ligand, max_dist=100, resolution=1):
         '''
         max_dist : maximum distance between any atom and box center
         '''
@@ -12,8 +14,13 @@ class Complex:
         self.resolution = resolution
         self.num_features = ligand.num_features
 
+        self.protein = protein
+
+        self.ligand = ligand
+        self.__ligand = copy.deepcopy(ligand)
+        
         self.box_size = int(np.ceil(2 * self.max_dist / self.resolution + 1))
-        self.mols = [protein, ligand]
+        self.ligand.randomize(self.box_size)
         self.update_tensor()
         
         
@@ -46,15 +53,15 @@ class Complex:
         invalid = False
         self.tensor4D = np.zeros((self.box_size, self.box_size, self.box_size, self.num_features))
         
-        for mol in self.mols:
+        for mol in [self.protein, self.ligand]:
             grid_coords = self.convert_to_grid_coords(mol.coords)
             features = mol.features
-
             in_box = ((grid_coords >= 0) & (grid_coords < self.box_size)).all(axis=1)
+
             if update_mols:
                 mol.apply_crop_mask(mask = in_box)
+
             if all(in_box)==False:
-                print("Some atoms are outside the box and will be discarded.")
                 invalid = True
 
             for (x,y,z), f in zip(grid_coords[in_box, :], features[in_box, :]):
@@ -64,16 +71,17 @@ class Complex:
             raise Exception("Some atoms are outside the box and will be discarded.")
 
     def score(self):
-        # TODO
-        return 0.1
+        rmsd = self.ligand.rmsd(self.__ligand)
+        return np.sinh(rmsd**0.7 + np.arcsinh(1))**-1
 
     @property
+    def rmsd(self):
+        return self.ligand.rmsd(self.__ligand)
+    
+    @property
     def perfect_fit(self):
-        # TODO: Active site information
-        # if rmse < good_value
-        # return true
-
-        return False
+        rmsd = self.ligand.rmsd(self.__ligand)
+        return rmsd < self.__GOOD_FIT
 
     def plot_tensor(self, feature_axis, protein_alpha=0.1, protein_color='orange', ligand_alpha=1, ligand_color='blue',fullbox=1):
 

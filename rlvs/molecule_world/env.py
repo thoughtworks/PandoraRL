@@ -1,7 +1,7 @@
 import numpy as np
 from .complex import Complex
 from .molecule import Molecule
-from .helper_functions import get_molecules
+from .datasets import DataStore
 class ActionSpace:
     def __init__(self, action_bounds):
         self.action_bounds = np.asarray(action_bounds)
@@ -15,39 +15,36 @@ class ActionSpace:
 
 
 class Env:
-    def __init__(self):
-        self.protein, self.ligand = get_molecules()
-        self._complex = Complex(self.protein, self.ligand)
+    def __init__(self, max_dist=100, resolution=1):
+        DataStore.init()
+        self.max_dist = max_dist
+        self.resolution = resolution
+        self.protein, self.ligand = DataStore.next()
+        self._complex = Complex(self.protein, self.ligand, self.max_dist, self.resolution)
         self.input_shape = self._complex.tensor4D.shape
         single_step = np.array([10, 10, 10, 10, 10, 10])
         action_bounds = np.array([-1*single_step, single_step])
         self.action_space = ActionSpace(action_bounds)
 
     def reset(self):
-        self.protein, self.ligand = get_molecules()
-        self._complex = Complex(self.protein, self.ligand)
+        self.protein, self.ligand = DataStore.next()
+        self._complex = Complex(self.protein, self.ligand, self.max_dist, self.resolution)
         self.input_shape = self._complex.tensor4D.shape
         state = np.expand_dims(self._complex.tensor4D.reshape(self.input_shape), axis=0)
         return state
 
     def step(self, action):
         terminal = False
+       
         try:
             self.ligand.update_pose(*action)
             self._complex.update_tensor()
+            reward = self._complex.score()
+            terminal = self._complex.perfect_fit
         except:
             reward = -1
             terminal = True
-        else: 
-            reward = self._complex.score()
 
         state = np.expand_dims(self._complex.tensor4D.reshape(self.input_shape), axis=0)
-        terminal = (terminal or self._complex.perfect_fit)
         return state.astype(dtype='float32'), reward, terminal
 
-
-
-# initialize complex/reset
-# state
-# apply delta transformations (step function)
-#

@@ -42,5 +42,5 @@ def get_molecules(ligand_path=None, protein_path=None):
     return protein, ligand
 
 # TODO: For faster processing
-protein = OB_to_mol(read_to_OB(filename=f'{DATA_PATH}{PROTEIN_FILES[0]}', filetype="pdbqt"), mol_type=-1)
-bound_ligand = OB_to_mol(read_to_OB(filename=f'{DATA_PATH}a-ketoamide-13b.pdbqt', filetype="pdbqt"), mol_type=1)
+#protein = OB_to_mol(read_to_OB(filename=f'{DATA_PATH}{PROTEIN_FILES[0]}', filetype="pdbqt"), mol_type=-1)
+#bound_ligand = OB_to_mol(read_to_OB(filename=f'{DATA_PATH}a-ketoamide-13b.pdbqt', filetype="pdbqt"), mol_type=1)

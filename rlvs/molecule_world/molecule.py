@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.spatial.transform import Rotation
+from .rmsd import RMSD
 
 class Molecule:
     '''
@@ -15,16 +16,18 @@ class Molecule:
 
         self.coords = np.array(coords, copy=True).astype(float)
         self.features = np.array(features, copy=True)
+        self.atoms = np.array(features[:,0], copy=True)
         self.num_atoms = self.features.shape[0]
         self.num_features = self.features.shape[1]
         
         self.origin = np.array(origin, copy=True).astype(float).reshape(1,3) #initially coords are wrt (0,0,0)
-        
-        # print(f"Number of heavy atoms in molecule = {self.num_atoms}")
-        # print(f"Number of features = {self.num_features}")
-        # print(f"Max distance between atoms along\nx:{self.atom_range(0)}\ny:{self.atom_range(1)}\nz:{self.atom_range(2)}")
-        
         self.T = lambda x,y,z : np.array([[1,0,0,x], [0,1,0,y], [0,0,1,z], [0,0,0,1]]).astype(float)
+        self.rmsd = RMSD(self)
+
+    def randomize(self, box_size):
+        x, y_, z = np.random.uniform(0, box_size/4, (3,))
+        r, p, y = np.random.uniform(0, 360, (3,))
+        self.update_pose(x, y_, z, r, p, y)
         
     def atom_range(self, axis):
         values = self.coords[:,axis]
@@ -100,4 +103,9 @@ class Molecule:
         grid.ax.scatter(X,Y,Z, s=s, alpha=alpha, color=color)
         grid.ax.scatter([origin[0,0]], [origin[0,1]], [origin[0,2]], s=s, alpha=1, color=color, marker = "+")
         #print(f"Plotting X={X}, Y={Y}, Z={Z}")
+    
+    def summary(self):
+        print(f"Number of heavy atoms in molecule = {self.num_atoms}")
+        print(f"Number of features = {self.num_features}")
+        print(f"Max distance between atoms along\nx:{self.atom_range(0)}\ny:{self.atom_range(1)}\nz:{self.atom_range(2)}")
         

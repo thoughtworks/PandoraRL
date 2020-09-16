@@ -206,6 +206,7 @@ class DDPGAgent3D(DDPGAgent):
             "Action:", action,
             "Reward:", np.round(reward, 4),
             "E_i:", episode_length,
-            "Critic loss", np.round(network_loss, 5)
+            "Critic loss", np.round(network_loss, 5),
+            "RMSD: ", self.env._complex.rmsd
         )
 
