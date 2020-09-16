@@ -20,8 +20,10 @@ class PafnucyData(Data):
 
     def __init__(self):
         super(PafnucyData, self).__init__()
-        self.complexes_path.remove('.DS_Store')
-        self.complexes_path.remove('affinities.csv')
+        if '.DS_Store' in self.complexes_path:
+            self.complexes_path.remove('.DS_Store')
+        if 'affinities.csv' in self.complexes_path:            
+            self.complexes_path.remove('affinities.csv')
 
         self._complexes = [
             (
@@ -41,7 +43,9 @@ class DudeProteaseData(Data):
 
     def __init__(self):
         super(DudeProteaseData, self).__init__()
-        self.complexes_path.remove('.DS_Store')
+        if '.DS_Store' in self.complexes_path:
+            self.complexes_path.remove('.DS_Store')
+
 
         self._complexes = [
             (
