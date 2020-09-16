@@ -20,7 +20,7 @@ class Complex:
         self.__ligand = copy.deepcopy(ligand)
         
         self.box_size = int(np.ceil(2 * self.max_dist / self.resolution + 1))
-        self.ligand.randomize(self.box_size)
+        self.ligand.randomize(self.max_dist)
         self.update_tensor()
         
         
