@@ -41,7 +41,7 @@ class PDBQTData(Data):
     DATA_PATH=f'{ROOT_PATH}/pdbqt_data'
 
     def __init__(self):
-        super(DudeProteaseData, self).__init__()
+        super(PDBQTData, self).__init__()
         self.complexes_path = [
             ('6Y2F_MOD.pdbqt', 'a-ketoamide-13b.pdbqt')
         ]
