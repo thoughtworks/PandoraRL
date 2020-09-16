@@ -5,6 +5,8 @@ import numpy as np
 from .memory import Memory
 from .noise import OrnsteinUhlenbeckActionNoise
 from rlvs.network import Actor, Critic, Actor3D, Critic3D
+import keras
+import tensorflow as tf
 
 class DDPGAgent:
     ACTOR_LEARNING_RATE  = 0.00005
@@ -17,6 +19,11 @@ class DDPGAgent:
     BUFFER_SIZE          = 20000    
     
     def __init__(self, env):
+
+        config = tf.ConfigProto( device_count = {'GPU': 1 , 'CPU': 56} ) 
+        sess = tf.Session(config=config) 
+        keras.backend.set_session(sess)
+        
         self.input_shape = env.input_shape
         self.action_shape = env.action_space.n_outputs
         self.eps = 0.9
