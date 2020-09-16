@@ -13,7 +13,7 @@ class Data:
         
     @property
     def random(self):
-        return self._complexes[np.random.randint(len(self._complexes))]
+        return self._complexes[np.random.randint(len(self._complexes))]()
     
 class PafnucyData(Data):
     DATA_PATH=f'{ROOT_PATH}/pafnucy_data/complexes'
@@ -26,7 +26,7 @@ class PafnucyData(Data):
             self.complexes_path.remove('affinities.csv')
 
         self._complexes = [
-            (
+            lambda: (
                 OB_to_mol(
                     read_to_OB(filename=f'{self.DATA_PATH}/{complex}/{complex}_pocket.mol2', filetype="mol2"),
                     mol_type=-1
@@ -48,7 +48,7 @@ class DudeProteaseData(Data):
 
 
         self._complexes = [
-            (
+            lambda: (
                 OB_to_mol(
                     read_to_OB(filename=f'{self.DATA_PATH}/{complex}/receptor.pdb', filetype="pdb"),
                     mol_type=-1
