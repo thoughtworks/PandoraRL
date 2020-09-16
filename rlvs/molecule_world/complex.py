@@ -5,7 +5,7 @@ import copy
 
 class Complex:
     __GOOD_FIT = 0.006
-    def __init__(self, protein, ligand, max_dist=100, resolution=1):
+    def __init__(self, protein, ligand, max_dist=10, resolution=1):
         '''
         max_dist : maximum distance between any atom and box center
         '''
@@ -14,7 +14,7 @@ class Complex:
         self.resolution = resolution
         self.num_features = ligand.num_features
 
-        self.protein = protein
+        self.protein = protein # protein [x, y, z ] outside ligand [x, y, z] 
 
         self.ligand = ligand
         self.__ligand = copy.deepcopy(ligand)

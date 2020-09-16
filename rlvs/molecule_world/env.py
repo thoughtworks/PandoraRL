@@ -15,7 +15,7 @@ class ActionSpace:
 
 
 class Env:
-    def __init__(self, max_dist=100, resolution=1):
+    def __init__(self, max_dist=40, resolution=1):
         DataStore.init()
         self.max_dist = max_dist
         self.resolution = resolution

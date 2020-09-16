@@ -83,12 +83,16 @@ class DudeProteaseData(Data):
     
 class DataStore:
     DATA_STORES = []
+    DATA = []
 
     @classmethod
     def init(cls):
-        cls.DATA_STORES = [PDBQTData(), PafnucyData(), DudeProteaseData()]
+        cls.DATA_STORES = [PDBQTData(), PafnucyData()]#, DudeProteaseData()]
 
     @classmethod
+    def load(cls):
+        cls.DATA = [complex() for store in cls.DATA_STORES for complex in store._complexes]            
+                
+    @classmethod
     def next(cls):
-        return cls.DATA_STORES[0].random
-        #return cls.DATA_STORES[np.random.randint(0, len(cls.DATA_STORES))].random
+        return cls.DATA_STORES[np.random.randint(0, len(cls.DATA_STORES))].random
