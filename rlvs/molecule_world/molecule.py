@@ -25,9 +25,8 @@ class Molecule:
         self.rmsd = RMSD(self)
 
     def randomize(self, box_size):
-        x, y_, z = np.random.uniform(0, box_size/4, (3,))
-        r, p, y = np.random.uniform(0, 360, (3,))
-        self.update_pose(x, y_, z, r, p, y)
+        x, y_ = np.random.uniform(0, box_size/4, (2,))
+        self.update_pose(x, y_, 0, 0,0,0)
         
     def atom_range(self, axis):
         values = self.coords[:,axis]
