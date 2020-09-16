@@ -180,6 +180,10 @@ class DDPGAgent3D(DDPGAgent):
     BUFFER_SIZE          = 20000
         
     def __init__(self, env):
+        config = tf.ConfigProto( device_count = {'GPU': 1 , 'CPU': 56} ) 
+        sess = tf.Session(config=config) 
+        keras.backend.set_session(sess)
+
         self.input_shape = env.input_shape
         self.action_shape = env.action_space.n_outputs
         self.eps = 0.9
