@@ -5,25 +5,18 @@ import numpy as np
 from .memory import Memory
 from .noise import OrnsteinUhlenbeckActionNoise
 from rlvs.network import Actor, Critic, Actor3D, Critic3D
-import keras
 import tensorflow as tf
+from keras.layers import Concatenate
 
 class DDPGAgent:
     ACTOR_LEARNING_RATE  = 0.00005
     CRITIQ_LEARNING_RATE = 0.00005
     TAU                  = 0.001
 
-    GAMMA                = 0.99
-
     BATCH_SIZE           = 32
     BUFFER_SIZE          = 20000    
     
     def __init__(self, env):
-
-        config = tf.ConfigProto( device_count = {'GPU': 1 , 'CPU': 56} ) 
-        sess = tf.Session(config=config) 
-        keras.backend.set_session(sess)
-        
         self.input_shape = env.input_shape
         self.action_shape = env.action_space.n_outputs
         self.eps = 0.9
@@ -62,12 +55,11 @@ class DDPGAgent:
         x, y, t = np.clip(action, *self.action_bounds)
         return np.array([np.round(x), np.round(y), t])
 
-    def log(self, action, reward, episode_length, network_loss):
+    def log(self, action, reward, episode_length):
         print("Action:", action, "Reward:", np.round(reward, 4), "E_i:", episode_length,
               "Block state:", [
                   self.env.block.block_x, self.env.block.block_y, np.round(self.env.block.rotate_angle, 2), self.env.block.shift_x, self.env.block.shift_y
-              ], "Dist:",  np.round(self.env.block.distance(), 4),
-              "critic loss", np.round(network_loss, 5))
+              ], "Dist:",  np.round(self.env.block.distance(), 4))
         
     def play(self, num_train_episodes):
         returns      = []
@@ -76,6 +68,8 @@ class DDPGAgent:
         max_reward = 0
 
         for i_episode in range(num_train_episodes):
+            critic_losses = []
+            actor_losses = []
             state_t, episode_return, episode_length, terminal = self.env.reset(), 0, 0, False
             self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs)
             while not (terminal or (episode_length == max_episode_length)):
@@ -91,14 +85,16 @@ class DDPGAgent:
                 episode_return += reward
                 episode_length += 1
                 state_t = state_t_1
-                critic_lose, actor_loss = self.update_network()
 
-                self.log(action, np.round(reward, 4), episode_length, critic_lose)
+                self.log(action, np.round(reward, 4), episode_length)
+
+                critic_loss, actor_loss = self.update_network()
+                critic_losses.append(critic_loss)
+                actor_losses.append(actor_loss)
                 
-            #mean, stdev = self.gather_stats()
             returns.append([i_episode + 1, episode_length])
             max_reward = max_reward if max_reward > episode_return else episode_return
-            print("Episode:", i_episode + 1, "Return:", episode_return, 'episode_length:', episode_length, 'Max Reward', max_reward)
+            print("Episode:", i_episode + 1, "Return:", episode_return, 'episode_length:', episode_length, 'Max Reward', max_reward, "Critic Loss: ", np.mean(critic_losses), " Actor loss: ", np.mean(actor_losses))
 
         return returns
 
@@ -110,20 +106,6 @@ class DDPGAgent:
             'next_state': next_state,
             'done': done
         })
-
-    def learn_current_action(self, state, action, reward, next_state, terminal):
-        target_action = self._actor.predict_target(next_state)
-        target_q = self._critiq.predict_target([next_state, target_action])
-        
-        critic_target = (
-            reward + (1 - terminal) * self.GAMMA * target_q.reshape((1,))
-        ).reshape((1,1))
-        
-        self._critiq.train_on_batch(state, np.array([action]), critic_target)
-        predicted_action = self._actor.predict(state)
-
-        action_grads = self._critiq.action_gradients(state, predicted_action)
-        self._actor.train(state, action, action_grads[0])
         
     def update_network(self):
         batch = self.memory.sample(self.BATCH_SIZE)
@@ -134,24 +116,17 @@ class DDPGAgent:
         rewards = np.array([val['reward'] for val in batch])
         next_states = np.array([val['next_state'] for val in batch ])
         terminals = np.array([val['done'] for val in batch ])
+        state_tensor = tf.convert_to_tensor(states)   
 
-        target_actions = self._actor.predict_target(next_states)
-        target_q = self._critiq.predict_target([next_states, target_actions])
-        
-        critic_target = (
-            rewards + (1 - terminals) * self.GAMMA * target_q.reshape((batch_len,))
-        ).reshape((batch_len,1))
-        
-        critic_lose = self._critiq.train_on_batch(states, actions, critic_target)
-        predicted_actions = self._actor.predict(states)
+        action_gradient, actor_loss = self._critiq.action_gradients(states, self._actor.actor)
+        self._actor.optimize(action_gradient)
 
-        action_grads = self._critiq.action_gradients(states, predicted_actions)
-        actor_lose = self._actor.train(states, actions, action_grads[0])
+        critic_loss = self._critiq.train(states, actions, rewards, terminals, next_states, self._actor.actor_target)
 
         self._actor.update_target_network()
         self._critiq.update_target_network()
 
-        return critic_lose, actor_lose
+        return critic_loss, actor_loss
         
     def gather_stats(self):
         print("Gatthering Stats")
@@ -180,10 +155,6 @@ class DDPGAgent3D(DDPGAgent):
     BUFFER_SIZE          = 20000
         
     def __init__(self, env):
-        config = tf.ConfigProto( device_count = {'GPU': 1 , 'CPU': 56} ) 
-        sess = tf.Session(config=config) 
-        keras.backend.set_session(sess)
-
         self.input_shape = env.input_shape
         self.action_shape = env.action_space.n_outputs
         self.eps = 0.9
@@ -212,7 +183,7 @@ class DDPGAgent3D(DDPGAgent):
         x, y, z, r, p, y = np.clip(action, *self.action_bounds)
         return np.array([np.round(x), np.round(y), np.round(z), r, p, y])
     
-    def log(self, action, reward, episode_length, network_loss):
+    def log(self, action, reward, episode_length):
         print(
             "Action:", action,
             "Reward:", np.round(reward, 4),

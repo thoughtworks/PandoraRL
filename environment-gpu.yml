@@ -12,7 +12,7 @@ dependencies:
   - notebook=6.1.1
   - openbabel=3.1.1
   - scipy=1.5.2
-  - tensorflow-gpu=1.14.0
-  - keras-gpu=2.3.1
-  - scipy=1.5.2
   - cudatoolkit=11.0.221
+  - pip:
+    - tensorflow==2.1.0
+

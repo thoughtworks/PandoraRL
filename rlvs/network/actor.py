@@ -15,16 +15,13 @@ class Actor:
         
         self.actor, self._input_layer = self._create_network()
         self.actor_target, _ = self._create_network()
-        self.optimizer = self._create_optimizer()
+        self.optimizer = Adam(learning_rate=learning_rate)
 
-    def train(self, states, actions, action_gradients):
-        return self.optimizer([states, action_gradients])
-        
+    def optimize(self, action_gradient):
+        self.optimizer.apply_gradients(zip(action_gradient, self.actor.trainable_variables))
+
     def predict(self, input_state):
         return self.actor.predict(input_state)
-
-    def predict_target(self, input_state):
-        return self.actor_target.predict(input_state)
 
     def save(self, path):
         self.actor.save_weights(path + '_actor.h5')
@@ -32,23 +29,13 @@ class Actor:
     def load_weights(self, path):
         self.actor.load_weights(path)
 
-    def _create_optimizer(self):
-        action_gdts = keras_backend.placeholder(shape=(None, self._action_shape))
-        params_grad = tf.gradients(self.actor.output, self.actor.trainable_weights, -action_gdts)
-        grads = zip(params_grad, self.actor.trainable_weights)
-        return keras_backend.function(
-            inputs=[self._input_layer, action_gdts],
-            outputs=[keras_backend.constant(1)],
-            updates=[tf.train.AdamOptimizer(self._learning_rate).apply_gradients(grads)]
-        )
-
     def _create_network(self):
         conv_model = Input(shape=self._state_shape)
 
-        conv_model_1 = Conv2D(64, 5, 5,  activation='relu')(conv_model)
-        conv_model_1 = Conv2D(64, 4, 4,  activation='relu')(conv_model_1)
-        conv_model_1 = Conv2D(64, 3, 3,  activation='relu')(conv_model_1)
-        conv_model_1 = MaxPooling2D(pool_size=(3, 3))(conv_model_1)
+        conv_model_1 = Conv2D(64, (5, 5),  activation='relu')(conv_model)
+        conv_model_1 = Conv2D(64, (4, 4),  activation='relu')(conv_model_1)
+        conv_model_1 = Conv2D(64, (3, 3),  activation='relu')(conv_model_1)
+        conv_model_1 = MaxPooling2D(pool_size=(2, 2))(conv_model_1)
         
         conv_model_1 = Flatten()(conv_model_1)
         conv_model_1 = Dense(256, activation='relu')(conv_model_1)
