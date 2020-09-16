@@ -13,6 +13,6 @@ dependencies:
   - openbabel=3.1.1
   - scipy=1.5.2
   - tensorflow=1.14.0
-  - tensorflow-gpu=1.15
+  - tensorflow-gpu=1.14.0
   - keras=2.3.1
   - scipy=1.5.2
