@@ -70,4 +70,5 @@ class DataStore:
 
     @classmethod
     def next(cls):
-        return cls.DATA_STORES[np.random.randint(0, len(cls.DATA_STORES))].random
+        return cls.DATA_STORES[0].random
+        #return cls.DATA_STORES[np.random.randint(0, len(cls.DATA_STORES))].random

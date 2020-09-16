@@ -80,9 +80,9 @@ class Critic3D(Critic):
     def _create_network(self):
         conv_model = Input(shape=self._state_shape)
 
-        conv_model_1 = Conv3D(64, 5, 5, 5,  activation='relu')(conv_model)
-        conv_model_1 = Conv3D(64, 4, 4, 4,  activation='relu')(conv_model_1)
-        conv_model_1 = Conv3D(64, 3, 3, 3,  activation='relu')(conv_model_1)
+        conv_model_1 = Conv3D(64, (5, 5, 5),  activation='relu')(conv_model)
+        conv_model_1 = Conv3D(64, (4, 4, 4),  activation='relu')(conv_model_1)
+        conv_model_1 = Conv3D(64, (3, 3, 3),  activation='relu')(conv_model_1)
         conv_model_1 = MaxPooling3D(pool_size=(3, 3, 3))(conv_model_1)
         
         
