@@ -13,7 +13,10 @@ class Data:
         
     @property
     def random(self):
-        return self._complexes[np.random.randint(len(self._complexes))]()
+        protien, ligand = self._complexes[np.random.randint(len(self._complexes))]()
+        protein.crop(bound_ligand.get_centroid(), 10, 10, 10)
+        return protein, ligand
+
     
 class PafnucyData(Data):
     DATA_PATH=f'{ROOT_PATH}/pafnucy_data/complexes'
