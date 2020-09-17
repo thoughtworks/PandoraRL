@@ -13,7 +13,7 @@ class Data:
 
     def get_molecules(self, complex):
         protein, ligand = complex()
-        protein.crop(bound_ligand.get_centroid(), 10, 10, 10)
+        protein.crop(ligand.get_centroid(), 10, 10, 10)
         return protein, ligand
 
     @property
