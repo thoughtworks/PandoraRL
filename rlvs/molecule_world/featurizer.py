@@ -62,7 +62,7 @@ class Featurizer():
         features.extend(encoding)
         
         # hybridization, heavy valence, hetero valence, partial charge
-        named_features = [atom.GetHyb(), atom.GetHvyDegree(), atom.GetHeteroDegree(), atom.GetPartialCharge()]
+        named_features = [atom.GetX(), atom.GetY(), atom.GetZ(), atom.GetHyb(), atom.GetHvyDegree(), atom.GetHeteroDegree(), atom.GetPartialCharge()]
         features.extend(named_features)
         
         #molecule type
@@ -74,6 +74,10 @@ class Featurizer():
     def get_mol_features(self, obmol, molecule_type, bond_verbose=False):
         num_atoms = obmol.NumAtoms()
         coords, features = [], []
+        adj_mat = np.zeros((num_atoms, num_atoms))
+        for bond in ob.OBMolBondIter(obmol):
+            adj_mat[bond.GetBeginAtom().GetIndex(), bond.GetEndAtom().GetIndex()] = 1
+            
         for atom in ob.OBMolAtomIter(obmol):
             # add only heavy atoms
             if atom.GetAtomicNum() > 1:
@@ -82,11 +86,13 @@ class Featurizer():
                 features.append(feats)
         coords = np.array(coords)
         features = np.array(features)
+
+        
         # print(f"Shape of coords: {coords.shape}")
         # print(f"Shape of features: {features.shape}")
         if bond_verbose:
             print(f"Bond information:\n")
             for bond in ob.OBMolBondIter(obmol):
                 print(bond.GetBeginAtom().GetType(), bond.GetEndAtom().GetType())
-        return coords, features
+        return coords, features, adj_mat
     
