@@ -12,7 +12,10 @@ dependencies:
   - notebook=6.1.1
   - openbabel=3.1.1
   - scipy=1.5.2
-  - cudatoolkit=11.0.221
+  - cudatoolkit=10.1.243
+  - cudnn=7.6.4
   - pip:
-    - tensorflow==2.1.0
+      - keras==2.4.3
+      - tensorflow==2.2.0
+
 
