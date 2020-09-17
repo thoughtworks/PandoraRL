@@ -12,11 +12,13 @@ class Molecule:
     - origin: origin (x,y,z) w.r.t which all other coords are defined
     '''
     
-    def __init__(self, coords, features, origin=[0,0,0]):
+    def __init__(self, coords, features, adj_mat, origin=[0,0,0]):
 
         self.coords = np.array(coords, copy=True).astype(float)
         self.features = np.array(features, copy=True)
         self.atoms = np.array(features[:,0], copy=True)
+        self.adj_mat = np.array(adj_mat, copy=True)
+        
         self.num_atoms = self.features.shape[0]
         self.num_features = self.features.shape[1]
         
