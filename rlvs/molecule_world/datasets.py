@@ -10,13 +10,15 @@ class Data:
     def __init__(self):
         self._complexes = []
         self.complexes_path = os.listdir(self.DATA_PATH)
-        
-    @property
-    def random(self):
-        protien, ligand = self._complexes[np.random.randint(len(self._complexes))]()
+
+    def get_molecules(self, complex):
+        protein, ligand = complex()
         protein.crop(bound_ligand.get_centroid(), 10, 10, 10)
         return protein, ligand
 
+    @property
+    def random(self):
+        return self._complexes[np.random.randint(len(self._complexes))]
     
 class PafnucyData(Data):
     DATA_PATH=f'{ROOT_PATH}/pafnucy_data/complexes'
@@ -94,8 +96,9 @@ class DataStore:
 
     @classmethod
     def load(cls):
-        cls.DATA = [complex() for store in cls.DATA_STORES for complex in store._complexes]            
+        cls.DATA = [store.get_molecules(complex) for store in cls.DATA_STORES for complex in store._complexes]            
                 
     @classmethod
     def next(cls):
-        return cls.DATA_STORES[np.random.randint(0, len(cls.DATA_STORES))].random
+        datastore = cls.DATA_STORES[np.random.randint(0, len(cls.DATA_STORES))]
+        return datastore.get_molecules(datastore.random)
