@@ -29,7 +29,7 @@ def OB_to_mol(obmol, mol_type):
     
     f = Featurizer()
     coords, feats, adj_mat = f.get_mol_features(obmol=obmol, molecule_type=mol_type, bond_verbose=0)
-    mol = Molecule(coords=coords, features=feats)
+    mol = Molecule(coords=coords, features=feats, adj_mat=adj_mat)
     return mol
 
 def get_molecules(ligand_path=None, protein_path=None):

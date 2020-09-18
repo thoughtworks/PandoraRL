@@ -15,13 +15,11 @@ class ActionSpace:
 
 
 class Env:
-    def __init__(self, max_dist=40, resolution=1):
+    def __init__(self):
         DataStore.init()
-        self.max_dist = max_dist
-        self.resolution = resolution
         self.protein, self.ligand = DataStore.next()
-        self._complex = Complex(self.protein, self.ligand, self.max_dist, self.resolution)
-        self.input_shape = self._complex.tensor4D.shape
+        self._complex = Complex(self.protein, self.ligand)
+        # TODO: self.input_shape = self._complex.tensor4D.shape
         single_step = np.array([10, 10, 10, 10, 10, 10])
         action_bounds = np.array([-1*single_step, single_step])
         self.action_space = ActionSpace(action_bounds)

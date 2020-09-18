@@ -5,24 +5,17 @@ import copy
 
 class Complex:
     __GOOD_FIT = 0.006
-    def __init__(self, protein, ligand, max_dist=10, resolution=1):
+    def __init__(self, protein, ligand):
         '''
         max_dist : maximum distance between any atom and box center
         '''
-
-        self.max_dist = max_dist
-        self.resolution = resolution
         self.num_features = ligand.num_features
 
-        self.protein = protein # protein [x, y, z ] outside ligand [x, y, z] 
+        self.protein = protein
 
         self.ligand = ligand
-        self.__ligand = copy.deepcopy(ligand)
-        
-        self.box_size = int(np.ceil(2 * self.max_dist / self.resolution + 1))
-        self.ligand.randomize(self.max_dist)
-        self.update_tensor()
-        
+        self.__ligand = copy.deepcopy(ligand) 
+        self.ligand.randomize(10) # TODO: move it out of the protein
         
     def convert_to_grid_coords(self, coords):
         
@@ -42,34 +35,6 @@ class Complex:
         self.ax.set_ylabel('Y')
         self.ax.set_zlabel('Z')
         
-    def update_tensor(self, update_mols=False):
-        '''
-        create a new 4D tensor
-
-        - mols : list of molecule objects to join in same tensor
-
-            '''
-
-        invalid = False
-        self.tensor4D = np.zeros((self.box_size, self.box_size, self.box_size, self.num_features))
-        
-        for mol in [self.protein, self.ligand]:
-            grid_coords = self.convert_to_grid_coords(mol.coords)
-            features = mol.features
-            in_box = ((grid_coords >= 0) & (grid_coords < self.box_size)).all(axis=1)
-
-            if update_mols:
-                mol.apply_crop_mask(mask = in_box)
-
-            if all(in_box)==False:
-                invalid = True
-
-            for (x,y,z), f in zip(grid_coords[in_box, :], features[in_box, :]):
-                self.tensor4D[x,y,z] += f
-
-        if invalid:
-            raise Exception("Some atoms are outside the box and will be discarded.")
-
     def score(self):
         rmsd = self.ligand.rmsd(self.__ligand)
         return np.sinh(rmsd**0.7 + np.arcsinh(1))**-1
