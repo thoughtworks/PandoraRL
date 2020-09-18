@@ -2,6 +2,7 @@ from openbabel import pybel
 from openbabel import openbabel as ob
 import numpy as np
 from .molecule import Molecule
+import scipy.sparse as sp
 
 class Featurizer():    
     def __init__(self):
@@ -74,9 +75,15 @@ class Featurizer():
     def get_mol_features(self, obmol, molecule_type, bond_verbose=False):
         num_atoms = obmol.NumAtoms()
         coords, features = [], []
-        adj_mat = np.zeros((num_atoms, num_atoms))
+        edges = np.zeros((num_atoms, num_atoms))
         for bond in ob.OBMolBondIter(obmol):
-            adj_mat[bond.GetBeginAtom().GetIndex(), bond.GetEndAtom().GetIndex()] = 1
+            edges[bond.GetBeginAtom().GetIndex(), bond.GetEndAtom().GetIndex()] = 1
+            edges[bond.GetEndAtom().GetIndex(), bond.GetBeginAtom().GetIndex()] = 1 # bi-directional
+
+        adj_mat = sp.coo_matrix((np.ones(edges.shape[0]), (edges[:, 0], edges[:, 1])),
+                        shape=(num_atoms, num_atoms), dtype=np.float32)
+
+        adj_mat = adj_mat + adj_mat.T.multiply(adj_mat.T > adj_mat) - adj_mat.multiply(adj_mat.T > adj_mat)
             
         for atom in ob.OBMolAtomIter(obmol):
             # add only heavy atoms
