@@ -1,27 +1,23 @@
 import numpy as np
 from scipy.spatial.transform import Rotation
+from deepchem.feat.mol_graphs import ConvMol
 from .rmsd import RMSD
 
-class Molecule:
+
+class Molecule(ConvMol):
     '''
     Molecule represents collection of Atoms in 3D space
     - num_atoms: number of atoms in molecule
     - num_features: number of features per atom
-    - coords: (num_atoms, 3) ndarray of coords of each atom w.r.t origin
-    - features: (num_atoms, num_features) ndarray of feature vectors of each atom 
+    - atom_features: stack of features of each atom (shape = (num_atoms, num_features))
+    - canon_adj_list: list of neighbors of each node (len = num_atoms)
     - origin: origin (x,y,z) w.r.t which all other coords are defined
     '''
     
-    def __init__(self, coords, features, adj_mat, origin=[0,0,0]):
+    def __init__(self, atom_features, canon_adj_list, max_deg=10, min_deg=0, origin=[0,0,0]):
 
-        self.coords = np.array(coords, copy=True).astype(float)
-        self.features = np.array(features, copy=True)
-        self.atoms = np.array(features[:,0], copy=True)
-        self.adj_mat = np.array(adj_mat, copy=True)
-        
-        self.num_atoms = self.features.shape[0]
-        self.num_features = self.features.shape[1]
-        
+        super(Molecule, self).__init__(atom_features=atom_features, adj_list=canon_adj_list, max_deg=max_deg, min_deg=min_deg)
+      
         self.origin = np.array(origin, copy=True).astype(float).reshape(1,3) #initially coords are wrt (0,0,0)
         self.T = lambda x,y,z : np.array([[1,0,0,x], [0,1,0,y], [0,0,1,z], [0,0,0,1]]).astype(float)
         self.rmsd = RMSD(self)
