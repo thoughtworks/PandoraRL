@@ -28,18 +28,18 @@ def read_to_OB(filename, filetype):
 def OB_to_mol(obmol, mol_type):
     
     f = Featurizer()
-    coords, feats, adj_mat = f.get_mol_features(obmol=obmol, molecule_type=mol_type, bond_verbose=0)
-    mol = Molecule(coords=coords, features=feats, adj_mat=adj_mat)
+    nodes, canon_adj_list = f.get_mol_features(obmol=obmol, molecule_type=mol_type, bond_verbose=0)
+    mol = Molecule(atom_features=nodes, canon_adj_list=canon_adj_list)
     return mol
 
-def get_molecules(ligand_path=None, protein_path=None):
-    global protein
-    ligand_path = f'{DATA_PATH}{LIGAND_FILES[np.random.randint(len(LIGAND_FILES))]}'
-    protien_path = f'{DATA_PATH}{PROTEIN_FILES[0]}'
-    ligand = OB_to_mol(read_to_OB(filename=ligand_path, filetype="pdbqt"), mol_type=1)
-    #protein = OB_bto_mol(read_to_OB(filename=protein_path, filetype="pdbqt"), mol_type=-1)
-    protein.crop(bound_ligand.get_centroid(), 10, 10, 10)
-    return protein, ligand
+# def get_molecules(ligand_path=None, protein_path=None):
+#     global protein
+#     ligand_path = f'{DATA_PATH}{LIGAND_FILES[np.random.randint(len(LIGAND_FILES))]}'
+#     protien_path = f'{DATA_PATH}{PROTEIN_FILES[0]}'
+#     ligand = OB_to_mol(read_to_OB(filename=ligand_path, filetype="pdbqt"), mol_type=1)
+#     #protein = OB_bto_mol(read_to_OB(filename=protein_path, filetype="pdbqt"), mol_type=-1)
+#     protein.crop(bound_ligand.get_centroid(), 10, 10, 10)
+#     return protein, ligand
 
 # TODO: For faster processing
 #protein = OB_to_mol(read_to_OB(filename=f'{DATA_PATH}{PROTEIN_FILES[0]}', filetype="pdbqt"), mol_type=-1)

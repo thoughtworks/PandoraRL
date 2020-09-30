@@ -15,6 +15,7 @@ class Featurizer():
                           + list(range(87, 104)))
 
         atom_classes = [
+            (1, 'H'),
             (5, 'B'),
             (6, 'C'),
             (7, 'N'),
@@ -43,63 +44,81 @@ class Featurizer():
         molecule_type: 1 for ligand, -1 for protein
         
         OUTPUT
-        [(x,y,z), [features]] 
-        where features:
-            - atom code (TEMPORARY FEATURE)
-            - encoding (9 bit one hot encoding)
-            - hyb (1,2 or 3)
-            - heavy_valence (integer)
-            - hetero_valence (integer)
-            - partial_charge (float)
-            - molecule_type (1 for ligand, -1 for protein)
+        
+        features:
+            [
+                x,
+                y,
+                z,
+                encoding (9 bit one hot encoding),
+                hyb (1,2 or 3),
+                heavy_valence (integer),
+                hetero_valence (integer),
+                partial_charge (float),
+                molecule_type (1 for ligand, -1 for protein)
+            ]
         '''
         features = []
         
-        features.append(self.atom_codes[atom.GetAtomicNum()])
-        
+        # x y z coordinates
+        features.extend([atom.GetX(), atom.GetY(), atom.GetZ()])
+
         # one hot encode atomic number
         encoding = np.zeros(self.num_classes)
         encoding[self.atom_codes[atom.GetAtomicNum()]] = 1
         features.extend(encoding)
         
         # hybridization, heavy valence, hetero valence, partial charge
-        named_features = [atom.GetX(), atom.GetY(), atom.GetZ(), atom.GetHyb(), atom.GetHvyDegree(), atom.GetHeteroDegree(), atom.GetPartialCharge()]
+        named_features = [atom.GetHyb(), atom.GetHvyDegree(), atom.GetHeteroDegree(), atom.GetPartialCharge()]
         features.extend(named_features)
         
         #molecule type
         molecule_type = molecule_type
         features.append(molecule_type)
         
-        return [atom.GetX(), atom.GetY(), atom.GetZ()], features
+        return features
     
     def get_mol_features(self, obmol, molecule_type, bond_verbose=False):
+        
         num_atoms = obmol.NumAtoms()
-        coords, features = [], []
-        edges = np.zeros((num_atoms, num_atoms))
-        for bond in ob.OBMolBondIter(obmol):
-            edges[bond.GetBeginAtom().GetIndex(), bond.GetEndAtom().GetIndex()] = 1
-            edges[bond.GetEndAtom().GetIndex(), bond.GetBeginAtom().GetIndex()] = 1 # bi-directional
 
-        adj_mat = sp.coo_matrix((np.ones(edges.shape[0]), (edges[:, 0], edges[:, 1])),
-                        shape=(num_atoms, num_atoms), dtype=np.float32)
+        idx_node_tuples = []
 
-        adj_mat = adj_mat + adj_mat.T.multiply(adj_mat.T > adj_mat) - adj_mat.multiply(adj_mat.T > adj_mat)
+        # edges = np.zeros((num_atoms, num_atoms))
+        # for bond in ob.OBMolBondIter(obmol):
+        #     edges[bond.GetBeginAtom().GetIndex(), bond.GetEndAtom().GetIndex()] = 1
+        #     edges[bond.GetEndAtom().GetIndex(), bond.GetBeginAtom().GetIndex()] = 1 # bi-directional
+
+        # adj_mat = sp.coo_matrix((np.ones(edges.shape[0]), (edges[:, 0], edges[:, 1])),
+        #                 shape=(num_atoms, num_atoms), dtype=np.float32)
+
+        # adj_mat = adj_mat + adj_mat.T.multiply(adj_mat.T > adj_mat) - adj_mat.multiply(adj_mat.T > adj_mat)
             
         for atom in ob.OBMolAtomIter(obmol):
             # add only heavy atoms
-            if atom.GetAtomicNum() > 1:
-                crds, feats = self.get_atom_features(atom, molecule_type)
-                coords.append(crds)
-                features.append(feats)
-        coords = np.array(coords)
-        features = np.array(features)
+            # if atom.GetAtomicNum() > 1:
+            #     atom_id = atom.GetIndex()
+            #     atom_feats = self.get_atom_features(atom, molecule_type)
+            #     idx_node_tuples.append((atom_id, atom_feats))
 
+            atom_id = atom.GetIndex()
+            atom_feats = self.get_atom_features(atom, molecule_type)
+            idx_node_tuples.append((atom_id, atom_feats))
+
+        idx_node_tuples.sort()
+        idxs, nodes = list(zip(*idx_node_tuples))
+
+        nodes = np.vstack(nodes)
+
+        # Get bond lists with reverse edges included
+        edge_list = [
+            (bond.GetBeginAtom().GetIndex(), bond.GetEndAtom().GetIndex()) for bond in ob.OBMolBondIter(obmol)
+        ]
+
+        # Get canonical adjacency list
+        canon_adj_list = [[] for mol_id in range(len(nodes))]
+        for edge in edge_list:
+            canon_adj_list[edge[0]].append(edge[1])
+            canon_adj_list[edge[1]].append(edge[0])
         
-        # print(f"Shape of coords: {coords.shape}")
-        # print(f"Shape of features: {features.shape}")
-        if bond_verbose:
-            print(f"Bond information:\n")
-            for bond in ob.OBMolBondIter(obmol):
-                print(bond.GetBeginAtom().GetType(), bond.GetEndAtom().GetType())
-        return coords, features, adj_mat
-    
+        return nodes, canon_adj_list
