@@ -12,6 +12,7 @@ dependencies:
   - notebook=6.1.1
   - openbabel=3.1.1
   - scipy=1.5.2
+  - rdkit=2020.03.6
   - pip:
-      - keras==2.4.3
       - tensorflow==2.2.0
+      # - keras==2.4.3
