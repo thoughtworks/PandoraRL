@@ -26,9 +26,12 @@ class Env:
 
     def reset(self):
         self.protein, self.ligand = DataStore.next()
-        self._complex = Complex(self.protein, self.ligand, self.max_dist, self.resolution)
-        self.input_shape = self._complex.tensor4D.shape
-        state = np.expand_dims(self._complex.tensor4D.reshape(self.input_shape), axis=0)
+        self._complex = Complex(self.protein, self.ligand)
+        # self.input_shape = self._complex.tensor4D.shape
+        # state = np.expand_dims(self._complex.tensor4D.reshape(self.input_shape), axis=0)
+
+        state = self.get_state()
+        
         return state
 
     def step(self, action):
@@ -43,6 +46,19 @@ class Env:
             reward = -1
             terminal = True
 
-        state = np.expand_dims(self._complex.tensor4D.reshape(self.input_shape), axis=0)
-        return state.astype(dtype='float32'), reward, terminal
+        # state = np.expand_dims(self._complex.tensor4D.reshape(self.input_shape), axis=0)
+        # return state.astype(dtype='float32'), reward, terminal
+        state = self.get_state()
+        return state, reward, terminal
 
+    def get_state(self):
+        state = [] # state is a list of 2 lists of tensors 
+        for mol in [self.protein, self.ligand]:
+            atom_features = np.expand_dims(mol.get_atom_features(), axis=0)
+            degree_slice = np.expand_dims((mol.deg_slice.astype(dtype='int32')), axis=0)
+            deg_adjs = [np.expand_dims(deg_adj.astype(dtype='int32'), axis=0) for deg_adj in mol.get_deg_adjacency_lists()[1:]]
+
+            gc_in = [atom_features, degree_slice] + deg_adjs
+            state.append(gc_in)
+
+        return state
