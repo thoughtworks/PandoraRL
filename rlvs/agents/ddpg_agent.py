@@ -10,9 +10,10 @@ import numpy as np
 
 from .memory import Memory
 from .noise import OrnsteinUhlenbeckActionNoise
-from rlvs.network import Actor, Critic, Actor3D, Critic3D
+# from rlvs.network import Actor, Critic, Actor3D, Critic3D
+from rlvs.network.network_3d import Actor, Critic
 import tensorflow as tf
-from keras.layers import Concatenate
+from tensorflow.keras.layers import Concatenate
 
 class DDPGAgent:
     ACTOR_LEARNING_RATE  = 0.00005
@@ -23,7 +24,7 @@ class DDPGAgent:
     BUFFER_SIZE          = 20000    
     
     def __init__(self, env):
-        self.input_shape = env.input_shape
+        # self.input_shape = env.input_shape
         self.action_shape = env.action_space.n_outputs
         self.eps = 0.9
         self.action_bounds = env.action_space.action_bounds
@@ -32,14 +33,14 @@ class DDPGAgent:
         self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs)
 
         self._actor = Actor(
-            self.input_shape,
+            # self.input_shape,
             self.action_shape,
             self.ACTOR_LEARNING_RATE,
             self.TAU
         )
 
         self._critiq = Critic(
-            self.input_shape,
+            # self.input_shape,
             self.action_shape,
             self.CRITIQ_LEARNING_RATE,
             self.TAU
@@ -161,7 +162,7 @@ class DDPGAgent3D(DDPGAgent):
     BUFFER_SIZE          = 20000
         
     def __init__(self, env):
-        self.input_shape = env.input_shape
+        # self.input_shape = env.input_shape
         self.action_shape = env.action_space.n_outputs
         self.eps = 0.9
         self.action_bounds = env.action_space.action_bounds
@@ -169,15 +170,15 @@ class DDPGAgent3D(DDPGAgent):
         self.env = env
         self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs)
 
-        self._actor = Actor3D(
-            self.input_shape,
+        self._actor = Actor(
+            # self.input_shape,
             self.action_shape,
             self.ACTOR_LEARNING_RATE,
             self.TAU
         )
 
-        self._critiq = Critic3D(
-            self.input_shape,
+        self._critiq = Critic(
+            # self.input_shape,
             self.action_shape,
             self.CRITIQ_LEARNING_RATE,
             self.TAU
