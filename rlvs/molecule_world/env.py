@@ -19,7 +19,7 @@ class Env:
         DataStore.init()
         self.protein, self.ligand = DataStore.next()
         self._complex = Complex(self.protein, self.ligand)
-        # TODO: self.input_shape = self._complex.tensor4D.shape
+        self.input_shape = self._complex.tensor4D.shape
         single_step = np.array([10, 10, 10, 10, 10, 10])
         action_bounds = np.array([-1*single_step, single_step])
         self.action_space = ActionSpace(action_bounds)
@@ -27,10 +27,8 @@ class Env:
     def reset(self):
         self.protein, self.ligand = DataStore.next()
         self._complex = Complex(self.protein, self.ligand)
-        # self.input_shape = self._complex.tensor4D.shape
-        # state = np.expand_dims(self._complex.tensor4D.reshape(self.input_shape), axis=0)
-
-        state = self.get_state()
+        self.input_shape = self._complex.tensor4D.shape
+        state = np.expand_dims(self._complex.tensor4D.reshape(self.input_shape), axis=0)
         
         return state
 
@@ -46,8 +44,43 @@ class Env:
             reward = -1
             terminal = True
 
-        # state = np.expand_dims(self._complex.tensor4D.reshape(self.input_shape), axis=0)
-        # return state.astype(dtype='float32'), reward, terminal
+        state = np.expand_dims(self._complex.tensor4D.reshape(self.input_shape), axis=0)
+        return state.astype(dtype='float32'), reward, terminal
+    
+
+class GraphEnv:
+    def __init__(self):
+        DataStore.init()
+        self.protein, self.ligand = DataStore.next(False)
+        self._complex = Complex(self.protein, self.ligand)
+        
+        self.input_shape = self.protein.get_atom_features().shape[1]
+
+        single_step = np.array([10, 10, 10, 10, 10, 10])
+        action_bounds = np.array([-1*single_step, single_step])
+        self.action_space = ActionSpace(action_bounds)
+
+    def reset(self):
+        self.protein, self.ligand = DataStore.next(False)
+        self._complex = Complex(self.protein, self.ligand)
+        
+        self.input_shape = self.protein.get_atom_features().shape[1]
+
+        state = self.get_state()
+        return state
+
+    def step(self, action):
+        terminal = False
+       
+        try:
+            self.ligand.update_pose(*action)
+            self._complex.update_tensor()
+            reward = self._complex.score()
+            terminal = self._complex.perfect_fit
+        except:
+            reward = -1
+            terminal = True
+            
         state = self.get_state()
         return state, reward, terminal
 
