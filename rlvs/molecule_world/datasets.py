@@ -11,9 +11,11 @@ class Data:
         self._complexes = []
         self.complexes_path = os.listdir(self.DATA_PATH)
 
-    def get_molecules(self, complex):
+    def get_molecules(self, complex, crop=True):
         protein, ligand = complex()
-        protein.crop(ligand.get_centroid(), 10, 10, 10)
+        if crop:
+            protein.crop(ligand.get_centroid(), 10, 10, 10)
+            
         return protein, ligand
 
     @property
@@ -29,7 +31,7 @@ class PafnucyData(Data):
             self.complexes_path.remove('.DS_Store')
         if 'affinities.csv' in self.complexes_path:            
             self.complexes_path.remove('affinities.csv')
-
+            
         self._complexes = [
             lambda: (
                 OB_to_mol(
@@ -92,13 +94,13 @@ class DataStore:
 
     @classmethod
     def init(cls):
-        cls.DATA_STORES = [PDBQTData(), PafnucyData()]#, DudeProteaseData()]
+        cls.DATA_STORES = [PafnucyData(), PDBQTData()]#, DudeProteaseData()]
 
     @classmethod
     def load(cls):
         cls.DATA = [store.get_molecules(complex) for store in cls.DATA_STORES for complex in store._complexes]            
                 
     @classmethod
-    def next(cls):
+    def next(cls, crop=True):
         datastore = cls.DATA_STORES[np.random.randint(0, len(cls.DATA_STORES))]
-        return datastore.get_molecules(datastore.random)
+        return datastore.get_molecules(datastore.random, crop)

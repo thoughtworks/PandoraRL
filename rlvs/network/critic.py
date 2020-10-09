@@ -1,6 +1,7 @@
 import tensorflow as tf
 from keras.models import Sequential, Model
-from keras.layers import Dropout, Flatten, Dense, Conv2D, MaxPooling2D, Concatenate, Input, GaussianNoise, Conv3D, MaxPooling3D
+from keras.layers import Dropout, Flatten, Dense, Conv2D, MaxPooling2D, Concatenate, Input, GaussianNoise, Conv3D, MaxPooling3D, add
+from .graph_layer import GraphConv, GraphPool, GraphGather
 from keras.initializers import RandomUniform
 from keras.optimizers import Adam
 import keras.backend as keras_backend
@@ -118,3 +119,49 @@ class Critic3D(Critic):
 
         return model, conv_model, action_model
     
+class CriticGNN(Critic):
+    def __init__(self, input_shape, action_shape, learning_rate, tau=0.001):
+        self.adjecency_rank = 10
+        super(CriticGNN, self).__init__(input_shape, action_shape, learning_rate, tau)
+
+    def _create_molecule_network(self):
+        features_input = Input(shape=(None, self._state_shape,), batch_size=1) 
+        degree_slice_input = Input(shape=(11,2), dtype=tf.int32, batch_size=1)
+        deg_adjs_input = [Input(shape=(None,None,), dtype=tf.int32, batch_size=1) for _ in  range(self.adjecency_rank)]
+        
+        input_states = [features_input, degree_slice_input] + deg_adjs_input
+        graph_layer = GraphConv(out_channel=64, activation_fn=tf.nn.relu)(input_states)
+
+        graph_pool_in = [graph_layer, degree_slice_input] + deg_adjs_input
+        graph_pool = GraphPool()(graph_pool_in)
+        dense_layer = Dense(128, activation="relu")(graph_pool)
+
+        return input_states, GraphGather(activation_fn=tf.nn.relu)(dense_layer)
+
+
+    def _create_network(self):
+
+        ip_1, graph_gather_layer_1 = self._create_molecule_network()
+        ip_2, graph_gather_layer_2 = self._create_molecule_network()
+
+        mol1_model = Model(inputs=ip_1, outputs=graph_gather_layer_1)
+        mol2_model = Model(inputs=ip_2, outputs=graph_gather_layer_2)
+
+        combination_layer = add([mol1_model.output, mol2_model.output])
+        combined_dense_layer = Dense(64, activation="relu")(combination_layer)
+        conv_model_1 = Model([ip_1, ip_2], combined_dense_layer)
+
+        action_model = Input(shape=[self._action_shape])
+        action_model_1 = Dense(64, activation='linear')(action_model)
+        action_model_1 = Model(inputs=action_model, outputs=action_model_1)
+
+        intermediate = Concatenate()([conv_model_1.output, action_model_1.output])
+        intermediate = Dense(64, activation='relu')(intermediate)
+        intermediate = Dropout(0.5)(intermediate)
+
+
+        value_layer = Dense(1, activation='linear', kernel_initializer=RandomUniform())(intermediate)
+        model = Model([[ip_1, ip_2], action_model], value_layer)
+        model.compile(optimizer=Adam(lr=self._learning_rate), loss='mse')
+
+        return model, model.inputs[0], action_model
