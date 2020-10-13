@@ -19,6 +19,7 @@ class Actor:
         self.optimizer = Adam(learning_rate=learning_rate)
 
     def optimize(self, action_gradient):
+        # print(action_gradient)
         self.optimizer.apply_gradients(zip(action_gradient, self.actor.trainable_variables))
 
     def predict(self, input_state):
@@ -92,10 +93,10 @@ class ActorGNN(Actor):
         self.adjecency_rank = 10
         super(ActorGNN, self).__init__(input_shape, action_shape, learning_rate, tau)
 
-    def _create_molecule_network(self):
-        features_input = Input(shape=(None, self._state_shape,), batch_size=1) 
-        degree_slice_input = Input(shape=(11,2), dtype=tf.int32, batch_size=1)
-        deg_adjs_input = [Input(shape=(None,None,), dtype=tf.int32, batch_size=1) for _ in  range(self.adjecency_rank)]
+    def _create_molecule_network(self, jj=0):
+        features_input = Input(shape=(None, self._state_shape,), batch_size=1, name=f"Actor_Feature_{jj}") 
+        degree_slice_input = Input(shape=(11,2), dtype=tf.int32, batch_size=1, name=f"Actor_Degree_slice_{jj}")
+        deg_adjs_input = [Input(shape=(None,None,), dtype=tf.int32, batch_size=1, name=f"Actor_deg_adjs_{jj}_{i}") for i in  range(self.adjecency_rank)]
         
         input_states = [features_input, degree_slice_input] + deg_adjs_input
         graph_layer = GraphConv(out_channel=64, activation_fn=tf.nn.relu)(input_states)
@@ -108,8 +109,8 @@ class ActorGNN(Actor):
 
     def _create_network(self):
 
-        ip_1, graph_gather_layer_1 = self._create_molecule_network()
-        ip_2, graph_gather_layer_2 = self._create_molecule_network()
+        ip_1, graph_gather_layer_1 = self._create_molecule_network(0)
+        ip_2, graph_gather_layer_2 = self._create_molecule_network(1)
 
         mol1_model = Model(inputs=ip_1, outputs=graph_gather_layer_1)
         mol2_model = Model(inputs=ip_2, outputs=graph_gather_layer_2)

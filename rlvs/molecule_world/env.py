@@ -72,14 +72,14 @@ class GraphEnv:
     def step(self, action):
         terminal = False
        
-        try:
-            self.ligand.update_pose(*action)
-            self._complex.update_tensor()
-            reward = self._complex.score()
-            terminal = self._complex.perfect_fit
-        except:
-            reward = -1
-            terminal = True
+        # try:
+        self.ligand.update_pose(*action)
+        self._complex.update_tensor()
+        reward = self._complex.score()
+        terminal = self._complex.perfect_fit
+        # except:
+        #     reward = -1
+        #     terminal = True
             
         state = self.get_state()
         return state, reward, terminal
