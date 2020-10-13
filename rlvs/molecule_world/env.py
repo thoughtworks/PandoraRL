@@ -54,7 +54,7 @@ class GraphEnv:
         self.protein, self.ligand = DataStore.next(False)
         self._complex = Complex(self.protein, self.ligand)
         
-        self.input_shape = self.protein.get_atom_features().shape[1]
+        self.input_shape = self._complex.protein.get_atom_features().shape[1]
 
         single_step = np.array([10, 10, 10, 10, 10, 10])
         action_bounds = np.array([-1*single_step, single_step])
@@ -64,7 +64,7 @@ class GraphEnv:
         self.protein, self.ligand = DataStore.next(False)
         self._complex = Complex(self.protein, self.ligand)
         
-        self.input_shape = self.protein.get_atom_features().shape[1]
+        self.input_shape = self._complex.protein.get_atom_features().shape[1]
 
         state = self.get_state()
         return state
@@ -73,8 +73,7 @@ class GraphEnv:
         terminal = False
        
         # try:
-        self.ligand.update_pose(*action)
-        self._complex.update_tensor()
+        self._complex.ligand.update_pose(*action)
         reward = self._complex.score()
         terminal = self._complex.perfect_fit
         # except:
@@ -86,7 +85,7 @@ class GraphEnv:
 
     def get_state(self):
         state = [] # state is a list of 2 lists of tensors 
-        for mol in [self.protein, self.ligand]:
+        for mol in [self._complex.protein, self._complex.ligand]:
             atom_features = np.expand_dims(mol.get_atom_features(), axis=0)
             degree_slice = np.expand_dims((mol.deg_slice.astype(dtype='int32')), axis=0)
             deg_adjs = [np.expand_dims(deg_adj.astype(dtype='int32'), axis=0) for deg_adj in mol.get_deg_adjacency_lists()[1:]]
