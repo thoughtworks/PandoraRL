@@ -10,8 +10,7 @@ import numpy as np
 
 from .memory import Memory
 from .noise import OrnsteinUhlenbeckActionNoise
-# from rlvs.network import Actor, Critic, Actor3D, Critic3D
-from rlvs.network.network_3d import Actor, Critic
+from rlvs.network import Actor, Critic, Actor3D, Critic3D, ActorGNN, CriticGNN
 import tensorflow as tf
 from tensorflow.keras.layers import Concatenate
 
@@ -24,7 +23,7 @@ class DDPGAgent:
     BUFFER_SIZE          = 20000    
     
     def __init__(self, env):
-        # self.input_shape = env.input_shape
+        self.input_shape = env.input_shape
         self.action_shape = env.action_space.n_outputs
         self.eps = 0.9
         self.action_bounds = env.action_space.action_bounds
@@ -33,14 +32,14 @@ class DDPGAgent:
         self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs)
 
         self._actor = Actor(
-            # self.input_shape,
+            self.input_shape,
             self.action_shape,
             self.ACTOR_LEARNING_RATE,
             self.TAU
         )
 
         self._critiq = Critic(
-            # self.input_shape,
+            self.input_shape,
             self.action_shape,
             self.CRITIQ_LEARNING_RATE,
             self.TAU
@@ -94,7 +93,7 @@ class DDPGAgent:
                 state_t = state_t_1
 
                 self.log(action, np.round(reward, 4), episode_length)
-
+                # return 0
                 critic_loss, actor_loss = self.update_network()
                 critic_losses.append(critic_loss)
                 actor_losses.append(actor_loss)
@@ -197,4 +196,115 @@ class DDPGAgent3D(DDPGAgent):
             "E_i:", episode_length,
             "RMSD: ", self.env._complex.rmsd
         )
+
+
+class DDPGAgentGNN(DDPGAgent):
+    ACTOR_LEARNING_RATE  = 0.00005
+    CRITIQ_LEARNING_RATE = 0.00005
+    TAU                  = 0.001
+    
+    GAMMA                = 0.99
+
+    BATCH_SIZE           = 32
+    BUFFER_SIZE          = 20000
+        
+    def __init__(self, env):
+        self.input_shape = env.input_shape
+        self.action_shape = env.action_space.n_outputs
+        self.eps = 0.9
+        self.action_bounds = env.action_space.action_bounds
+        self.memory = Memory(self.BUFFER_SIZE)
+        self.env = env
+        self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs)
+
+        self._actor = ActorGNN(
+            self.input_shape,
+            self.action_shape,
+            self.ACTOR_LEARNING_RATE,
+            self.TAU
+        )
+
+        self._critiq = CriticGNN(
+            self.input_shape,
+            self.action_shape,
+            self.CRITIQ_LEARNING_RATE,
+            self.TAU
+        )
+
+    def get_action(self, action):
+        action *= self.action_bounds[1]
+        
+        x, y, z, r, p, y = np.clip(action, *self.action_bounds)
+        return np.array([np.round(x), np.round(y), np.round(z), r, p, y])
+    
+    def log(self, action, reward, episode_length):
+        print(
+            "Action:", action,
+            "Reward:", np.round(reward, 4),
+            "E_i:", episode_length,
+            "RMSD: ", self.env._complex.rmsd
+        )
+
+    def play(self, num_train_episodes):
+        returns      = []
+        num_steps    = 0
+        max_episode_length = 500
+        max_reward = 0
+
+        for i_episode in range(num_train_episodes):
+            critic_losses = []
+            actor_losses = []
+            state_t, episode_return, episode_length, terminal = self.env.reset(), 0, 0, False
+            self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs)
+            while not (terminal or (episode_length == max_episode_length)):
+                predicted_action = self.get_predicted_action(state_t, episode_length)
+                action = self.get_action(predicted_action)
+                state_t_1, reward, terminal = self.env.step(action)
+                d_store = False if episode_length == max_episode_length else terminal
+                
+                self.memorize(state_t, predicted_action, reward, state_t_1, d_store)
+
+                num_steps += 1                
+                
+                episode_return += reward
+                episode_length += 1
+                state_t = state_t_1
+
+                self.log(action, np.round(reward, 4), episode_length)
+                
+                # return 0
+                critic_loss, actor_loss = self.update_network()
+                critic_losses.append(critic_loss)
+                actor_losses.append(actor_loss)
+                
+            returns.append([i_episode + 1, episode_length])
+            max_reward = max_reward if max_reward > episode_return else episode_return
+            print("Episode:", i_episode + 1, "Return:", episode_return, 'episode_length:', episode_length, 'Max Reward', max_reward, "Critic Loss: ", np.mean(critic_losses), " Actor loss: ", np.mean(actor_losses))
+
+        return returns
+        
+
+        
+    def update_network(self):
+        print("DDPG GraphNN")
+        batch = self.memory.sample(1)#self.BATCH_SIZE)
+        batch_len = len(batch)
+        
+        states = [val['state'] for val in batch]
+        actions = np.array([val['action'] for val in batch])
+        rewards = np.array([val['reward'] for val in batch])
+        next_states = [val['next_state'] for val in batch ]
+        terminals = np.array([val['done'] for val in batch ])
+        
+
+        action_gradient, actor_loss = self._critiq.action_gradients(states, self._actor.actor)
+
+        self._actor.optimize(action_gradient)
+
+        critic_loss = self._critiq.train(states, actions, rewards, terminals, next_states, self._actor.actor_target)
+
+        self._actor.update_target_network()
+        self._critiq.update_target_network()
+
+        return critic_loss, actor_loss
 

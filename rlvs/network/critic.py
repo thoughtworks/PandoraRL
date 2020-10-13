@@ -6,6 +6,7 @@ from keras.initializers import RandomUniform
 from keras.optimizers import Adam
 import keras.backend as keras_backend
 import numpy as np
+import copy
 
 class Critic:
     GAMMA = 0.99
@@ -30,7 +31,7 @@ class Critic:
         next_state_tensor = tf.convert_to_tensor(next_states)
         with tf.GradientTape() as tape:
             next_actions = target_actor(next_states)
-            target_q = self.critic_target([next_state_tensor, next_actions])
+            target_q = self.critic_target([next_states, next_actions])
             critic_target = (
                 rewards + (1 - terminals) * self.GAMMA * target_q
             )
@@ -124,10 +125,10 @@ class CriticGNN(Critic):
         self.adjecency_rank = 10
         super(CriticGNN, self).__init__(input_shape, action_shape, learning_rate, tau)
 
-    def _create_molecule_network(self):
-        features_input = Input(shape=(None, self._state_shape,), batch_size=1) 
-        degree_slice_input = Input(shape=(11,2), dtype=tf.int32, batch_size=1)
-        deg_adjs_input = [Input(shape=(None,None,), dtype=tf.int32, batch_size=1) for _ in  range(self.adjecency_rank)]
+    def _create_molecule_network(self, jj=0):
+        features_input = Input(shape=(None, self._state_shape,), name=f"critic_Feature_{jj}") 
+        degree_slice_input = Input(shape=(11,2), dtype=tf.int32, name=f"critic_Degree_slice_{jj}")
+        deg_adjs_input = [Input(shape=(None,None,), dtype=tf.int32, name=f"critic_deg_adjs_{jj}_{i}") for i in  range(self.adjecency_rank)]
         
         input_states = [features_input, degree_slice_input] + deg_adjs_input
         graph_layer = GraphConv(out_channel=64, activation_fn=tf.nn.relu)(input_states)
@@ -141,8 +142,8 @@ class CriticGNN(Critic):
 
     def _create_network(self):
 
-        ip_1, graph_gather_layer_1 = self._create_molecule_network()
-        ip_2, graph_gather_layer_2 = self._create_molecule_network()
+        ip_1, graph_gather_layer_1 = self._create_molecule_network(0)
+        ip_2, graph_gather_layer_2 = self._create_molecule_network(1)
 
         mol1_model = Model(inputs=ip_1, outputs=graph_gather_layer_1)
         mol2_model = Model(inputs=ip_2, outputs=graph_gather_layer_2)
@@ -150,8 +151,9 @@ class CriticGNN(Critic):
         combination_layer = add([mol1_model.output, mol2_model.output])
         combined_dense_layer = Dense(64, activation="relu")(combination_layer)
         conv_model_1 = Model([ip_1, ip_2], combined_dense_layer)
+        # conv_model_1 = self.conv_model_1
 
-        action_model = Input(shape=[self._action_shape])
+        action_model = Input(shape=[self._action_shape], name=f"critic_action")
         action_model_1 = Dense(64, activation='linear')(action_model)
         action_model_1 = Model(inputs=action_model, outputs=action_model_1)
 
@@ -165,3 +167,33 @@ class CriticGNN(Critic):
         model.compile(optimizer=Adam(lr=self._learning_rate), loss='mse')
 
         return model, model.inputs[0], action_model
+
+    
+    def action_gradients(self, states, actor):
+        
+        state_tensor = states
+        with tf.GradientTape() as tape2:
+            action_tensor = actor(states)
+            q = self.critic([states, action_tensor])
+            action_loss =  -tf.reduce_mean(q)
+            action_gradient =  tape2.gradient(action_loss, actor.trainable_variables)         
+
+        return action_gradient, action_loss.numpy()
+
+    def train(self, states, actions, rewards, terminals, next_states, target_actor):
+        # next_state_tensor = tf.convert_to_tensor(next_states)
+        with tf.GradientTape() as tape:
+            next_actions = target_actor(next_states)
+            target_q = self.critic_target([next_states, next_actions])
+            critic_target = (
+                rewards + (1 - terminals) * self.GAMMA * target_q
+            )
+
+            qvals = self.critic([states, actions]) 
+
+            critic_loss = tf.reduce_mean((qvals - critic_target)**2)
+            q_gradient = tape.gradient(critic_loss, self.critic.trainable_variables)
+            
+        self.optimizer.apply_gradients(zip(q_gradient, self.critic.trainable_variables))
+        return critic_loss.numpy()
+
