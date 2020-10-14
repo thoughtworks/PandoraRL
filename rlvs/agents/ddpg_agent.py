@@ -205,7 +205,7 @@ class DDPGAgentGNN(DDPGAgent):
     
     GAMMA                = 0.99
 
-    BATCH_SIZE           = 32
+    BATCH_SIZE           = 10
     BUFFER_SIZE          = 20000
         
     def __init__(self, env):
@@ -237,12 +237,13 @@ class DDPGAgentGNN(DDPGAgent):
         x, y, z, r, p, y = np.clip(action, *self.action_bounds)
         return np.array([np.round(x), np.round(y), np.round(z), r, p, y])
     
-    def log(self, action, reward, episode_length):
+    def log(self, action, reward, episode_length, i_episode):
         print(
             "Action:", action,
             "Reward:", np.round(reward, 4),
             "E_i:", episode_length,
-            "RMSD: ", self.env._complex.rmsd
+            "E:", i_episode,
+            "RMSD: ", np.round(self.env._complex.rmsd, 4)
         )
 
     def play(self, num_train_episodes):
@@ -270,10 +271,8 @@ class DDPGAgentGNN(DDPGAgent):
                 episode_length += 1
                 state_t = state_t_1
 
-                self.log(action, np.round(reward, 4), episode_length)
-                
-                # return 0
-                self.update_network(critic_losses, actor_losses)
+                self.log(action, np.round(reward, 4), episode_length, i_episode)
+                self.update_network(critic_losses, actor_losses)                
                 
             returns.append([i_episode + 1, episode_length])
             max_reward = max_reward if max_reward > episode_return else episode_return
@@ -286,6 +285,8 @@ class DDPGAgentGNN(DDPGAgent):
     def update_network(self, critic_losses, actor_losses):
         batch = self.memory.sample(self.BATCH_SIZE)
         batch_len = len(batch)
+
+        c_losses, a_losses = [], []
 
         for val in batch:
             action_gradient, actor_loss = self._critiq.action_gradients(val['state'], self._actor.actor)
@@ -301,6 +302,12 @@ class DDPGAgentGNN(DDPGAgent):
 
             critic_losses.append(critic_loss)
             actor_losses.append(actor_loss)
+
+            c_losses.append(critic_loss)
+            a_losses.append(actor_loss)
+
+        print("Critic Training Loss: ", np.mean(c_losses), "Actor Training Loss: ", np.mean(a_losses) )
+
                 
 
         self._actor.update_target_network()

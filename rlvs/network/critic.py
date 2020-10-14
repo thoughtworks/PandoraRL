@@ -126,9 +126,9 @@ class CriticGNN(Critic):
         super(CriticGNN, self).__init__(input_shape, action_shape, learning_rate, tau)
 
     def _create_molecule_network(self, jj=0):
-        features_input = Input(shape=(None, self._state_shape,), name=f"critic_Feature_{jj}") 
-        degree_slice_input = Input(shape=(11,2), dtype=tf.int32, name=f"critic_Degree_slice_{jj}")
-        deg_adjs_input = [Input(shape=(None,None,), dtype=tf.int32, name=f"critic_deg_adjs_{jj}_{i}") for i in  range(self.adjecency_rank)]
+        features_input = Input(shape=(None, self._state_shape,), batch_size=1, name=f"critic_Feature_{jj}") 
+        degree_slice_input = Input(shape=(11,2), dtype=tf.int32, batch_size=1, name=f"critic_Degree_slice_{jj}")
+        deg_adjs_input = [Input(shape=(None,None,), dtype=tf.int32, batch_size=1, name=f"critic_deg_adjs_{jj}_{i}") for i in  range(self.adjecency_rank)]
         
         input_states = [features_input, degree_slice_input] + deg_adjs_input
         graph_layer = GraphConv(out_channel=64, activation_fn=tf.nn.relu)(input_states)
@@ -151,9 +151,8 @@ class CriticGNN(Critic):
         combination_layer = add([mol1_model.output, mol2_model.output])
         combined_dense_layer = Dense(64, activation="relu")(combination_layer)
         conv_model_1 = Model([ip_1, ip_2], combined_dense_layer)
-        # conv_model_1 = self.conv_model_1
 
-        action_model = Input(shape=[self._action_shape], name=f"critic_action")
+        action_model = Input(shape=[self._action_shape], batch_size=1, name=f"critic_action")
         action_model_1 = Dense(64, activation='linear')(action_model)
         action_model_1 = Model(inputs=action_model, outputs=action_model_1)
 
