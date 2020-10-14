@@ -50,7 +50,7 @@ class Env:
 
 class GraphEnv:
     def __init__(self):
-        DataStore.init()
+        DataStore.init(crop=False)
         self.protein, self.ligand = DataStore.next(False)
         self._complex = Complex(self.protein, self.ligand)
         
