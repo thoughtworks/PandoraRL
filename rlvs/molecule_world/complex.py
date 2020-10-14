@@ -19,6 +19,9 @@ class Complex:
         
     def score(self):
         rmsd = self.ligand.rmsd(self.__ligand)
+        if rmsd > 8:
+            raise Exception("BAD RMSD")
+
         return np.sinh(rmsd**0.7 + np.arcsinh(1))**-1
 
     @property
