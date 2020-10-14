@@ -262,7 +262,7 @@ class DDPGAgentGNN(DDPGAgent):
                 state_t_1, reward, terminal = self.env.step(action)
                 d_store = False if episode_length == max_episode_length else terminal
                 
-                self.memorize(state_t, predicted_action, reward, state_t_1, d_store)
+                self.memorize(state_t, np.array([predicted_action]), np.array(reward), state_t_1, np.array(d_store))
 
                 num_steps += 1                
                 
@@ -273,9 +273,7 @@ class DDPGAgentGNN(DDPGAgent):
                 self.log(action, np.round(reward, 4), episode_length)
                 
                 # return 0
-                critic_loss, actor_loss = self.update_network()
-                critic_losses.append(critic_loss)
-                actor_losses.append(actor_loss)
+                self.update_network(critic_losses, actor_losses)
                 
             returns.append([i_episode + 1, episode_length])
             max_reward = max_reward if max_reward > episode_return else episode_return
@@ -285,26 +283,26 @@ class DDPGAgentGNN(DDPGAgent):
         
 
         
-    def update_network(self):
-        print("DDPG GraphNN")
-        batch = self.memory.sample(1)#self.BATCH_SIZE)
+    def update_network(self, critic_losses, actor_losses):
+        batch = self.memory.sample(self.BATCH_SIZE)
         batch_len = len(batch)
-        
-        states = [val['state'] for val in batch]
-        actions = np.array([val['action'] for val in batch])
-        rewards = np.array([val['reward'] for val in batch])
-        next_states = [val['next_state'] for val in batch ]
-        terminals = np.array([val['done'] for val in batch ])
-        
 
-        action_gradient, actor_loss = self._critiq.action_gradients(states, self._actor.actor)
+        for val in batch:
+            action_gradient, actor_loss = self._critiq.action_gradients(val['state'], self._actor.actor)
+            self._actor.optimize(action_gradient)
+            critic_loss = self._critiq.train(
+                val['state'],
+                val['action'],
+                val['reward'],
+                val['done'],
+                val['next_state'],
+                self._actor.actor_target
+            )
 
-        self._actor.optimize(action_gradient)
-
-        critic_loss = self._critiq.train(states, actions, rewards, terminals, next_states, self._actor.actor_target)
+            critic_losses.append(critic_loss)
+            actor_losses.append(actor_loss)
+                
 
         self._actor.update_target_network()
         self._critiq.update_target_network()
-
-        return critic_loss, actor_loss
 

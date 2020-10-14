@@ -31,7 +31,7 @@ class PafnucyData(Data):
             self.complexes_path.remove('.DS_Store')
         if 'affinities.csv' in self.complexes_path:            
             self.complexes_path.remove('affinities.csv')
-            
+
         self._complexes = [
             lambda: (
                 OB_to_mol(
