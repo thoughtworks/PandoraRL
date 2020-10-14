@@ -2,6 +2,7 @@ import os
 from os import path
 from .helper_functions import OB_to_mol, read_to_OB
 import numpy as np
+from sklearn.preprocessing import MinMaxScaler
 
 ROOT_PATH = f'{path.dirname(path.abspath(__file__))}/../../data'
 
@@ -94,13 +95,29 @@ class DataStore:
 
     @classmethod
     def init(cls):
-        cls.DATA_STORES = [PafnucyData(), PDBQTData()]#, DudeProteaseData()]
+        cls.DATA_STORES = [PDBQTData(), PafnucyData()]#, DudeProteaseData()]
+        cls.load()
+        cls.normalize()
 
     @classmethod
-    def load(cls):
-        cls.DATA = [store.get_molecules(complex) for store in cls.DATA_STORES for complex in store._complexes]            
+    def load(cls, crop=True):
+        cls.DATA = [store.get_molecules(complex, crop) for store in cls.DATA_STORES for complex in store._complexes]            
                 
     @classmethod
     def next(cls, crop=True):
-        datastore = cls.DATA_STORES[np.random.randint(0, len(cls.DATA_STORES))]
-        return datastore.get_molecules(datastore.random, crop)
+        # datastore = cls.DATA_STORES[np.random.randint(0, len(cls.DATA_STORES))]
+        # return datastore.get_molecules(datastore.random, crop)
+        return cls.DATA[np.random.randint(0, len(cls.DATA))]
+
+    @classmethod
+    def normalize(cls):
+        X = []
+        for protein, ligand in cls.DATA:
+            X.extend(list(protein.get_coords()))
+            X.extend(list(ligand.get_coords()))
+        X = np.asarray(X)
+        scaler = MinMaxScaler()
+        X_scaled = scaler.fit_transform(X)
+        for i, (protein, ligand) in enumerate(cls.DATA):
+            protein.set_coords(X_scaled[i:i+protein.n_atoms,:])
+            ligand.set_coords(X_scaled[i+protein.n_atoms:i+protein.n_atoms+ligand.n_atoms, :])
