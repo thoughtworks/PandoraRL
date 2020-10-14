@@ -170,8 +170,6 @@ class CriticGNN(Critic):
 
     
     def action_gradients(self, states, actor):
-        
-        state_tensor = states
         with tf.GradientTape() as tape2:
             action_tensor = actor(states)
             q = self.critic([states, action_tensor])
@@ -181,7 +179,6 @@ class CriticGNN(Critic):
         return action_gradient, action_loss.numpy()
 
     def train(self, states, actions, rewards, terminals, next_states, target_actor):
-        # next_state_tensor = tf.convert_to_tensor(next_states)
         with tf.GradientTape() as tape:
             next_actions = target_actor(next_states)
             target_q = self.critic_target([next_states, next_actions])
