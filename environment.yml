@@ -15,4 +15,4 @@ dependencies:
   - rdkit=2020.03.6
   - pip:
       - tensorflow==2.2.0
-      # - keras==2.4.3
+      - deepchem==2.4.0rc1.dev20201006160532

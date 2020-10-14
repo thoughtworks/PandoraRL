@@ -17,5 +17,6 @@ dependencies:
   - pip:
       - keras==2.4.3
       - tensorflow==2.2.0
+      - deepchem==2.4.0rc1.dev20201006160532
 
 
