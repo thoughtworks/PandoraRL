@@ -60,8 +60,8 @@ class GraphConv(tf.keras.layers.Layer):
     self.W_list = [
         self.add_weight(
             name='kernel',
-            shape=(input_shape[0][-1], self.out_channel),
-            initializer=GlorotUniform(seed=0),
+            shape=(int(input_shape[0][-1]), self.out_channel),
+            initializer=GlorotUniform(),
             trainable=True) for k in range(num_deg)
     ]
     self.b_list = [
@@ -88,7 +88,7 @@ class GraphConv(tf.keras.layers.Layer):
 
     # Extract graph topology
     deg_slice = inputs[1][0]
-    deg_adj_lists = [x[0] for x in inputs[2:]]
+    deg_adj_lists = [x[0] for x in inputs[4:]]
 
     W = iter(self.W_list)
     b = iter(self.b_list)
@@ -144,9 +144,6 @@ class GraphConv(tf.keras.layers.Layer):
 
     return deg_summed
 
-  def compute_output_shape(input_shape):
-    return (None, input_shape[0][-1], self.out_channel)
-
 class GraphPool(tf.keras.layers.Layer):
   """A GraphPool gathers data from local neighborhoods of a graph.
 
@@ -190,7 +187,7 @@ class GraphPool(tf.keras.layers.Layer):
   def call(self, inputs):
     atom_features = inputs[0]
     deg_slice = inputs[1][0]
-    deg_adj_lists = [x[0] for x in inputs[2:]]
+    deg_adj_lists = [x[0] for x in inputs[4:]]
 
     # Perform the mol gather
     # atom_features = graph_pool(atom_features, deg_adj_lists, deg_slice,
@@ -219,12 +216,11 @@ class GraphPool(tf.keras.layers.Layer):
         maxed_atoms = tf.reduce_max(gathered_atoms, 1)
       deg_maxed[deg - self.min_degree] = maxed_atoms
 
-    if self.min_degree == 0:  
+    if self.min_degree == 0:
       self_atoms = split_features[0]
       deg_maxed[0] = self_atoms
 
     return tf.concat(axis=0, values=deg_maxed)
-
 
 class GraphGather(tf.keras.layers.Layer):
   """A GraphGather layer pools node-level feature vectors to create a graph feature vector.
@@ -255,21 +251,19 @@ class GraphGather(tf.keras.layers.Layer):
 
     Parameters
     ---------
-    # batch_size: int
-      # The batch size for this layer. Note that the layer's behavior
-      # changes depending on the batch size.
+    batch_size: int
+      The batch size for this layer. Note that the layer's behavior
+      changes depending on the batch size.
     activation_fn: function
       A nonlinear activation function to apply. If you're not sure,
       `tf.nn.relu` is probably a good default for your application.
     """
 
     super(GraphGather, self).__init__(**kwargs)
-    # self.batch_size = batch_size
     self.activation_fn = activation_fn
 
   def get_config(self):
     config = super(GraphGather, self).get_config()
-    # config['batch_size'] = self.batch_size
     config['activation_fn'] = self.activation_fn
     return config
 
@@ -283,16 +277,24 @@ class GraphGather(tf.keras.layers.Layer):
       membership, deg_adj_list placeholders...]`. These are all
       tensors that are created/process by `GraphConv` and `GraphPool`
     """
-    atom_features = inputs
+    atom_features = inputs[0]
 
     # Extract graph topology
-    # membership = inputs[1]
+    membership = inputs[1][0]
 
-    # assert self.batch_size > 1, "graph_gather requires batches larger than 1"
+    batch_size = inputs[2][0][0]
 
-    sparse_reps = tf.math.reduce_sum(atom_features, axis=0, keepdims=True)
-    max_reps = tf.math.reduce_max(atom_features, axis=0, keepdims=True)
-    mol_features = tf.concat(axis=1, values=[sparse_reps, max_reps])
+    if batch_size == 1:
+      sparse_reps = tf.math.reduce_sum(atom_features, axis=0, keepdims=True)
+      max_reps = tf.math.reduce_max(atom_features, axis=0, keepdims=True)
+      mol_features = tf.concat(axis=1, values=[sparse_reps, max_reps])
+
+    else:
+      sparse_reps = tf.math.unsorted_segment_sum(atom_features, membership,
+                                                batch_size)
+      max_reps = tf.math.unsorted_segment_max(atom_features, membership,
+                                              batch_size)
+      mol_features = tf.concat(axis=1, values=[sparse_reps, max_reps])
 
     if self.activation_fn is not None:
       mol_features = self.activation_fn(mol_features)

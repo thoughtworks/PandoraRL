@@ -128,17 +128,18 @@ class CriticGNN(Critic):
     def _create_molecule_network(self, jj=0):
         features_input = Input(shape=(None, self._state_shape,), batch_size=1, name=f"critic_Feature_{jj}") 
         degree_slice_input = Input(shape=(11,2), dtype=tf.int32, batch_size=1, name=f"critic_Degree_slice_{jj}")
+        membership = Input(shape=(None,), dtype=tf.int32, name=f'membership_{jj}', batch_size=1)
+        n_samples = Input(shape=(1,), dtype=tf.int32, name=f'n_samples_{jj}', batch_size=1)
         deg_adjs_input = [Input(shape=(None,None,), dtype=tf.int32, batch_size=1, name=f"critic_deg_adjs_{jj}_{i}") for i in  range(self.adjecency_rank)]
         
-        input_states = [features_input, degree_slice_input] + deg_adjs_input
+        input_states = [features_input, degree_slice_input, membership, n_samples] + deg_adjs_input
         graph_layer = GraphConv(out_channel=64, activation_fn=tf.nn.relu)(input_states)
 
-        graph_pool_in = [graph_layer, degree_slice_input] + deg_adjs_input
+        graph_pool_in = [graph_layer, degree_slice_input, membership, n_samples] + deg_adjs_input
         graph_pool = GraphPool()(graph_pool_in)
-        dense_layer = Dense(128, activation="relu")(graph_pool)
+        dense_layer = Dense(128, activation=tf.nn.relu)(graph_pool)
 
-        return input_states, GraphGather(activation_fn=tf.nn.relu)(dense_layer)
-
+        return input_states, GraphGather(activation_fn=tf.nn.tanh)([dense_layer, membership, n_samples])
 
     def _create_network(self):
 
