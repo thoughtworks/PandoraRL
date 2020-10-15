@@ -25,11 +25,10 @@ def read_to_OB(filename, filetype):
     # print(obmol.GetFormula())
     return obmol
 
-def OB_to_mol(obmol, mol_type):
-    
+def OB_to_mol(obmol, mol_type, path=None):
     f = Featurizer()
     nodes, canon_adj_list = f.get_mol_features(obmol=obmol, molecule_type=mol_type, bond_verbose=0)
-    mol = Molecule(atom_features=nodes, canon_adj_list=canon_adj_list)
+    mol = Molecule(atom_features=nodes, canon_adj_list=canon_adj_list, path=path)
     return mol
 
 # def get_molecules(ligand_path=None, protein_path=None):

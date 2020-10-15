@@ -14,10 +14,10 @@ class Molecule(ConvMol):
     - origin: origin (x,y,z) w.r.t which all other coords are defined
     '''
     
-    def __init__(self, atom_features, canon_adj_list, max_deg=10, min_deg=0, origin=[0,0,0]):
+    def __init__(self, atom_features, canon_adj_list, max_deg=10, min_deg=0, origin=[0,0,0], path=None):
 
         super(Molecule, self).__init__(atom_features=atom_features, adj_list=canon_adj_list, max_deg=max_deg, min_deg=min_deg)
-      
+        self.path = path
         self.origin = np.array(origin, copy=True).astype(float).reshape(1,3) #initially coords are wrt (0,0,0)
         self.T = lambda x,y,z : np.array([[1,0,0,x], [0,1,0,y], [0,0,1,z], [0,0,0,1]]).astype(float)
         self.rmsd = RMSD(self)
