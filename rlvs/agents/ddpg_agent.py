@@ -263,8 +263,9 @@ class DDPGAgentGNN(DDPGAgent):
                 state_t_1, reward, terminal = self.env.step(action)
                 d_store = False if episode_length == max_episode_length else terminal
                 
-                self.memorize(state_t, np.array([predicted_action]), np.array(reward), state_t_1, np.array(d_store))
-
+                # self.memorize(state_t, np.array([predicted_action]), np.array(reward), state_t_1, np.array(d_store))
+                self.memorize(state_t, predicted_action, reward, state_t_1, d_store)
+                
                 num_steps += 1                
                 
                 episode_return += reward
@@ -288,23 +289,40 @@ class DDPGAgentGNN(DDPGAgent):
 
         c_losses, a_losses = [], []
 
-        for val in batch:
-            action_gradient, actor_loss = self._critiq.action_gradients(val['state'], self._actor.actor)
-            self._actor.optimize(action_gradient)
-            critic_loss = self._critiq.train(
-                val['state'],
-                val['action'],
-                val['reward'],
-                val['done'],
-                val['next_state'],
-                self._actor.actor_target
-            )
+        states = [val['state'] for val in batch]
+        actions = np.array([val['action'] for val in batch])
+        rewards = np.array([val['reward'] for val in batch])
+        next_states = [val['next_state'] for val in batch ]
+        terminals = np.array([val['done'] for val in batch ])
+        
 
-            critic_losses.append(critic_loss)
-            actor_losses.append(actor_loss)
+        action_gradient, actor_loss = self._critiq.action_gradients(states, self._actor.actor)
 
-            c_losses.append(critic_loss)
-            a_losses.append(actor_loss)
+        self._actor.optimize(action_gradient)
+
+        critic_loss = self._critiq.train(states, actions, rewards, terminals, next_states, self._actor.actor_target)
+
+        critic_losses.append(critic_loss)
+        actor_losses.append(actor_loss)
+
+
+        # for val in batch:
+        #     action_gradient, actor_loss = self._critiq.action_gradients(val['state'], self._actor.actor)
+        #     self._actor.optimize(action_gradient)
+        #     critic_loss = self._critiq.train(
+        #         val['state'],
+        #         val['action'],
+        #         val['reward'],
+        #         val['done'],
+        #         val['next_state'],
+        #         self._actor.actor_target
+        #     )
+
+        #     critic_losses.append(critic_loss)
+        #     actor_losses.append(actor_loss)
+
+        c_losses.append(critic_loss)
+        a_losses.append(actor_loss)
 
         print("Critic Training Loss: ", np.mean(c_losses), "Actor Training Loss: ", np.mean(a_losses) )
 
