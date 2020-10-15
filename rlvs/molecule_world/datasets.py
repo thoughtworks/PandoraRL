@@ -13,7 +13,7 @@ class Data:
         self.complexes_path = os.listdir(self.DATA_PATH)
 
     def get_molecules(self, complex, crop=True):
-        protein, ligand = complex()
+        protein, ligand = complex
         if crop:
             protein.crop(ligand.get_centroid(), 10, 10, 10)
             
@@ -34,13 +34,15 @@ class PafnucyData(Data):
             self.complexes_path.remove('affinities.csv')
 
         self._complexes = [
-            lambda: (
+            (
                 OB_to_mol(
                     read_to_OB(filename=f'{self.DATA_PATH}/{complex}/{complex}_pocket.mol2', filetype="mol2"),
-                    mol_type=-1
+                    mol_type=-1,
+                    path=f'{self.DATA_PATH}/{complex}/{complex}_pocket.mol2'
                 ), OB_to_mol(
                     read_to_OB(filename=f'{self.DATA_PATH}/{complex}/{complex}_ligand.mol2', filetype="mol2"),
-                    mol_type=1
+                    mol_type=1,
+                    path=f'{self.DATA_PATH}/{complex}/{complex}_ligand.mol2'                    
                 )
             ) for complex in self.complexes_path
         ]
@@ -55,13 +57,15 @@ class PDBQTData(Data):
         ]
 
         self._complexes = [
-            lambda: (
+            (
                 OB_to_mol(
                     read_to_OB(filename=f'{self.DATA_PATH}/{complex}', filetype="pdbqt"),
-                    mol_type=-1
+                    mol_type=-1,
+                    path=f'{self.DATA_PATH}/{complex}'                    
                 ), OB_to_mol(
                     read_to_OB(filename=f'{self.DATA_PATH}/{ligand}', filetype="pdbqt"),
-                    mol_type=1
+                    mol_type=1,
+                    path=f'{self.DATA_PATH}/{ligand}'
                 )
             ) for complex, ligand in self.complexes_path
         ]
@@ -76,13 +80,15 @@ class DudeProteaseData(Data):
 
 
         self._complexes = [
-            lambda: (
+            (
                 OB_to_mol(
                     read_to_OB(filename=f'{self.DATA_PATH}/{complex}/receptor.pdb', filetype="pdb"),
-                    mol_type=-1
+                    mol_type=-1,
+                    path=f'{self.DATA_PATH}/{complex}/receptor.pdb'
                 ), OB_to_mol(
                     read_to_OB(filename=f'{self.DATA_PATH}/{complex}/crystal_ligand.mol2', filetype="mol2"),
-                    mol_type=1
+                    mol_type=1,
+                    path=f'{self.DATA_PATH}/{complex}/crystal_ligand.mol2'
                 )
             ) for complex in self.complexes_path
         ]
