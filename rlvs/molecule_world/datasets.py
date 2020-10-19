@@ -82,9 +82,9 @@ class PDBQTData_2(Data):
         self._complexes = [
             (
                 OB_to_mol(
-                    read_to_OB(filename=f'{self.DATA_PATH}/{complex}/{complex}_pocket.pdb', filetype="pdb"),
+                    read_to_OB(filename=f'{self.DATA_PATH}/{complex}/{complex}_protein.pdb', filetype="pdb"),
                     mol_type=-1,
-                    path=f'{self.DATA_PATH}/{complex}/{complex}_pocket.pdb'
+                    path=f'{self.DATA_PATH}/{complex}/{complex}_protein.pdb'
                 ), OB_to_mol(
                     read_to_OB(filename=f'{self.DATA_PATH}/{complex}/{complex}_ligand.mol2', filetype="mol2"),
                     mol_type=1,
@@ -125,7 +125,7 @@ class DataStore:
 
     @classmethod
     def init(cls, crop=True):
-        cls.DATA_STORES = [PDBQTData_2(), PDBQTData(), PafnucyData()]#, DudeProteaseData()]
+        cls.DATA_STORES = [PDBQTData_2()]#, PDBQTData(), PafnucyData()]#, DudeProteaseData()]
         cls.load(crop)
         #cls.normalize()
 
