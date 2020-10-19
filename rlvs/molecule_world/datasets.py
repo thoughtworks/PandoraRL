@@ -127,7 +127,7 @@ class DataStore:
     def init(cls, crop=True):
         cls.DATA_STORES = [PDBQTData_2(), PDBQTData(), PafnucyData()]#, DudeProteaseData()]
         cls.load(crop)
-        cls.normalize()
+        #cls.normalize()
 
     @classmethod
     def load(cls, crop=True):
