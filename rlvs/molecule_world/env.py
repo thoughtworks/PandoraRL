@@ -59,14 +59,14 @@ class GraphEnv:
         
         self.input_shape = self._complex.protein.get_atom_features().shape[1]
 
-        single_step = np.array([10, 10, 10, 10, 10, 10])
+        single_step = np.array([50, 50, 50, 10, 10, 10])
         action_bounds = np.array([-1*single_step, single_step])
         self.action_space = ActionSpace(action_bounds)
 
     def reset(self):
         self.protein, self.ligand = DataStore.next(False)
         self._complex = Complex(self.protein, self.ligand)
-        
+        print("Complex: ", self.protein.path, "Randomized RMSD:", np.round(self._complex.rmsd, 4))
         self.input_shape = self._complex.protein.get_atom_features().shape[1]
 
         state = self.get_state()

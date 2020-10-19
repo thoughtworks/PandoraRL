@@ -285,9 +285,6 @@ class DDPGAgentGNN(DDPGAgent):
         
     def update_network(self, critic_losses, actor_losses):
         batch = self.memory.sample(self.BATCH_SIZE)
-        batch_len = len(batch)
-
-        c_losses, a_losses = [], []
 
         states = self.env.get_state([val['state'] for val in batch])
         actions = np.array([val['action'] for val in batch])
@@ -305,13 +302,8 @@ class DDPGAgentGNN(DDPGAgent):
         critic_losses.append(critic_loss)
         actor_losses.append(actor_loss)
 
-        c_losses.append(critic_loss)
-        a_losses.append(actor_loss)
-
-        print("Critic Training Loss: ", np.mean(c_losses), "Actor Training Loss: ", np.mean(a_losses) )
-
-                
-
         self._actor.update_target_network()
         self._critiq.update_target_network()
+
+        print("C :", critic_loss, "A: ", actor_loss)
 

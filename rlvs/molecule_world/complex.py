@@ -14,7 +14,7 @@ class Complex:
         self.protein = protein
 
         self.ligand = ligand
-        self.__ligand = copy.deepcopy(ligand) 
+        self.__ligand = copy.deepcopy(ligand)
         self.ligand.randomize(10) # TODO: move it out of the protein
         
     def score(self):
