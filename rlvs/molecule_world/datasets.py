@@ -70,6 +70,30 @@ class PDBQTData(Data):
             ) for complex, ligand in self.complexes_path
         ]
 
+class PDBQTData_2(Data):
+    DATA_PATH=f'{ROOT_PATH}/pdbqt_data_2'
+
+    def __init__(self):
+        super(PDBQTData_2, self).__init__()
+        if '.DS_Store' in self.complexes_path:
+            self.complexes_path.remove('.DS_Store')
+        
+
+        self._complexes = [
+            (
+                OB_to_mol(
+                    read_to_OB(filename=f'{self.DATA_PATH}/{complex}/{complex}_pocket.pdb', filetype="pdb"),
+                    mol_type=-1,
+                    path=f'{self.DATA_PATH}/{complex}/{complex}_pocket.pdb'
+                ), OB_to_mol(
+                    read_to_OB(filename=f'{self.DATA_PATH}/{complex}/{complex}_ligand.mol2', filetype="mol2"),
+                    mol_type=1,
+                    path=f'{self.DATA_PATH}/{complex}/{complex}_ligand.mol2'                    
+                )
+            ) for complex in self.complexes_path
+        ]
+        
+
 class DudeProteaseData(Data):
     DATA_PATH=f'{ROOT_PATH}/dude_protease'
 
@@ -101,7 +125,7 @@ class DataStore:
 
     @classmethod
     def init(cls, crop=True):
-        cls.DATA_STORES = [PDBQTData(), PafnucyData()]#, DudeProteaseData()]
+        cls.DATA_STORES = [PDBQTData_2(), PDBQTData(), PafnucyData()]#, DudeProteaseData()]
         cls.load(crop)
         cls.normalize()
 
