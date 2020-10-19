@@ -98,7 +98,7 @@ class DDPGAgent:
                 critic_losses.append(critic_loss)
                 actor_losses.append(actor_loss)
                 
-            returns.append([i_episode + 1, episode_length])
+            returns.append([i_episode + 1, episode_length, episode_return, np.mean(critic_losses), np.mean(actor_losses)])
             max_reward = max_reward if max_reward > episode_return else episode_return
             print("Episode:", i_episode + 1, "Return:", episode_return, 'episode_length:', episode_length, 'Max Reward', max_reward, "Critic Loss: ", np.mean(critic_losses), " Actor loss: ", np.mean(actor_losses))
 
@@ -131,7 +131,7 @@ class DDPGAgent:
 
         self._actor.update_target_network()
         self._critiq.update_target_network()
-
+        print(critic_loss, actor_loss)
         return critic_loss, actor_loss
         
     def gather_stats(self):
