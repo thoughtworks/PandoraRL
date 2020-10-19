@@ -153,7 +153,7 @@ class CriticGNN(Critic):
         combined_dense_layer = Dense(64, activation="relu")(combination_layer)
         conv_model_1 = Model([ip_1, ip_2], combined_dense_layer)
 
-        action_model = Input(shape=[self._action_shape], batch_size=1, name=f"critic_action")
+        action_model = Input(shape=[self._action_shape], name=f"critic_action")
         action_model_1 = Dense(64, activation='linear')(action_model)
         action_model_1 = Model(inputs=action_model, outputs=action_model_1)
 

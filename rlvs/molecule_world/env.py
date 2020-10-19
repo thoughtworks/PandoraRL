@@ -3,6 +3,7 @@ from .complex import Complex
 from .molecule import Molecule
 from .datasets import DataStore
 from deepchem.feat.mol_graphs import MultiConvMol, ConvMol
+import tensorflow as tf
 
 class ActionSpace:
     def __init__(self, action_bounds):
@@ -69,7 +70,7 @@ class GraphEnv:
         self.input_shape = self._complex.protein.get_atom_features().shape[1]
 
         state = self.get_state()
-        return state
+        return self._complex, state
 
     def step(self, action):
         terminal = False
@@ -83,23 +84,19 @@ class GraphEnv:
             terminal = True
             
         state = self.get_state()
-        return state, reward, terminal
+        return self._complex, state, reward, terminal
 
-    def get_state(self):
-        # state = [] # state is a list of 2 lists of tensors 
-        # for mol in [self._complex.protein, self._complex.ligand]:
-        #     atom_features = np.expand_dims(mol.get_atom_features(), axis=0)
-        #     degree_slice = np.expand_dims((mol.deg_slice.astype(dtype='int32')), axis=0)
-        #     deg_adjs = [np.expand_dims(deg_adj.astype(dtype='int32'), axis=0) for deg_adj in mol.get_deg_adjacency_lists()[1:]]
+    def get_state(self, complexes=None):
+        if complexes is None:
+            proteins = [self._complex.protein]
+            ligands = [self._complex.ligand]
+        else:
+            proteins = [m_complex.protein for m_complex in complexes]
+            ligands = [m_complex.ligand for m_complex in complexes]
 
-        #     gc_in = [atom_features, degree_slice] + deg_adjs
-        #     state.append(gc_in)
-
-        # since this is single batch
-        proteins = [self._complex.protein]
-        ligands = [self._complex.ligand]
-        protein_batch  = get_graphcnn_input(mols_to_inputs(proteins))
-        ligand_batch  = get_graphcnn_input(mols_to_inputs(ligands))
+            
+        protein_batch  = self.get_graphcnn_input(self.mols_to_inputs(proteins))
+        ligand_batch  = self.get_graphcnn_input(self.mols_to_inputs(ligands))
 
         state = [protein_batch, ligand_batch] 
         # protein_batch is list of tensors for agglomerated protein molecules 
@@ -107,7 +104,8 @@ class GraphEnv:
 
         return state
 
-    def mols_to_inputs(mols):
+    @staticmethod
+    def mols_to_inputs( mols):
         multiConvMol = ConvMol.agglomerate_mols(mols)
         n_samples = np.array([len(mols)])
         inputs = [multiConvMol.get_atom_features(), multiConvMol.deg_slice,
@@ -115,7 +113,8 @@ class GraphEnv:
         for i in range(1, len(multiConvMol.get_deg_adjacency_lists())):
             inputs.append(multiConvMol.get_deg_adjacency_lists()[i])
         return inputs
-    
+
+    @staticmethod
     def get_graphcnn_input(inputs):
         atom_features = np.expand_dims(inputs[0], axis=0)
         degree_slice = np.expand_dims(tf.cast(inputs[1], dtype=tf.int32), axis=0)
