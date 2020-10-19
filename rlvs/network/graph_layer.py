@@ -201,7 +201,6 @@ class GraphPool(tf.keras.layers.Layer):
     for deg in range(1, self.max_degree + 1):
       # Get self atoms
       self_atoms = split_features[deg - self.min_degree]
-
       if deg_adj_lists[deg - 1].shape[0] == 0:
         # There are no neighbors of this degree, so just create an empty tensor directly.
         maxed_atoms = tf.zeros((0, self_atoms.shape[-1]))
