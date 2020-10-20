@@ -311,3 +311,6 @@ class DDPGAgentGNN(DDPGAgent):
 
         logging.info(f"C : {critic_loss}, A: {actor_loss}")
 
+    def save_weights(self, path):
+        self._actor.save(path)
+        self._critiq.save(path)

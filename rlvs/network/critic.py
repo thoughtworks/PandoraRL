@@ -133,7 +133,7 @@ class CriticGNN(Critic):
         deg_adjs_input = [Input(shape=(None,None,), dtype=tf.int32, batch_size=1, name=f"critic_deg_adjs_{jj}_{i}") for i in  range(self.adjecency_rank)]
         
         input_states = [features_input, degree_slice_input, membership, n_samples] + deg_adjs_input
-        graph_layer = GraphConv(out_channel=64, activation_fn=tf.nn.relu)(input_states)
+        graph_layer = GraphConv(molecule_number=jj, out_channel=64, activation_fn=tf.nn.relu)(input_states)
 
         graph_pool_in = [graph_layer, degree_slice_input, membership, n_samples] + deg_adjs_input
         graph_pool = GraphPool()(graph_pool_in)
@@ -194,3 +194,5 @@ class CriticGNN(Critic):
         self.optimizer.apply_gradients(zip(q_gradient, self.critic.trainable_variables))
         return critic_loss.numpy()
 
+    def save(self, path):
+        self.critic.save_weights(filepath=path+'_critic.h5', save_format="h5")

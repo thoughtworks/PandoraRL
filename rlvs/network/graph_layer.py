@@ -25,6 +25,7 @@ class GraphConv(tf.keras.layers.Layer):
   """
 
   def __init__(self,
+               molecule_number: int,
                out_channel: int,
                min_deg: int = 0,
                max_deg: int = 10,
@@ -49,6 +50,7 @@ class GraphConv(tf.keras.layers.Layer):
       `tf.nn.relu` is probably a good default for your application.
     """
     super(GraphConv, self).__init__(**kwargs)
+    self.molecule_number = molecule_number
     self.out_channel = out_channel
     self.min_degree = min_deg
     self.max_degree = max_deg
@@ -59,14 +61,14 @@ class GraphConv(tf.keras.layers.Layer):
     num_deg = 2 * self.max_degree + (1 - self.min_degree)
     self.W_list = [
         self.add_weight(
-            name='kernel',
+            name='kernel'+str(self.molecule_number)+str(k),
             shape=(int(input_shape[0][-1]), self.out_channel),
             initializer=GlorotUniform(),
             trainable=True) for k in range(num_deg)
     ]
     self.b_list = [
         self.add_weight(
-            name='bias',
+            name='bias'+str(self.molecule_number)+str(k),
             shape=(self.out_channel,),
             initializer='zeros',
             trainable=True) for k in range(num_deg)
