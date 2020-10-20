@@ -36,6 +36,18 @@ class Featurizer():
             self.class_codes[code] = name
         self.num_classes = len(atom_classes)
 
+        self.SMARTS = ['[#6+0!$(*~[#7,#8,F]),SH0+0v2,s+0,S^3,Cl+0,Br+0,I+0]',
+                '[a]',
+                '[!$([#1,#6,F,Cl,Br,I,o,s,nX3,#7v5,#15v5,#16v4,#16v6,*+1,*+2,*+3])]',
+                '[!$([#6,H0,-,-2,-3]),$([!H0;#7,#8,#9])]',
+                '[r]']
+        self.smarts_labels = ['hydrophobic', 'aromatic', 'acceptor', 'donor',
+                                    'ring']
+
+        self.__PATTERNS = []
+        for smarts in self.SMARTS:
+            self.__PATTERNS.append(pybel.Smarts(smarts))
+
     def get_atom_features(self, atom, molecule_type):
         #TODO: add SMARTS patterns 
         '''
@@ -50,7 +62,7 @@ class Featurizer():
                 x,
                 y,
                 z,
-                encoding (9 bit one hot encoding),
+                encoding (10 bit one hot encoding),
                 hyb (1,2 or 3),
                 heavy_valence (integer),
                 hetero_valence (integer),
@@ -84,16 +96,10 @@ class Featurizer():
 
         idx_node_tuples = []
 
-        # edges = np.zeros((num_atoms, num_atoms))
-        # for bond in ob.OBMolBondIter(obmol):
-        #     edges[bond.GetBeginAtom().GetIndex(), bond.GetEndAtom().GetIndex()] = 1
-        #     edges[bond.GetEndAtom().GetIndex(), bond.GetBeginAtom().GetIndex()] = 1 # bi-directional
+        # Calculate SMARTS features
+        mol_py = pybel.Molecule(obmol)
+        smarts_patterns = self.find_smarts(mol_py) # shape = (num_atoms, num_smarts_patterns)
 
-        # adj_mat = sp.coo_matrix((np.ones(edges.shape[0]), (edges[:, 0], edges[:, 1])),
-        #                 shape=(num_atoms, num_atoms), dtype=np.float32)
-
-        # adj_mat = adj_mat + adj_mat.T.multiply(adj_mat.T > adj_mat) - adj_mat.multiply(adj_mat.T > adj_mat)
-            
         for atom in ob.OBMolAtomIter(obmol):
             # add only heavy atoms
             # if atom.GetAtomicNum() > 1:
@@ -102,7 +108,10 @@ class Featurizer():
             #     idx_node_tuples.append((atom_id, atom_feats))
 
             atom_id = atom.GetIndex()
-            atom_feats = self.get_atom_features(atom, molecule_type)
+            atom_feats = self.get_atom_features(atom, molecule_type) # list of features
+            
+            atom_feats.extend(smarts_patterns[atom_id])
+
             idx_node_tuples.append((atom_id, atom_feats))
 
         idx_node_tuples.sort()
@@ -122,3 +131,27 @@ class Featurizer():
             canon_adj_list[edge[1]].append(edge[0])
         
         return nodes, canon_adj_list
+
+    def find_smarts(self, molecule):
+            """Find atoms that match SMARTS patterns.
+
+            Parameters
+            ----------
+            molecule: pybel.Molecule
+
+            Returns
+            -------
+            features: np.ndarray
+                NxM binary array, where N is the number of atoms in the `molecule`
+                and M is the number of patterns. `features[i, j]` == 1.0 if i'th
+                atom has j'th property
+            """
+
+
+            features = np.zeros((len(molecule.atoms), len(self.__PATTERNS)))
+
+            for (pattern_id, pattern) in enumerate(self.__PATTERNS):
+                atoms_with_prop = np.array(list(*zip(*pattern.findall(molecule))),
+                                        dtype=int) - 1
+                features[atoms_with_prop, pattern_id] = 1.0
+            return features
