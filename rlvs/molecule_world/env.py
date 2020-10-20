@@ -108,7 +108,10 @@ class GraphEnv:
     def mols_to_inputs( mols):
         multiConvMol = ConvMol.agglomerate_mols(mols)
         n_samples = np.array([len(mols)])
-        inputs = [multiConvMol.get_atom_features(), multiConvMol.deg_slice,
+        all_atom_features = multiConvMol.get_atom_features()
+        # scaling of first 3 features, i.e., coordinates
+        all_atom_features[:, 0:3] = DataStore.scaler.transform(all_atom_features[:, 0:3])
+        inputs = [all_atom_features, multiConvMol.deg_slice,
                     np.array(multiConvMol.membership), n_samples]
         for i in range(1, len(multiConvMol.get_deg_adjacency_lists())):
             inputs.append(multiConvMol.get_deg_adjacency_lists()[i])
