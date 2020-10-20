@@ -100,7 +100,7 @@ class ActorGNN(Actor):
         deg_adjs_input = [Input(shape=(None,None,), dtype=tf.int32, batch_size=1, name=f"actor_deg_adjs_{jj}_{i}") for i in  range(self.adjecency_rank)]
         
         input_states = [features_input, degree_slice_input, membership, n_samples] + deg_adjs_input
-        graph_layer = GraphConv(out_channel=64, activation_fn=tf.nn.relu)(input_states)
+        graph_layer = GraphConv(molecule_number=jj, out_channel=64, activation_fn=tf.nn.relu)(input_states)
 
         graph_pool_in = [graph_layer, degree_slice_input, membership, n_samples] + deg_adjs_input
         graph_pool = GraphPool()(graph_pool_in)
@@ -128,3 +128,6 @@ class ActorGNN(Actor):
         
         model = Model([ip_1, ip_2], action_layer)
         return model, model.inputs
+
+    def save(self, path):
+        self.actor.save_weights(filepath=path+'_actor.h5', save_format="h5")
