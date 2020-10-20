@@ -127,7 +127,7 @@ class DataStore:
     def init(cls, crop=True):
         cls.DATA_STORES = [PDBQTData_2()]#, PDBQTData(), PafnucyData()]#, DudeProteaseData()]
         cls.load(crop)
-        #cls.normalize()
+        cls.scaler = cls.normalize()
 
     @classmethod
     def load(cls, crop=True):
@@ -147,7 +147,5 @@ class DataStore:
             X.extend(list(ligand.get_coords()))
         X = np.asarray(X)
         scaler = MinMaxScaler()
-        X_scaled = scaler.fit_transform(X)
-        for i, (protein, ligand) in enumerate(cls.DATA):
-            protein.set_coords(X_scaled[i:i+protein.n_atoms,:])
-            ligand.set_coords(X_scaled[i+protein.n_atoms:i+protein.n_atoms+ligand.n_atoms, :])
+        scaler.fit(X)
+        return scaler
