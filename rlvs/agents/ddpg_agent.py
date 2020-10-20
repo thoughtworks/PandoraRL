@@ -14,6 +14,8 @@ from rlvs.network import Actor, Critic, Actor3D, Critic3D, ActorGNN, CriticGNN
 import tensorflow as tf
 from tensorflow.keras.layers import Concatenate
 
+import logging
+
 class DDPGAgent:
     ACTOR_LEARNING_RATE  = 0.00005
     CRITIQ_LEARNING_RATE = 0.00005
@@ -208,7 +210,7 @@ class DDPGAgentGNN(DDPGAgent):
     BATCH_SIZE           = 10
     BUFFER_SIZE          = 20000
         
-    def __init__(self, env):
+    def __init__(self, env, log_filename):
         self.input_shape = env.input_shape
         self.action_shape = env.action_space.n_outputs
         self.eps = 0.9
@@ -231,6 +233,13 @@ class DDPGAgentGNN(DDPGAgent):
             self.TAU
         )
 
+        logging.basicConfig(
+            filename=log_filename,
+            format='%(message)s', 
+            datefmt='%I:%M:%S %p', 
+            level=logging.DEBUG
+        )
+
     def get_action(self, action):
         action *= self.action_bounds[1]
         
@@ -238,13 +247,7 @@ class DDPGAgentGNN(DDPGAgent):
         return np.array([np.round(x), np.round(y), np.round(z), r, p, y])
     
     def log(self, action, reward, episode_length, i_episode):
-        print(
-            "Action:", action,
-            "Reward:", np.round(reward, 4),
-            "E_i:", episode_length,
-            "E:", i_episode,
-            "RMSD: ", np.round(self.env._complex.rmsd, 4)
-        )
+        logging.info(f"Action: {action}, Reward: {np.round(reward, 4)}, E_i: {episode_length}, E: {i_episode}, RMSD: {np.round(self.env._complex.rmsd, 4)}")
 
     def play(self, num_train_episodes):
         returns      = []
@@ -277,7 +280,8 @@ class DDPGAgentGNN(DDPGAgent):
                 
             returns.append([i_episode + 1, episode_length])
             max_reward = max_reward if max_reward > episode_return else episode_return
-            print("Episode:", i_episode + 1, "Return:", episode_return, 'episode_length:', episode_length, 'Max Reward', max_reward, "Critic Loss: ", np.mean(critic_losses), " Actor loss: ", np.mean(actor_losses))
+            # print("Episode:", i_episode + 1, "Return:", episode_return, 'episode_length:', episode_length, 'Max Reward', max_reward, "Critic Loss: ", np.mean(critic_losses), " Actor loss: ", np.mean(actor_losses))
+            logging.info(f"Episode: {i_episode + 1}, Return: {episode_return}, episode_length: {episode_length} , Max Reward: {max_reward} , Critic Loss: {np.mean(critic_losses)} , Actor loss: {np.mean(actor_losses)}\n\n")
 
         return returns
         
@@ -305,5 +309,5 @@ class DDPGAgentGNN(DDPGAgent):
         self._actor.update_target_network()
         self._critiq.update_target_network()
 
-        print("C :", critic_loss, "A: ", actor_loss)
+        logging.info(f"C : {critic_loss}, A: {actor_loss}")
 
