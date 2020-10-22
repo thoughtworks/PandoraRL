@@ -16,6 +16,7 @@ class Actor:
         
         self.actor, self._input_layer = self._create_network()
         self.actor_target, _ = self._create_network()
+        self.actor_target.set_weights(self.actor.get_weights())
         self.optimizer = Adam(learning_rate=learning_rate)
 
     def optimize(self, action_gradient):

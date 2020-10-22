@@ -18,6 +18,7 @@ class Critic:
         
         self.critic, self._input_layer, self._action_layer = self._create_network()
         self.critic_target, self._target_input_layer, self._target_action_layer = self._create_network()
+        self.critic_target.set_weights(self.critic.get_weights())
         self.optimizer = Adam(learning_rate=learning_rate)
     
     def update_target_network(self):
