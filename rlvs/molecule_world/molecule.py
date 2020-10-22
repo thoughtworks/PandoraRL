@@ -46,8 +46,12 @@ class Molecule(ConvMol):
         return np.concatenate((self.get_coords(), np.ones((self.get_coords().shape[0], 1))), axis = 1).T
 
     def update_pose(self, x, y, z, roll, pitch, yaw):
+        old_coords = np.copy(self.get_coords())
         self.translate(x, y, z)
         self.rotate('xyz', [roll, pitch, yaw], True)
+        new_coords = self.get_coords()
+        delta_change = new_coords - old_coords
+        return delta_change.mean(axis = 0)
         
     def translate(self,x,y,z):
         ''' translate along axes '''
