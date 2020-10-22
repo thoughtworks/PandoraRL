@@ -202,7 +202,7 @@ class DDPGAgent3D(DDPGAgent):
 
 class DDPGAgentGNN(DDPGAgent):
     ACTOR_LEARNING_RATE  = 0.00005
-    CRITIQ_LEARNING_RATE = 0.00005
+    CRITIQ_LEARNING_RATE = 0.0001
     TAU                  = 0.001
     
     GAMMA                = 0.99
@@ -222,6 +222,7 @@ class DDPGAgentGNN(DDPGAgent):
         self._actor = ActorGNN(
             self.input_shape,
             self.action_shape,
+            self.action_bounds,
             self.ACTOR_LEARNING_RATE,
             self.TAU
         )
@@ -235,13 +236,14 @@ class DDPGAgentGNN(DDPGAgent):
 
         logging.basicConfig(
             filename=log_filename,
+            filemode='w',
             format='%(message)s', 
             datefmt='%I:%M:%S %p', 
             level=logging.DEBUG
         )
 
     def get_action(self, action):
-        action *= self.action_bounds[1]
+        # action *= self.action_bounds[1]
         
         x, y, z, r, p, y = np.clip(action, *self.action_bounds)
         return np.array([np.round(x), np.round(y), np.round(z), r, p, y])

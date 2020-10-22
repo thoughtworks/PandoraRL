@@ -25,7 +25,7 @@ class Actor:
         return self.actor.predict(input_state)
 
     def save(self, path):
-        self.actor.save_weights(path + '_actor.h5')
+        self.actor.save_weights(filepath=path+'_actor.h5', save_format="h5")
 
     def load_weights(self, path):
         self.actor.load_weights(path)
@@ -92,8 +92,9 @@ class Actor3D(Actor):
 
 
 class ActorGNN(Actor):
-    def __init__(self, input_shape, action_shape, learning_rate, tau=0.001):
+    def __init__(self, input_shape, action_shape, action_bounds, learning_rate, tau=0.001):
         self.adjecency_rank = 10
+        self.action_bounds = action_bounds
         super(ActorGNN, self).__init__(input_shape, action_shape, learning_rate, tau)
 
     def _create_molecule_network(self, jj=0):
@@ -104,7 +105,7 @@ class ActorGNN(Actor):
         deg_adjs_input = [Input(shape=(None,None,), dtype=tf.int32, batch_size=1, name=f"actor_deg_adjs_{jj}_{i}") for i in  range(self.adjecency_rank)]
         
         input_states = [features_input, degree_slice_input, membership, n_samples] + deg_adjs_input
-        graph_layer = GraphConv(molecule_number=jj, out_channel=64, activation_fn=tf.nn.relu)(input_states)
+        graph_layer = GraphConv(layer_id=jj, out_channel=64, activation_fn=tf.nn.relu)(input_states)
 
         graph_pool_in = [graph_layer, degree_slice_input, membership, n_samples] + deg_adjs_input
         graph_pool = GraphPool()(graph_pool_in)
@@ -127,11 +128,9 @@ class ActorGNN(Actor):
         action_layer = Dense(
             self._action_shape,
             activation='tanh',
-            kernel_initializer=RandomUniform()
+            kernel_initializer=RandomUniform(minval=-0.003, maxval=0.003)
         )(dense_layer_1)
+        action_layer *= self.action_bounds[1]
         
         model = Model([ip_1, ip_2], action_layer)
         return model, model.inputs
-
-    def save(self, path):
-        self.actor.save_weights(filepath=path+'_actor.h5', save_format="h5")

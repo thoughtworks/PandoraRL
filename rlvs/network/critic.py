@@ -60,7 +60,7 @@ class Critic:
     
 
     def save(self, path):
-        self.critic.save_weights(path + '_critic.h5')
+        self.critic.save_weights(filepath=path+'_critic.h5', save_format="h5")
 
     def load_weights(self, path):
         self.critic.load_weights(path)
@@ -132,12 +132,12 @@ class CriticGNN(Critic):
     def _create_molecule_network(self, jj=0):
         features_input = Input(shape=(None, self._state_shape,), batch_size=1, name=f"critic_Feature_{jj}") 
         degree_slice_input = Input(shape=(11,2), dtype=tf.int32, batch_size=1, name=f"critic_Degree_slice_{jj}")
-        membership = Input(shape=(None,), dtype=tf.int32, name=f'membership_{jj}', batch_size=1)
-        n_samples = Input(shape=(1,), dtype=tf.int32, name=f'n_samples_{jj}', batch_size=1)
+        membership = Input(shape=(None,), dtype=tf.int32, name=f'critic_membership_{jj}', batch_size=1)
+        n_samples = Input(shape=(1,), dtype=tf.int32, name=f'critic_n_samples_{jj}', batch_size=1)
         deg_adjs_input = [Input(shape=(None,None,), dtype=tf.int32, batch_size=1, name=f"critic_deg_adjs_{jj}_{i}") for i in  range(self.adjecency_rank)]
         
         input_states = [features_input, degree_slice_input, membership, n_samples] + deg_adjs_input
-        graph_layer = GraphConv(molecule_number=jj, out_channel=64, activation_fn=tf.nn.relu)(input_states)
+        graph_layer = GraphConv(layer_id=jj, out_channel=64, activation_fn=tf.nn.relu)(input_states)
 
         graph_pool_in = [graph_layer, degree_slice_input, membership, n_samples] + deg_adjs_input
         graph_pool = GraphPool()(graph_pool_in)
@@ -197,6 +197,3 @@ class CriticGNN(Critic):
             
         self.optimizer.apply_gradients(zip(q_gradient, self.critic.trainable_variables))
         return critic_loss.numpy()
-
-    def save(self, path):
-        self.critic.save_weights(filepath=path+'_critic.h5', save_format="h5")
