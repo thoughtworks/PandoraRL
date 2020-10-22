@@ -72,13 +72,17 @@ class GraphEnv:
         state = self.get_state()
         return self._complex, state
 
-    def step(self, action):
+    def step(self, action, testing=False):
         terminal = False
        
         try:
-            self._complex.ligand.update_pose(*action)
+            delta_change = self._complex.ligand.update_pose(*action)
             reward = self._complex.score()
-            terminal = self._complex.perfect_fit
+            if testing:
+                # print(delta_change)
+                terminal = (delta_change < 0.01).all()
+            else:   
+                terminal = self._complex.perfect_fit
         except:
             reward = -1
             terminal = True
