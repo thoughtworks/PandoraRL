@@ -143,8 +143,8 @@ class CriticGNN(Critic):
         graph_pool_in = [graph_layer, degree_slice_input, membership, n_samples] + deg_adjs_input
         graph_pool = GraphPool()(graph_pool_in)
         dense_layer = Dense(128, activation=tf.nn.relu)(graph_pool)
-
-        return input_states, GraphGather(activation_fn=tf.nn.tanh)([dense_layer, membership, n_samples])
+        graph_gather_layer = GraphGather(activation_fn=tf.nn.tanh)([dense_layer, membership, n_samples])
+        return input_states, graph_gather_layer
 
     def _create_network(self):
 
