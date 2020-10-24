@@ -210,7 +210,7 @@ class DDPGAgentGNN(DDPGAgent):
     BATCH_SIZE           = 10
     BUFFER_SIZE          = 20000
         
-    def __init__(self, env, log_filename):
+    def __init__(self, env, log_filename, weights_path):
         self.input_shape = env.input_shape
         self.action_shape = env.action_space.n_outputs
         self.eps = 0.9
@@ -241,6 +241,7 @@ class DDPGAgentGNN(DDPGAgent):
             datefmt='%I:%M:%S %p', 
             level=logging.DEBUG
         )
+        self.weights_path = weights_path
 
     def get_action(self, action):
         # action *= self.action_bounds[1]
@@ -285,6 +286,10 @@ class DDPGAgentGNN(DDPGAgent):
             # print("Episode:", i_episode + 1, "Return:", episode_return, 'episode_length:', episode_length, 'Max Reward', max_reward, "Critic Loss: ", np.mean(critic_losses), " Actor loss: ", np.mean(actor_losses))
             logging.info(f"Episode: {i_episode + 1}, Return: {episode_return}, episode_length: {episode_length} , Max Reward: {max_reward} , Critic Loss: {np.mean(critic_losses)} , Actor loss: {np.mean(actor_losses)}\n\n")
 
+            # save weights periodically
+            if i_episode%100 == 0:
+                self.save_weights(self.weights_path)
+
         return returns
         
 
@@ -322,13 +327,14 @@ class DDPGAgentGNN(DDPGAgent):
         self._actor.load_weights(path_actor)
 
     def test(self, path_actor_weights, path_critic_weights):
-        agent.load_weights(path_actor=path_actor_weights, path_critic=path_critic_weights)
+        self.load_weights(path_actor=path_actor_weights, path_critic=path_critic_weights)
 
-        old_complex, old_state = env.reset() #new ligand
+        old_complex, old_state = self.env.reset() #new ligand
         while True:
-            action = agent.get_action(agent.get_predicted_action(old_state))
-            print(action)
-            updated_complex, old_state, reward, terminal = env.step(action, testing=True)
+            action = self.get_action(self.get_predicted_action(old_state))
+            print(f"Action = {action}")
+            updated_complex, old_state, reward, terminal = self.env.step(action, testing=True)
+            print(f"Reward = {reward}")
             if terminal:
                 break
 
