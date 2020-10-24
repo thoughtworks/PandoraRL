@@ -143,8 +143,8 @@ class DataStore:
     def normalize(cls):
         X = []
         for protein, ligand in cls.DATA:
-            X.extend(list(protein.get_coords()))
-            X.extend(list(ligand.get_coords()))
+            X.extend(list(protein.get_atom_features()))
+            X.extend(list(ligand.get_atom_features()))
         X = np.asarray(X)
         scaler = MinMaxScaler()
         scaler.fit(X)

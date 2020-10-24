@@ -114,7 +114,7 @@ class GraphEnv:
         n_samples = np.array([len(mols)])
         all_atom_features = multiConvMol.get_atom_features()
         # scaling of first 3 features, i.e., coordinates
-        all_atom_features[:, 0:3] = DataStore.scaler.transform(all_atom_features[:, 0:3])
+        all_atom_features = DataStore.scaler.transform(all_atom_features)
         inputs = [all_atom_features, multiConvMol.deg_slice,
                     np.array(multiConvMol.membership), n_samples]
         for i in range(1, len(multiConvMol.get_deg_adjacency_lists())):
