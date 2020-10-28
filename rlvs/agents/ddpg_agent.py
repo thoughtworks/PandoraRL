@@ -326,16 +326,14 @@ class DDPGAgentGNN(DDPGAgent):
         self._critiq.load_weights(path_critic)
         self._actor.load_weights(path_actor)
 
-    def test(self, path_actor_weights, path_critic_weights):
+    def test(self, max_steps, path_actor_weights, path_critic_weights):
         self.load_weights(path_actor=path_actor_weights, path_critic=path_critic_weights)
 
         old_complex, old_state = self.env.reset() #new ligand
-        while True:
+        for step in range(max_steps):
             action = self.get_action(self.get_predicted_action(old_state))
             print(f"Action = {action}")
-            updated_complex, old_state, reward, terminal = self.env.step(action, testing=True)
-            print(f"Reward = {reward}")
+            updated_complex, old_state, terminal = self.env.step(action)
+            print(f"RMSD = {self.env._complex.rmsd}")
             if terminal:
                 break
-
-        return updated_complex

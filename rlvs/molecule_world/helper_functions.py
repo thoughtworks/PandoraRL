@@ -31,15 +31,23 @@ def OB_to_mol(obmol, mol_type, path=None):
     mol = Molecule(atom_features=nodes, canon_adj_list=canon_adj_list, path=path)
     return mol
 
-# def get_molecules(ligand_path=None, protein_path=None):
-#     global protein
-#     ligand_path = f'{DATA_PATH}{LIGAND_FILES[np.random.randint(len(LIGAND_FILES))]}'
-#     protien_path = f'{DATA_PATH}{PROTEIN_FILES[0]}'
-#     ligand = OB_to_mol(read_to_OB(filename=ligand_path, filetype="pdbqt"), mol_type=1)
-#     #protein = OB_bto_mol(read_to_OB(filename=protein_path, filetype="pdbqt"), mol_type=-1)
-#     protein.crop(bound_ligand.get_centroid(), 10, 10, 10)
-#     return protein, ligand
+def mol_to_OB(mol, filetype, scaler):
+    # TODO: do we need to recenter coords now?? 
+    # all_features = scaler.inverse_transform(mol.get_ordered_features())
+    all_features = mol.get_ordered_features()
+    obmol = read_to_OB(mol.path, filetype)
+    assert(obmol.NumAtoms()==mol.get_coords().shape[0])
+    for atom_id, atom in enumerate(ob.OBMolAtomIter(obmol)):
+        atom.SetVector(*(all_features[atom_id, 0:3]))
 
-# TODO: For faster processing
-#protein = OB_to_mol(read_to_OB(filename=f'{DATA_PATH}{PROTEIN_FILES[0]}', filetype="pdbqt"), mol_type=-1)
-#bound_ligand = OB_to_mol(read_to_OB(filename=f'{DATA_PATH}a-ketoamide-13b.pdbqt', filetype="pdbqt"), mol_type=1)
+    return obmol
+
+def OBs_to_file(obmol_protein, obmol_ligand, filename, filetype):
+
+    mol_py = pybel.Molecule(obmol_ligand)
+    mol_py.write(format=filetype, filename=filename, overwrite=True)
+    # outputfile = pybel.Outputfile(format=filetype, filename=filename, overwrite=True)
+    # outputfile.write(pybel.Molecule(obmol_protein))
+    # outputfile.write(pybel.Molecule(obmol_ligand)) 
+    # outputfile.close()
+    return

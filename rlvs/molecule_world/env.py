@@ -4,6 +4,7 @@ from .molecule import Molecule
 from .datasets import DataStore
 from deepchem.feat.mol_graphs import MultiConvMol, ConvMol
 import tensorflow as tf
+from .helper_functions import *
 
 class ActionSpace:
     def __init__(self, action_bounds):
@@ -52,10 +53,15 @@ class Env:
     
 
 class GraphEnv:
-    def __init__(self):
-        DataStore.init(crop=False)
-        self.protein, self.ligand = DataStore.next(False)
-        self._complex = Complex(self.protein, self.ligand)
+    def __init__(self, complex=None):
+        if complex is None:
+            DataStore.init(crop=False)
+            self.protein, self.ligand = DataStore.next(False)
+            self._complex = Complex(self.protein, self.ligand)
+            self._complex.ligand.randomize(10)
+            self.scaler = DataStore.scaler
+        else:
+            self._complex = complex
         
         self.input_shape = self._complex.protein.get_atom_features().shape[1]
 
@@ -66,23 +72,19 @@ class GraphEnv:
     def reset(self):
         self.protein, self.ligand = DataStore.next(False)
         self._complex = Complex(self.protein, self.ligand)
+        self._complex.ligand.randomize(10)
         print("Complex: ", self.protein.path, "Randomized RMSD:", np.round(self._complex.rmsd, 4))
         self.input_shape = self._complex.protein.get_atom_features().shape[1]
 
         state = self.get_state()
         return self._complex, state
 
-    def step(self, action, testing=False):
+    def step(self, action):
         terminal = False
-       
         try:
             delta_change = self._complex.ligand.update_pose(*action)
             reward = self._complex.score()
-            if testing:
-                # print(delta_change)
-                terminal = (delta_change < 0.01).all()
-            else:   
-                terminal = self._complex.perfect_fit
+            terminal = self._complex.perfect_fit
         except:
             reward = -1
             terminal = True
@@ -103,18 +105,15 @@ class GraphEnv:
         ligand_batch  = self.get_graphcnn_input(self.mols_to_inputs(ligands))
 
         state = [protein_batch, ligand_batch] 
-        # protein_batch is list of tensors for agglomerated protein molecules 
-        # ligand_batch is list of tensors for agglomerated ligand molecules 
 
         return state
 
-    @staticmethod
-    def mols_to_inputs( mols):
+    def mols_to_inputs(self, mols):
         multiConvMol = ConvMol.agglomerate_mols(mols)
         n_samples = np.array([len(mols)])
         all_atom_features = multiConvMol.get_atom_features()
         # scaling of first 3 features, i.e., coordinates
-        all_atom_features = DataStore.scaler.transform(all_atom_features)
+        all_atom_features = self.scaler.transform(all_atom_features)
         inputs = [all_atom_features, multiConvMol.deg_slice,
                     np.array(multiConvMol.membership), n_samples]
         for i in range(1, len(multiConvMol.get_deg_adjacency_lists())):
@@ -134,3 +133,47 @@ class GraphEnv:
         gc_in = [in_layer, degree_slice, membership, n_samples] + deg_adjs
         
         return gc_in
+
+class TestGraphEnv(GraphEnv):
+    def __init__(self, scaler, protein_path, ligand_path, protein_filetype, ligand_filetype):
+        self.protein_filetype = protein_filetype
+        self.ligand_filetype = ligand_filetype
+        self.protein_path = protein_path
+        self.ligand_path = ligand_path
+        self.scaler = scaler
+
+        protein = OB_to_mol(
+                    read_to_OB(filename=f'{protein_path}', filetype=protein_filetype),
+                    mol_type=-1,
+                    path=f'{protein_path}'
+                )
+        ligand = OB_to_mol(
+            read_to_OB(filename=f'{ligand_path}', filetype=ligand_filetype),
+            mol_type=1,
+            path=f'{ligand_path}'
+        )
+        
+        super(TestGraphEnv, self).__init__(complex=Complex(protein, ligand))
+
+    def reset(self):
+        self.__init__(self.scaler, self.protein_path, self.ligand_path, self.protein_filetype, self.ligand_filetype)
+        return self._complex, self.get_state()
+
+    def step(self, action):
+        terminal = False
+
+        delta_change = self._complex.ligand.update_pose(*action)
+        print(f"Delta change: {delta_change}")
+        terminal = (delta_change < 0.01).all()
+            
+        state = self.get_state()
+        return self._complex, state, terminal
+
+    def save_complex_files(self, path, filetype):
+        ligand_obmol = mol_to_OB(self._complex.ligand, self.ligand_filetype, self.scaler)
+        protein_obmol = mol_to_OB(self._complex.protein, self.protein_filetype, self.scaler)
+        OBs_to_file(protein_obmol, ligand_obmol, filename=path, filetype=filetype)
+
+        
+
+
