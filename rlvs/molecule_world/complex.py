@@ -15,7 +15,7 @@ class Complex:
 
         self.ligand = ligand
         self.__ligand = copy.deepcopy(ligand)
-        self.ligand.randomize(10) # TODO: move it out of the protein
+        # self.ligand.randomize(10) # TODO: move it out of the protein
         
     def score(self):
         rmsd = self.ligand.rmsd(self.__ligand)
