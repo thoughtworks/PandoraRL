@@ -16,13 +16,26 @@ LIGAND_FILES = [
     'tipranavir.pdbqt'
 ]
 
-def read_to_OB(filename, filetype):
+def smiles_to_OB(string, prepare=False):
+    mol_py = pybel.readstring("smi", smile_string)
+    if prepare:
+        mol_py.addh()
+        mol_py.calccharges(model="gasteiger")
+    obmol = mol_py.OBMol
+    return obmol
+
+def read_to_OB(filename, filetype, prepare=False):
     obconversion = ob.OBConversion()
     obconversion.SetInFormat(filetype)
     obmol = ob.OBMol()
 
     notatend = obconversion.ReadFile(obmol, filename)
-    # print(obmol.GetFormula())
+    if prepare:
+        mol_py = pybel.Molecule(obmol)
+        mol_py.addh()
+        mol_py.calccharges(model="gasteiger")
+        obmol = mol_py.OBMol
+
     return obmol
 
 def OB_to_mol(obmol, mol_type, path=None):
