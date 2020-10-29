@@ -1,0 +1,56 @@
+.layout {
+  .dashboard-header {
+    display: flex;
+    padding: 0 20px;
+    background-color: #337ab7;
+    height: 50px;
+    margin: 0 0 3px;
+    border-radius: 5px;
+    justify-content: space-between;
+
+    .header {
+      color: #fff;
+      margin-top: 7px;
+      font-family: Arial, sans-serif;
+      font-size: 30px;
+      font-weight: bold;
+      margin-left: 15px;
+    }
+  }
+  .new-user-attachment {
+    display: inline-flex;
+    justify-content: space-around;
+    padding: 5px;
+    margin-left: 10px;
+    position: relative;
+    float: right;
+  }
+  .add-user-attachment {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 25px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #dddddd;
+  }
+
+  .panel {
+    .panel-title{
+      background-color: #d9d9d9;
+    }
+      width: 50%;
+      border: 1px solid #d9d9d9;
+      margin: 20% 25% 25% 25%;
+
+}}
+
+
+
+//{
+//  border-color: #337ab;
+//  border: 5px;
+//  width: fit-content;
+//  margin-top: 25%;
+//  margin-bottom: 25%;
+//  margin-left: 36%;
+//  margin-right: 25%;
+//}
