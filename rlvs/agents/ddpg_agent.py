@@ -217,7 +217,7 @@ class DDPGAgentGNN(DDPGAgent):
         self.action_bounds = env.action_space.action_bounds
         self.memory = Memory(self.BUFFER_SIZE)
         self.env = env
-        self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs, theta=1, sigma=0.3, n_steps_annealing=1000)
+        self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs, theta=1, sigma=1, n_steps_annealing=1000)
 
         self._actor = ActorGNN(
             self.input_shape,
@@ -262,7 +262,7 @@ class DDPGAgentGNN(DDPGAgent):
     def play(self, num_train_episodes):
         returns      = []
         num_steps    = 0
-        max_episode_length = 1500
+        max_episode_length = 1100
         max_reward = 0
 
         for i_episode in range(num_train_episodes):
@@ -271,7 +271,7 @@ class DDPGAgentGNN(DDPGAgent):
             
             m_complex_t, state_t = self.env.reset()
             episode_return, episode_length, terminal = 0, 0, False
-            self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs, theta=1, sigma=0.3, n_steps_annealing=1000)
+            self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs, theta=1, sigma=1, n_steps_annealing=1000)
             while not (terminal or (episode_length == max_episode_length)):
                 predicted_action = self.get_predicted_action(state_t, episode_length)
                 action = self.get_action(predicted_action)
@@ -289,7 +289,7 @@ class DDPGAgentGNN(DDPGAgent):
 
             training_length = 200 if episode_length > 200 else episode_length
             for i in range(training_length):
-                print(f"E_i:{i}/{training_length}")
+                print(f"E_i:{i_episode + 1} {i}/{training_length}")
                 self.update_network(critic_losses, actor_losses)                
                 
             returns.append([i_episode + 1, episode_length])

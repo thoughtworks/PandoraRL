@@ -65,7 +65,7 @@ class GraphEnv:
         
         self.input_shape = self._complex.protein.get_atom_features().shape[1]
 
-        single_step = np.array([50, 50, 50, 10, 10, 10])
+        single_step = np.array([10, 10, 10, 10, 10, 10])
         action_bounds = np.array([-1*single_step, single_step])
         self.action_space = ActionSpace(action_bounds)
 
