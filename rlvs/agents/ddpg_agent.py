@@ -287,8 +287,9 @@ class DDPGAgentGNN(DDPGAgent):
 
                 self.log(action, np.round(reward, 4), episode_length, i_episode)
 
-            for i in range(episode_length):
-                print(f"E_i:{i}/{episode_length}")
+            training_length = 200 if episode_length > 200 else episode_length
+            for i in range(training_length):
+                print(f"E_i:{i}/{training_length}")
                 self.update_network(critic_losses, actor_losses)                
                 
             returns.append([i_episode + 1, episode_length])
