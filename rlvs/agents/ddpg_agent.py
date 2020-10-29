@@ -217,7 +217,7 @@ class DDPGAgentGNN(DDPGAgent):
         self.action_bounds = env.action_space.action_bounds
         self.memory = Memory(self.BUFFER_SIZE)
         self.env = env
-        self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs, theta=1, sigma=1, n_steps_annealing=1000)
+        self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs, theta=1, sigma=0.7, n_steps_annealing=1000)
 
         self._actor = ActorGNN(
             self.input_shape,
@@ -271,7 +271,7 @@ class DDPGAgentGNN(DDPGAgent):
             
             m_complex_t, state_t = self.env.reset()
             episode_return, episode_length, terminal = 0, 0, False
-            self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs, theta=1, sigma=1, n_steps_annealing=1000)
+            self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs, theta=1, sigma=0.7, n_steps_annealing=1000)
             while not (terminal or (episode_length == max_episode_length)):
                 predicted_action = self.get_predicted_action(state_t, episode_length)
                 action = self.get_action(predicted_action)
