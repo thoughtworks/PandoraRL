@@ -286,6 +286,9 @@ class DDPGAgentGNN(DDPGAgent):
                 state_t = state_t_1
 
                 self.log(action, np.round(reward, 4), episode_length, i_episode)
+
+            for i in range(episode_length):
+                print(f"E_i:{i}/{episode_length}")
                 self.update_network(critic_losses, actor_losses)                
                 
             returns.append([i_episode + 1, episode_length])
@@ -323,6 +326,7 @@ class DDPGAgentGNN(DDPGAgent):
         self._actor.update_target_network()
         self._critiq.update_target_network()
 
+        print(f"C : {critic_loss}, A: {actor_loss}")
         logging.info(f"C : {critic_loss}, A: {actor_loss}")
 
     def save_weights(self, path):
