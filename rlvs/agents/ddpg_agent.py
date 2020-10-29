@@ -217,7 +217,7 @@ class DDPGAgentGNN(DDPGAgent):
         self.action_bounds = env.action_space.action_bounds
         self.memory = Memory(self.BUFFER_SIZE)
         self.env = env
-        self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs)
+        self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs, theta=1, sigma=0.3, n_steps_annealing=1000)
 
         self._actor = ActorGNN(
             self.input_shape,
@@ -244,18 +244,25 @@ class DDPGAgentGNN(DDPGAgent):
         self.weights_path = weights_path
 
     def get_action(self, action):
-        # action *= self.action_bounds[1]
+        action *= self.action_bounds[1]
         
         x, y, z, r, p, y = np.clip(action, *self.action_bounds)
         return np.array([np.round(x), np.round(y), np.round(z), r, p, y])
     
     def log(self, action, reward, episode_length, i_episode):
+        print(
+            "Action:", action,
+            "Reward:", np.round(reward, 4),
+            "E_i:", episode_length,
+            "RMSD: ", self.env._complex.rmsd,
+            "E:",i_episode
+        )
         logging.info(f"Action: {action}, Reward: {np.round(reward, 4)}, E_i: {episode_length}, E: {i_episode}, RMSD: {np.round(self.env._complex.rmsd, 4)}")
 
     def play(self, num_train_episodes):
         returns      = []
         num_steps    = 0
-        max_episode_length = 500
+        max_episode_length = 1500
         max_reward = 0
 
         for i_episode in range(num_train_episodes):
@@ -264,7 +271,7 @@ class DDPGAgentGNN(DDPGAgent):
             
             m_complex_t, state_t = self.env.reset()
             episode_return, episode_length, terminal = 0, 0, False
-            self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs)
+            self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs, theta=1, sigma=0.3, n_steps_annealing=1000)
             while not (terminal or (episode_length == max_episode_length)):
                 predicted_action = self.get_predicted_action(state_t, episode_length)
                 action = self.get_action(predicted_action)
@@ -283,11 +290,11 @@ class DDPGAgentGNN(DDPGAgent):
                 
             returns.append([i_episode + 1, episode_length])
             max_reward = max_reward if max_reward > episode_return else episode_return
-            # print("Episode:", i_episode + 1, "Return:", episode_return, 'episode_length:', episode_length, 'Max Reward', max_reward, "Critic Loss: ", np.mean(critic_losses), " Actor loss: ", np.mean(actor_losses))
+            print("Episode:", i_episode + 1, "Return:", episode_return, 'episode_length:', episode_length, 'Max Reward', max_reward, "Critic Loss: ", np.mean(critic_losses), " Actor loss: ", np.mean(actor_losses))
             logging.info(f"Episode: {i_episode + 1}, Return: {episode_return}, episode_length: {episode_length} , Max Reward: {max_reward} , Critic Loss: {np.mean(critic_losses)} , Actor loss: {np.mean(actor_losses)}\n\n")
 
             # save weights periodically
-            if i_episode%100 == 0:
+            if i_episode%10 == 0:
                 self.save_weights(self.weights_path)
 
         return returns

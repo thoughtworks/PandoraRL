@@ -132,7 +132,7 @@ class ActorGNN(Actor):
             activation='tanh',
             kernel_initializer=RandomUniform(minval=-0.003, maxval=0.003)
         )(dense_layer_1)
-        action_layer *= self.action_bounds[1]
+        # action_layer *= self.action_bounds[1]
         
         model = Model([ip_1, ip_2], action_layer)
         return model, model.inputs
