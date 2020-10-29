@@ -246,8 +246,8 @@ class DDPGAgentGNN(DDPGAgent):
     def get_action(self, action):
         action *= self.action_bounds[1]
         
-        x, y, z, r, p, y = np.clip(action, *self.action_bounds)
-        return np.array([np.round(x), np.round(y), np.round(z), r, p, y])
+        x, y, z, r, p, _y = np.clip(action, *self.action_bounds)
+        return np.array([x, y, z, r, p, _y])
     
     def log(self, action, reward, episode_length, i_episode):
         print(
