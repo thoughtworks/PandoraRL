@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "jsx": "react",
+    "target": "es2017",
+    "allowSyntheticDefaultImports": false,
+    "baseUrl": "./",
+    "paths": {
+      "actions/*": ["src/js/actions/*"],
+      "components/*": ["src/js/components/*"],
+      "containers/*": ["src/js/containers/*"],
+      "reducers/*": ["src/js/reducers/*"],
+      "routes/*": ["src/js/routes/*"],
+      "sagas/*": ["src/js/sagas/*"],
+      "util/*": ["src/js/util/*"]
+    }
+  },
+  "exclude": ["node_modules"]
+}
