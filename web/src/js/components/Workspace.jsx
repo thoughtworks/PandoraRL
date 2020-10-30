@@ -84,7 +84,7 @@ export default class Workspace extends Component {
                     </div>
                     <Button className='btn-primary'
                             onClick={this.onFormSubmit}
-                            disabled={this.isSubmitDisabled()}>Submit</Button>
+                            disabled={this.isSubmitDisabled()}>Generate ligand pose</Button>
                 </Form>
                 <Jobs loadJobs={OnLoadJobs} jobs={jobs}/>
                 {/*todo - Log component removed for later*/}
