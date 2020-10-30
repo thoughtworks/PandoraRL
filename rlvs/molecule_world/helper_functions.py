@@ -55,12 +55,8 @@ def mol_to_OB(mol, filetype, scaler):
 
     return obmol
 
-def OBs_to_file(obmol_protein, obmol_ligand, filename, filetype):
+def OBs_to_file(obmol_ligand, filename, filetype):
 
     mol_py = pybel.Molecule(obmol_ligand)
     mol_py.write(format=filetype, filename=filename, overwrite=True)
-    # outputfile = pybel.Outputfile(format=filetype, filename=filename, overwrite=True)
-    # outputfile.write(pybel.Molecule(obmol_protein))
-    # outputfile.write(pybel.Molecule(obmol_ligand)) 
-    # outputfile.close()
     return

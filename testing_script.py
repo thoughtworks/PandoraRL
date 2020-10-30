@@ -33,10 +33,9 @@ env = TestGraphEnv(
     ligand_path=ligand_input, 
     protein_filetype=protein_filetype, 
     ligand_filetype=ligand_filetype,
-    prepare=False
 )
 agent = DDPGAgentGNN(env, weights_path = "", log_filename="./testing_logfile.log")
 agent.test(max_steps=max_steps, path_actor_weights=actor_weights, path_critic_weights=critic_weights)
 
 #convert complex to pdbqt
-env.save_complex_files(path=f"./Results/a-ketoamide_output_{max_steps}.pdbqt",filetype="pdbqt")
+env.save_complex_files(path=f"./Results/a-ketoamide_output_{max_steps}.pdb",filetype="pdb")

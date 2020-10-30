@@ -135,7 +135,7 @@ class GraphEnv:
         return gc_in
 
 class TestGraphEnv(GraphEnv):
-    def __init__(self, scaler, protein_path, ligand_path, protein_filetype, ligand_filetype, prepare):
+    def __init__(self, scaler, protein_path, ligand_path, protein_filetype, ligand_filetype):
         self.protein_filetype = protein_filetype
         self.ligand_filetype = ligand_filetype
         self.protein_path = protein_path
@@ -143,7 +143,7 @@ class TestGraphEnv(GraphEnv):
         self.scaler = scaler
 
         protein = OB_to_mol(
-                    read_to_OB(filename=f'{self.protein_path}', filetype=self.protein_filetype, prepare=prepare),
+                    read_to_OB(filename=f'{self.protein_path}', filetype=self.protein_filetype),
                     mol_type=-1,
                     path=f'{self.protein_path}'
                 )
@@ -156,7 +156,7 @@ class TestGraphEnv(GraphEnv):
             )
         else:
             ligand = OB_to_mol(
-                read_to_OB(filename=f'{self.ligand_path}', filetype=self.ligand_filetype, prepare=prepare),
+                read_to_OB(filename=f'{self.ligand_path}', filetype=self.ligand_filetype, prepare=False),
                 mol_type=1,
                 path=f'{self.ligand_path}'
             )
@@ -179,8 +179,7 @@ class TestGraphEnv(GraphEnv):
 
     def save_complex_files(self, path, filetype):
         ligand_obmol = mol_to_OB(self._complex.ligand, self.ligand_filetype, self.scaler)
-        protein_obmol = mol_to_OB(self._complex.protein, self.protein_filetype, self.scaler)
-        OBs_to_file(protein_obmol, ligand_obmol, filename=path, filetype=filetype)
+        OBs_to_file(ligand_obmol, filename=path, filetype=filetype)
 
         
 
