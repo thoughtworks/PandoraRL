@@ -36,8 +36,8 @@ class DDService:
             details = job_details["details"]
             job = {"protein_file_name": protein_file.filename,
                    "ligand_file_name": ligand_file.filename,
-                   "protein_file_path":  f"{Path.PROTEIN_FILE_PATH}_{time_str}",
-                   "ligand_file_path":  f"{Path.LIGAND_FILE_PATH}_{time_str}",
+                   "protein_file_path":  f"{Path.ARTIFACT_FOLDER_PATH}/protein_{time_str}_{protein_file.filename}",
+                   "ligand_file_path":  f"{Path.ARTIFACT_FOLDER_PATH}/protein_{time_str}_{ligand_file.filename}",
                    "log_path": f'{Path.LOG_FOLDER_PATH}/testing_logfile{time_str}.log',
                    "output_path": f"./Results/a-ketoamide_output_{Path.MAX_STEPS}_{time_str}.pdbqt"
                    }
