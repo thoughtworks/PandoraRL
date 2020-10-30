@@ -57,7 +57,7 @@ export default class Workspace extends Component {
         return (
             <Fragment>
                 <div className="dashboard-header">
-                    <h3 className="header">RL based ligand pose prediction</h3>
+                    <h3 className="header">RL Based Ligand Pose Prediction</h3>
                 </div>
                 <Form name="ddh-Form" className="panel">
                     <div className="panel-title">Pose Prediction</div>
@@ -84,7 +84,7 @@ export default class Workspace extends Component {
                     </div>
                     <Button className='btn-primary'
                             onClick={this.onFormSubmit}
-                            disabled={this.isSubmitDisabled()}>Generate ligand pose</Button>
+                            disabled={this.isSubmitDisabled()}>Generate Ligand Pose</Button>
                 </Form>
                 <Jobs loadJobs={OnLoadJobs} jobs={jobs}/>
                 {/*todo - Log component removed for later*/}
