@@ -19,7 +19,7 @@ class Complex:
         
     def score(self):
         rmsd = self.ligand.rmsd(self.__ligand)
-        if rmsd > 100:
+        if rmsd > 200:
             raise Exception("BAD RMSD")
         if rmsd > 50:
             return 0

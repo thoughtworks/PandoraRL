@@ -253,7 +253,7 @@ class DDPGAgentGNN(DDPGAgent):
         if step is not None and cur_episode < self.EXPLORATION_EPISODES:
             noise = self.exploration_noise.generate(step)
             print("noise:", noise)
-            action += noise
+            action = np.clip(action + noise, -1, 1)
         return action
 
 
