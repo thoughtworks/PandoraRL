@@ -40,11 +40,13 @@ class DDService:
         # ligand_name_pose.pdb
         if string_format == "true":
             temp = {"ligand_input_type": "smiles_string", "ligand_file_name": None, "ligand_input": ligand_file,
-                    "output_path": f"./Results/pose_{Path.MAX_STEPS}_{time_str}.pdb"}
+                    "output_path": os.path.abspath(f"./Results/pose_{Path.MAX_STEPS}_{time_str}.pdb")}
         else:
-            temp = {"ligand_input_type": "file", "ligand_file_name": ligand_file.filename,
+            ligand_file_name = ligand_file.filename
+            ligand_file_name_wo_ext = ligand_file_name.split(".")[0]
+            temp = {"ligand_input_type": "file", "ligand_file_name": ligand_file_name,
                     "ligand_file_path": f"{Path.ARTIFACT_FOLDER_PATH}/protein_{time_str}_{ligand_file.filename}",
-                    "output_path": f"./Results/{ligand_file.filename}_pose_{Path.MAX_STEPS}_{time_str}.pdbqt"}
+                    "output_path": os.path.abspath(f"./Results/{ligand_file_name_wo_ext}_pose_{Path.MAX_STEPS}_{time_str}.pdbqt")}
         job = {"protein_file_name": protein_file.filename,
                "protein_file_path": f"{Path.ARTIFACT_FOLDER_PATH}/protein_{time_str}_{protein_file.filename}",
                "log_path": f'{Path.LOG_FOLDER_PATH}/testing_logfile{time_str}.log',
