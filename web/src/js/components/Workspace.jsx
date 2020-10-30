@@ -62,7 +62,8 @@ export default class Workspace extends Component {
                 <Form name="ddh-Form" className="panel">
                     <div className="panel-title">Pose Prediction</div>
                     <div className="add-user-attachment">
-                        <h4>Ligand File</h4>
+                        <div className={"flex-display"}><h4>Ligand File</h4>
+                        <label className={"text-style"}>[Accepted Format: .pdbqt or mol2]</label></div>
                         <label> Smiles String:
                             <input name="smiles_string" type="checkbox" checked={this.state.smiles_string}
                                    onChange={this.handleInputChange} />
@@ -75,7 +76,8 @@ export default class Workspace extends Component {
                     </div>
 
                     <div className="add-user-attachment">
-                        <h4>Prepared protein</h4>
+                        <div className={"flex-display"}><h4>Prepared protein</h4>
+                            <label className={"text-style"}>[Accepted Format: .pdbqt or mol2]</label></div>
                         <input className="new-user-attachment" id="preparedproteinpath" type="file"
                                onChange={e => this.onSelectChange(e, "proteinFile")}/>
 
