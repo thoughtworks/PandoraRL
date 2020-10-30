@@ -15,7 +15,7 @@ cd rl-virtual-screening
 1. Setup rl-virtual-screening conda environment
 
     ```
-    $ ./ci_scripts/setup.sh
+    $ ./scripts/setup.sh
     ```
     
     ```
@@ -26,6 +26,7 @@ cd rl-virtual-screening
  * Build web
     ```
         $ cd web
+        $ npm install
         $ npm run build
      ```
  * Running pipeline through FLASK.

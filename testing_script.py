@@ -14,15 +14,13 @@ protein_input = param["protein_file_path"]
 protein_filetype = os.path.splitext(protein_input)[1][1:]
 
 ligand_filetype = param['ligand_input_type']
-ligand_input = param['ligand_input']
+
 
 if ligand_filetype != "smiles_string":
+    ligand_input = param['ligand_file_path']
     ligand_filetype = os.path.splitext(ligand_input)[1][1:]
-
-
-print(ligand_filetype)
-print(protein_filetype)
-print(ligand_input)
+else:
+    ligand_input = param['ligand_input']
 
 # specify model path
 actor_weights = "./Results/run5_actor.h5"

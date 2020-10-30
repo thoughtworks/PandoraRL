@@ -26,7 +26,7 @@ class DDService:
         self.init()
         job_details, job_id = self.record_job(protein_file, ligand_file, string_format)
         protein_file.save(job_details["protein_file_path"])
-        if not string_format:
+        if not string_format == "true":
             ligand_file.save(job_details["ligand_file_path"])
         testing_process_id = self.run_testing_script(job_details)
         return {"job_id":job_id}
@@ -37,15 +37,17 @@ class DDService:
             job_details = json.load(metadata_file)
         job_id = job_details["next_count"]
         details = job_details["details"]
-        if string_format=="true":
-            temp = {"ligand_input_type": "smiles_string", "ligand_file_name": None, "ligand_input": ligand_file}
+        # ligand_name_pose.pdb
+        if string_format == "true":
+            temp = {"ligand_input_type": "smiles_string", "ligand_file_name": None, "ligand_input": ligand_file,
+                    "output_path": f"./Results/pose_{Path.MAX_STEPS}_{time_str}.pdb"}
         else:
             temp = {"ligand_input_type": "file", "ligand_file_name": ligand_file.filename,
-                    "ligand_input": f"{Path.ARTIFACT_FOLDER_PATH}/protein_{time_str}_{ligand_file.filename}"}
+                    "ligand_file_path": f"{Path.ARTIFACT_FOLDER_PATH}/protein_{time_str}_{ligand_file.filename}",
+                    "output_path": f"./Results/{ligand_file.filename}_pose_{Path.MAX_STEPS}_{time_str}.pdbqt"}
         job = {"protein_file_name": protein_file.filename,
                "protein_file_path": f"{Path.ARTIFACT_FOLDER_PATH}/protein_{time_str}_{protein_file.filename}",
                "log_path": f'{Path.LOG_FOLDER_PATH}/testing_logfile{time_str}.log',
-               "output_path": f"./Results/a-ketoamide_output_{Path.MAX_STEPS}_{time_str}.pdbqt"
                }
         job.update(temp)
         details[job_id] = job
