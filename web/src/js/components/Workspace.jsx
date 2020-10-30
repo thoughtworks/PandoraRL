@@ -1,6 +1,8 @@
 import React, {Component, Fragment} from "react";
 import {Button, Form, Grid, Modal, Col} from "react-bootstrap";
 import PropTypes from "prop-types";
+import Logs from "components/Log";
+import Jobs from "components/Jobs";
 
 
 export default class Workspace extends Component {
@@ -33,10 +35,11 @@ export default class Workspace extends Component {
     }
 
     render() {
+        const {loadLogsError, loadLogs, logs, jobs, OnLoadJobs}= this.props
         return (
             <Fragment>
                 <div className="dashboard-header">
-                    <h3 className="header">Drug Discovery</h3>
+                    <h3 className="header">RL based ligand pose prediction</h3>
                 </div>
                 <Form name="ddh-Form" className="panel">
                     <div className="panel-title">Pose Prediction</div>
@@ -55,11 +58,18 @@ export default class Workspace extends Component {
                             onClick={this.onFormSubmit}
                             disabled={this.isSubmitDisabled()}>Submit</Button>
                 </Form>
+                <Jobs loadJobs={OnLoadJobs} jobs={jobs}/>
+                <Logs loadLogs={loadLogs} logs={logs} loadLogsError={loadLogsError}/>
             </Fragment>
         );
     }
 }
 
 Workspace.propTypes = {
-    onFileSubmit: PropTypes.func
+    onFileSubmit: PropTypes.func,
+    loadLogs: PropTypes.func,
+    OnLoadJobs: PropTypes.func,
+    logs: PropTypes.object,
+    jobs: PropTypes.object,
+    loadLogsError: PropTypes.string
 };

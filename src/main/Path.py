@@ -1,12 +1,15 @@
 import os
+import time
 
 
 class Path:
+    MAX_STEPS = 10
     ARTIFACT_FOLDER_PATH = "./artifacts"
     PROTEIN_FILE_PATH = ARTIFACT_FOLDER_PATH + "/proteinFile"
     LIGAND_FILE_PATH = ARTIFACT_FOLDER_PATH + "/ligandFile"
     LOG_FOLDER_PATH = "./log"
     TESTING_LOG_FILE_PATH = LOG_FOLDER_PATH+"/testing_logfile.log"
+    METDATA_PATH = "./metadata.json"
 
     @staticmethod
     def create_artifact_path():
