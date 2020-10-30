@@ -30,7 +30,7 @@ render() {
                 <ul>
                     <li>Protein Input File: {jobs[key].protein_file_name} </li>
                     <li>Ligand Input File: {jobs[key].ligand_file_name} </li>
-                    <li>Output File: 
+                    <li>Output File:
                         <a href={ARTIFACTS_URL+jobs[key].output_path}>
                             {jobs[key].output_path.split("/").slice(-1)[0]}
                         </a>

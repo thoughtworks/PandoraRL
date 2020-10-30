@@ -85,7 +85,8 @@ export default class Workspace extends Component {
                             disabled={this.isSubmitDisabled()}>Submit</Button>
                 </Form>
                 <Jobs loadJobs={OnLoadJobs} jobs={jobs}/>
-                <Logs loadLogs={loadLogs} logs={logs} loadLogsError={loadLogsError}/>
+                {/*todo - Log component removed for later*/}
+                {/*<Logs loadLogs={loadLogs} logs={logs} loadLogsError={loadLogsError}/>*/}
                 <ToastContainer store={ToastStore} position={ToastContainer.POSITION.TOP_CENTER}/>
             </Fragment>
 
