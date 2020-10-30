@@ -6,3 +6,4 @@ export const BASE_URL = "/api/";
 export const RL_AGENT_URL = HOST_URL+BASE_URL+"drugDiscoveryAgent/";
 export const LOGS_URL = RL_AGENT_URL+"logs";
 export const JOBS_URL = RL_AGENT_URL+"jobs";
+export const ARTIFACTS_URL = "/artifacts";
