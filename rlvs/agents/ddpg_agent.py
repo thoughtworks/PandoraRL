@@ -51,10 +51,11 @@ class DDPGAgent:
         # Explore AdaptiveParamNoiseSpec, with normalized action space
         # https://github.com/l5shi/Multi-DDPG-with-parameter-noise/blob/master/Multi_DDPG_with_parameter_noise.ipynb
         action = self._actor.predict(state).flatten()
-
+        print("ACTION", action)
         if step is not None:
-            action += self.exploration_noise.generate(step)
-
+            noise = self.exploration_noise.generate(step)
+            print("noise:", noise)
+            action += noise
         return action
         
     def get_action(self, action):
@@ -188,8 +189,8 @@ class DDPGAgent3D(DDPGAgent):
     def get_action(self, action):
         action *= self.action_bounds[1]
         
-        x, y, z, r, p, y = np.clip(action, *self.action_bounds)
-        return np.array([np.round(x), np.round(y), np.round(z), r, p, y])
+        x, y, z, r, p, _y = np.clip(action, *self.action_bounds)
+        return np.array([np.round(x), np.round(y), np.round(z), r, p, _y])
     
     def log(self, action, reward, episode_length):
         print(
@@ -207,7 +208,7 @@ class DDPGAgentGNN(DDPGAgent):
     
     GAMMA                = 0.99
 
-    BATCH_SIZE           = 10
+    BATCH_SIZE           = 32
     BUFFER_SIZE          = 20000
         
     def __init__(self, env, log_filename, weights_path):
@@ -262,7 +263,7 @@ class DDPGAgentGNN(DDPGAgent):
     def play(self, num_train_episodes):
         returns      = []
         num_steps    = 0
-        max_episode_length = 1100
+        max_episode_length = 1500
         max_reward = 0
 
         for i_episode in range(num_train_episodes):
@@ -286,11 +287,14 @@ class DDPGAgentGNN(DDPGAgent):
                 state_t = state_t_1
 
                 self.log(action, np.round(reward, 4), episode_length, i_episode)
+                if episode_length % 5 == 0 and self.memory.num_samples > 32:
+                    self.update_network(critic_losses, actor_losses)                
 
-            training_length = 200 if episode_length > 200 else episode_length
-            for i in range(training_length):
-                print(f"E_i:{i_episode + 1} {i}/{training_length}")
-                self.update_network(critic_losses, actor_losses)                
+            training_length = 20 if episode_length > 20 else episode_length
+
+            # for i in range(training_length):
+            # print(f"E_i:{i_episode + 1} {i}/{training_length}")
+            self.update_network(critic_losses, actor_losses)                
                 
             returns.append([i_episode + 1, episode_length])
             max_reward = max_reward if max_reward > episode_return else episode_return

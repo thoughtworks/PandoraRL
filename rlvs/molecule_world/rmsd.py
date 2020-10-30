@@ -21,8 +21,8 @@ class RMSD:
         r_cent = self.centroid(self.reference_molecule.get_coords())
         t_cent = self.centroid(target_molecule.get_coords())
 
-        r_coord = self.reference_molecule.get_coords() - r_cent
-        t_coord = target_molecule.get_coords() - t_cent
+        r_coord = self.reference_molecule.get_coords() #- r_cent
+        t_coord = target_molecule.get_coords() #- t_cent
     
         return self.__rmsd(r_coord, t_coord)
 
