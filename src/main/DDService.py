@@ -22,30 +22,37 @@ class DDService:
             data= json.load(metadata_file)
         return data["details"]
 
-    def triggerRLAgent(self, protein_file, ligand_file):
-        job_details = self.record_job(protein_file, ligand_file)
+    def triggerRLAgent(self, protein_file, ligand_file, string_format):
+        self.init()
+        job_details, job_id = self.record_job(protein_file, ligand_file, string_format)
         protein_file.save(job_details["protein_file_path"])
-        ligand_file.save(job_details["ligand_file_path"])
+        if not string_format:
+            ligand_file.save(job_details["ligand_file_path"])
         testing_process_id = self.run_testing_script(job_details)
+        return {"job_id":job_id}
 
-    def record_job(self, protein_file, ligand_file):
+    def record_job(self, protein_file, ligand_file, string_format):
+        time_str = time.strftime('%H_%M_%S__%Y_%m_%d')
         with open(Path.METDATA_PATH, 'r') as metadata_file:
-            time_str = time.strftime('%H_%M_%S__%Y_%m_%d')
             job_details = json.load(metadata_file)
-            job_id = job_details["next_count"]
-            details = job_details["details"]
-            job = {"protein_file_name": protein_file.filename,
-                   "ligand_file_name": ligand_file.filename,
-                   "protein_file_path":  f"{Path.ARTIFACT_FOLDER_PATH}/protein_{time_str}_{protein_file.filename}",
-                   "ligand_file_path":  f"{Path.ARTIFACT_FOLDER_PATH}/protein_{time_str}_{ligand_file.filename}",
-                   "log_path": f'{Path.LOG_FOLDER_PATH}/testing_logfile{time_str}.log',
-                   "output_path": f"./Results/a-ketoamide_output_{Path.MAX_STEPS}_{time_str}.pdbqt"
-                   }
-            details[job_id] = job
+        job_id = job_details["next_count"]
+        details = job_details["details"]
+        if string_format=="true":
+            temp = {"ligand_input_type": "smiles_string", "ligand_file_name": None, "ligand_input": ligand_file}
+        else:
+            temp = {"ligand_input_type": "file", "ligand_file_name": ligand_file.filename,
+                    "ligand_input": f"{Path.ARTIFACT_FOLDER_PATH}/protein_{time_str}_{ligand_file.filename}"}
+        job = {"protein_file_name": protein_file.filename,
+               "protein_file_path": f"{Path.ARTIFACT_FOLDER_PATH}/protein_{time_str}_{protein_file.filename}",
+               "log_path": f'{Path.LOG_FOLDER_PATH}/testing_logfile{time_str}.log',
+               "output_path": f"./Results/a-ketoamide_output_{Path.MAX_STEPS}_{time_str}.pdbqt"
+               }
+        job.update(temp)
+        details[job_id] = job
+        updated = {"next_count": job_id + 1, "details": details}
         with open(Path.METDATA_PATH, 'w') as metadata_file:
-            updated = {"next_count": job_id + 1, "details": details}
             json.dump(updated, metadata_file)
-        return job
+        return job, job_id
 
     def run_testing_script(self, job_details):
         output_fd = os.open(job_details["log_path"], os.O_RDWR | os.O_APPEND | os.O_CREAT)

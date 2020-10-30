@@ -3,6 +3,7 @@ import {Button, Form, Grid, Modal, Col} from "react-bootstrap";
 import PropTypes from "prop-types";
 import Logs from "components/Log";
 import Jobs from "components/Jobs";
+import {ToastContainer, ToastStore} from "react-toasts";
 
 
 export default class Workspace extends Component {
@@ -12,6 +13,8 @@ export default class Workspace extends Component {
         this.state = {
             proteinFile: undefined,
             ligandFile: undefined,
+            smiles_string:false,
+            ligandInput:""
         };
     }
 
@@ -21,17 +24,32 @@ export default class Workspace extends Component {
 
     onFormSubmit = () =>{
         const {onFileSubmit}= this.props;
-        let inputFiles = new FormData();
-        inputFiles.append("proteinFile", this.state.proteinFile);
-        inputFiles.append("ligandFile", this.state.ligandFile);
-        onFileSubmit(inputFiles)
+        let input = new FormData();
+        input.append("proteinFile", this.state.proteinFile);
+        if(this.state.smiles_string!==true)
+            input.append("ligandFile", this.state.ligandFile);
+        else{
+            input.append("ligandInput", this.state.ligandInput);
+        }
+        input.append("smiles_string",this.state.smiles_string)
+        onFileSubmit(input)
     }
 
     isSubmitDisabled() {
-        if (this.state.proteinFile && this.state.ligandFile) {
+        if ((this.state.proteinFile) && ((this.state.smiles_string && this.state.ligandInput) || (this.state.ligandFile))) {
             return false;
         }
         return true;
+    }
+
+    handleInputChange = (event) =>{
+        const target = event.target;
+        const value = target.type === 'checkbox' ? target.checked : target.value;
+        const name = target.name;
+
+        this.setState({
+            [name]: value
+        });
     }
 
     render() {
@@ -45,9 +63,17 @@ export default class Workspace extends Component {
                     <div className="panel-title">Pose Prediction</div>
                     <div className="add-user-attachment">
                         <h4>Ligand File</h4>
-                        <input className="new-user-attachment" id="ligandinputpath" type="file"
-                               onChange={e => this.onSelectChange(e, "ligandFile")}/>
+                        <label> Smiles String:
+                            <input name="smiles_string" type="checkbox" checked={this.state.smiles_string}
+                                   onChange={this.handleInputChange} />
+                            {this.state.smiles_string?
+                                <input name="ligandInput" className="input-ligand"
+                                       id="ligandinput" type="text" onChange={this.handleInputChange}/>:""}
+                        </label>
+                        {!this.state.smiles_string?<input className="new-user-attachment" id="ligandinputpath" type="file"
+                               onChange={e => this.onSelectChange(e, "ligandFile")}/>:""}
                     </div>
+
                     <div className="add-user-attachment">
                         <h4>Prepared protein</h4>
                         <input className="new-user-attachment" id="preparedproteinpath" type="file"
@@ -60,7 +86,9 @@ export default class Workspace extends Component {
                 </Form>
                 <Jobs loadJobs={OnLoadJobs} jobs={jobs}/>
                 <Logs loadLogs={loadLogs} logs={logs} loadLogsError={loadLogsError}/>
+                <ToastContainer store={ToastStore} position={ToastContainer.POSITION.TOP_CENTER}/>
             </Fragment>
+
         );
     }
 }

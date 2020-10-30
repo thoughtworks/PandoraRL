@@ -18,11 +18,15 @@ def init():
 def trigger_agent():
     try:
         protein_file = request.files['proteinFile']
-        ligand_file = request.files['ligandFile']
-        dd_service.triggerRLAgent(protein_file, ligand_file)
+        string_format = request.form['smiles_string']
+        if string_format == 'true':
+            ligand_file = request.form['ligandInput']
+        else:
+            ligand_file = request.files['ligandFile']
+        jobid= dd_service.triggerRLAgent(protein_file, ligand_file, string_format)
     except Exception as e:
-        raise Exception(getattr(e, 'message', repr(e)))
-    return Response(status=202, content_type='application/json')
+        raise Exception()
+    return Response(response=json.dumps(jobid), status=202, content_type='application/json')
 
 
 @controller.route('/logs', methods=['GET'])

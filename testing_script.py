@@ -9,18 +9,20 @@ import os
 from src.main.Path import Path
 
 param = ast.literal_eval(sys.argv[1])
-protein_input = param["protein_file_path"]
-ligand_input = param["ligand_file_path"]
 
-# protein_input = Path.PROTEIN_FILE_PATH
+protein_input = param["protein_file_path"]
 protein_filetype = os.path.splitext(protein_input)[1][1:]
 
-# ligand file input
-# ligand_input = Path.LIGAND_FILE_PATH
-ligand_filetype = os.path.splitext(ligand_input)[1][1:]
-# ligand string input
-ligand_input = ""
-ligand_filetype = "smiles_string"
+ligand_filetype = param['ligand_input_type']
+ligand_input = param['ligand_input']
+
+if ligand_filetype != "smiles_string":
+    ligand_filetype = os.path.splitext(ligand_input)[1][1:]
+
+
+print(ligand_filetype)
+print(protein_filetype)
+print(ligand_input)
 
 # specify model path
 actor_weights = "./Results/run5_actor.h5"
@@ -40,8 +42,7 @@ env = TestGraphEnv(
     protein_path=protein_input,
     ligand_path=ligand_input,
     protein_filetype=protein_filetype,
-    ligand_filetype=ligand_filetype,
-    prepare=False
+    ligand_filetype=ligand_filetype
 )
 agent = DDPGAgentGNN(env, weights_path="", log_filename=param["log_path"])
 agent.test(max_steps=Path.MAX_STEPS, path_actor_weights=actor_weights, path_critic_weights=critic_weights)

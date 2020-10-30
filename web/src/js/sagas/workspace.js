@@ -3,8 +3,9 @@ import fetch from "../fetch";
 import {handleRLAgentError} from "../actions/workspace";
 import {JOBS_URL, LOGS_URL, RL_AGENT_URL} from "../constants/urls";
 import {onLoadLogsSuccess, onLoadJobsSuccess, OnLoadJobs} from "actions/workspace";
+import {ToastStore} from "react-toasts";
 
-export function* triggerRLAgent({ inputFiles }) {
+export function* triggerRLAgent({ inputFiles}) {
     const { response, error } = yield call(fetch, {
         url: RL_AGENT_URL,
         method: "post",
@@ -14,10 +15,10 @@ export function* triggerRLAgent({ inputFiles }) {
         }
     });
     if (response) {
-        alert("success")
+        const jobId = response.data.job_id;
         yield put(OnLoadJobs());
+        ToastStore.success("The job has been successfully submitted with job id "+ jobId);
     } else {
-        alert("fail")
         const errorMessage = error.response ? error.response.data.message: "error occured";
         yield put(handleRLAgentError(errorMessage));
     }
@@ -31,10 +32,6 @@ export function* loadLogs() {
     if (response) {
         const logs = response.data;
         yield put(onLoadLogsSuccess(logs));
-    } else {
-        alert("fail")
-        const errorMessage = error.response ? error.response.data.message: "error occured";
-        yield put(handleRLAgentError(errorMessage));
     }
 }
 
@@ -48,9 +45,9 @@ export function* handleloadJobs() {
         const jobs = response.data;
         yield put(onLoadJobsSuccess(jobs));
     } else {
-        alert("fail")
-        const errorMessage = error.response ? error.response.data.message: "error occured";
-        yield put(handleRLAgentError(errorMessage));
+        // alert("fail")
+        // const errorMessage = error.response ? error.response.data.message: "error occured";
+        // yield put(handleRLAgentError(errorMessage));
     }
 }
 
