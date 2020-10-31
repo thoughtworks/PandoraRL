@@ -41,7 +41,7 @@ env = TestGraphEnv(
     protein_filetype=protein_filetype,
     ligand_filetype=ligand_filetype,
 )
-agent = DDPGAgentGNN(env, weights_path="", log_filename=param["log_path"])
+agent = DDPGAgentGNN(env, weights_path="", log_filename="./testing_script_log.log")
 agent.test(max_steps=Path.MAX_STEPS, path_actor_weights=actor_weights, path_critic_weights=critic_weights)
 
 # convert complex to pdbqt
