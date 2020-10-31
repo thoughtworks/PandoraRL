@@ -38,8 +38,6 @@ def OB_to_mol(obmol, mol_type, path=None):
     return mol
 
 def mol_to_OB(mol, filetype, scaler, prepare):
-    # TODO: do we need to recenter coords now?? 
-    # all_features = scaler.inverse_transform(mol.get_ordered_features())
     all_features = mol.get_ordered_features()
     if filetype=="smiles_string":
         obmol = smiles_to_OB(mol.path, prepare=prepare)

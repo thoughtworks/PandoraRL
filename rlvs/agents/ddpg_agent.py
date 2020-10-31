@@ -1,10 +1,4 @@
 # refered from https://github.com/germain-hug/Deep-RL-Keras
-# GraphNN https://github.com/vermaMachineLearning/keras-deep-graph-learning
-# Follow the examples to build the graph
-
-# A(G(P), G(L)) -> <pose>
-# C([G(P), G(L)], <pose>) -> <Q>
-
 
 import numpy as np
 

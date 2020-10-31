@@ -4,7 +4,7 @@ env = GraphEnv()
 print(env.input_shape)
 
 run_id = 0
-folder = "./Results/"
+folder = "./model/"
 path_prefix = f"{folder}run{run_id}_"
 agent = DDPGAgentGNN(env, weights_path=path_prefix+"weights_intermediate", log_filename=path_prefix+"training_log.log")
 actions =  agent.play(50000)
