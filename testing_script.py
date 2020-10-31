@@ -1,8 +1,6 @@
 import ast
 import sys
 
-from rlvs.molecule_world.env import TestGraphEnv
-from rlvs.agents.ddpg_agent import DDPGAgentGNN
 import joblib
 import os
 
@@ -27,6 +25,11 @@ actor_weights = "./Results/run5_actor.h5"
 critic_weights = "./Results/run5_critic.h5"
 scaler_filename = "./Results/run5_scaler.save"
 
+print("**** Setting up RL Agent")
+
+from rlvs.molecule_world.env import TestGraphEnv
+from rlvs.agents.ddpg_agent import DDPGAgentGNN
+
 ###
 from rlvs.molecule_world.datasets import DataStore
 DataStore.init(crop=False)
@@ -34,6 +37,7 @@ joblib.dump(DataStore.scaler, scaler_filename)
 ###
 
 scaler = joblib.load(scaler_filename)
+print(ligand_filetype, ligand_input, protein_filetype, protein_input)
 env = TestGraphEnv(
     scaler=scaler,
     protein_path=protein_input,
@@ -42,7 +46,9 @@ env = TestGraphEnv(
     ligand_filetype=ligand_filetype,
 )
 agent = DDPGAgentGNN(env, weights_path="", log_filename=param["log_path"])
+print("*****Running RL Agent")
 agent.test(max_steps=Path.MAX_STEPS, path_actor_weights=actor_weights, path_critic_weights=critic_weights)
 
 # convert complex to pdbqt
+print("***** Saving output file")
 env.save_complex_files(path=param["output_path"], filetype="pdb")

@@ -16,7 +16,7 @@ LIGAND_FILES = [
     'tipranavir.pdbqt'
 ]
 
-def smiles_to_OB(string, prepare=False):
+def smiles_to_OB(smile_string, prepare=False):
     mol_py = pybel.readstring("smi", smile_string)
     if prepare:
         mol_py.addh()
@@ -44,12 +44,15 @@ def OB_to_mol(obmol, mol_type, path=None):
     mol = Molecule(atom_features=nodes, canon_adj_list=canon_adj_list, path=path)
     return mol
 
-def mol_to_OB(mol, filetype, scaler):
+def mol_to_OB(mol, filetype, scaler, prepare):
     # TODO: do we need to recenter coords now?? 
     # all_features = scaler.inverse_transform(mol.get_ordered_features())
     all_features = mol.get_ordered_features()
-    obmol = read_to_OB(mol.path, filetype)
-    assert(obmol.NumAtoms()==mol.get_coords().shape[0])
+    if filetype=="smiles_string":
+        obmol = smiles_to_OB(mol.path, prepare=prepare)
+    else:   
+        obmol = read_to_OB(mol.path, filetype, prepare=prepare)
+    assert(obmol.NumAtoms()==all_features.shape[0])
     for atom_id, atom in enumerate(ob.OBMolAtomIter(obmol)):
         atom.SetVector(*(all_features[atom_id, 0:3]))
 
