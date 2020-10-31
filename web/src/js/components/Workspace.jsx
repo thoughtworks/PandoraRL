@@ -63,7 +63,7 @@ export default class Workspace extends Component {
                     <div className="panel-title">Pose Prediction</div>
                     <div className="add-user-attachment">
                         <div className={"flex-display"}><h4>Ligand File</h4>
-                        <label className={"text-style"}>[Accepted Format: .pdbqt or mol2]</label></div>
+                        <label className={"text-style"}>[Accepted Format: .pdbqt or .mol2 (prepared ligand), or .pdb (unprepared ligand)]</label></div>
                         <label> Smiles String:
                             <input name="smiles_string" type="checkbox" checked={this.state.smiles_string}
                                    onChange={this.handleInputChange} />
