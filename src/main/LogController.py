@@ -2,7 +2,7 @@ import os
 
 from flask import Blueprint, Response, send_file, render_template
 
-controller = Blueprint('artifact', __name__)
+controller = Blueprint('log', __name__)
 
 
 @controller.route('/<path:path>')

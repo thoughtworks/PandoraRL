@@ -2,7 +2,7 @@ import React, {Component} from "react";
 import PropTypes from "prop-types";
 import JSONPretty from 'react-json-pretty';
 import {Button} from "react-bootstrap";
-import {ARTIFACTS_URL} from "../constants/urls";
+import {ARTIFACTS_URL, LOG_URL} from "../constants/urls";
 
 
 export default class Jobs extends Component {
@@ -33,6 +33,10 @@ render() {
                     <li>Output File:
                         <a href={ARTIFACTS_URL+jobs[key].output_path}>
                             {jobs[key].output_path.split("/").slice(-1)[0]}
+                        </a>
+                    </li>
+                    <li>Log File:  <a href={LOG_URL+jobs[key].log_path}  target='_blank'>
+                            {jobs[key].log_path.split("/").slice(-1)[0]}
                         </a>
                     </li>
                 </ul>

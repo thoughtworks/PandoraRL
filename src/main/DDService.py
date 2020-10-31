@@ -49,7 +49,7 @@ class DDService:
                     "output_path": os.path.abspath(f"./Results/{ligand_file_name_wo_ext}_pose_{Path.MAX_STEPS}_{time_str}.pdbqt")}
         job = {"protein_file_name": protein_file.filename,
                "protein_file_path": f"{Path.ARTIFACT_FOLDER_PATH}/protein_{time_str}_{protein_file.filename}",
-               "log_path": f'{Path.LOG_FOLDER_PATH}/testing_logfile{time_str}.log',
+               "log_path": os.path.abspath(f'{Path.LOG_FOLDER_PATH}/testing_logfile{time_str}.log'),
                }
         job.update(temp)
         details[job_id] = job

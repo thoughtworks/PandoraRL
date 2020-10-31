@@ -1,11 +1,12 @@
 from flask import Flask, render_template, Response
 
-from src.main import DDController
+from src.main import DDController, LogController
 from src.main import ArtifactController
 
 app = Flask(__name__, static_folder='./public/out', template_folder='./public')
 app.register_blueprint(DDController.controller, url_prefix='/api/drugDiscoveryAgent')
 app.register_blueprint(ArtifactController.controller, url_prefix='/artifacts/')
+app.register_blueprint(LogController.controller, url_prefix='/logs/')
 
 
 @app.route("/")
