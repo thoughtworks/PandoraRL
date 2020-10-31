@@ -152,7 +152,7 @@ class TestGraphEnv(GraphEnv):
             ligand = OB_to_mol(
                 smiles_to_OB(self.ligand_path, prepare=True),
                 mol_type=1,
-                path=f'{ligand_path}'
+                path=f'{self.ligand_path}'
             )
         else:
             ligand = OB_to_mol(
@@ -178,7 +178,7 @@ class TestGraphEnv(GraphEnv):
         return self._complex, state, terminal
 
     def save_complex_files(self, path, filetype):
-        ligand_obmol = mol_to_OB(self._complex.ligand, self.ligand_filetype, self.scaler)
+        ligand_obmol = mol_to_OB(self._complex.ligand, self.ligand_filetype, self.scaler, prepare=True)
         OBs_to_file(ligand_obmol, filename=path, filetype=filetype)
 
         
