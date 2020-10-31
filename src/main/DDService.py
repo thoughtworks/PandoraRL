@@ -32,6 +32,8 @@ class DDService:
         return {"job_id":job_id}
 
     def record_job(self, protein_file, ligand_file, string_format):
+        if not os.path.exists("./Results"):
+            os.mkdir("./Results")
         time_str = time.strftime('%H_%M_%S__%Y_%m_%d')
         with open(Path.METDATA_PATH, 'r') as metadata_file:
             job_details = json.load(metadata_file)
