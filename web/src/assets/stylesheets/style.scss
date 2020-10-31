@@ -1,4 +1,5 @@
 .layout {
+  margin:2px;
   .dashboard-header {
     display: flex;
     padding: 0 20px;
@@ -37,13 +38,33 @@
     .panel-title{
       background-color: #d9d9d9;
     }
-      width: 50%;
+      width: 70%;
       border: 1px solid #d9d9d9;
-      margin: 20% 25% 25% 25%;
-
-}}
 
 
+}
+  .logs-container {
+    height: 600px;
+    overflow-y: scroll;
+  }
+  .input-ligand {
+    width: 400px;
+    height: 50px;
+    padding: 2px;
+    margin: 5px;
+  }
+
+  .flex-display {
+    display: flex;
+  }
+  .text-style {
+    font-style: italic;
+    margin-top: 10px;
+    margin-left: 10px;
+  }
+}
+
+//margin: 20% 25% 25% 25%;
 
 //{
 //  border-color: #337ab;
