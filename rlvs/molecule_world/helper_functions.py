@@ -18,9 +18,10 @@ LIGAND_FILES = [
 
 def smiles_to_OB(smile_string, prepare=False):
     mol_py = pybel.readstring("smi", smile_string)
+    
     if prepare:
-        mol_py.addh()
-        mol_py.calccharges(model="gasteiger")
+       mol_py.make3D(steps=500) 
+       mol_py.calccharges(model="gasteiger")
     obmol = mol_py.OBMol
     return obmol
 
