@@ -23,9 +23,9 @@ else:
     ligand_input = param['ligand_input']
 
 # specify model path
-actor_weights = "./Results/run5_actor.h5"
-critic_weights = "./Results/run5_critic.h5"
-scaler_filename = "./Results/run5_scaler.save"
+actor_weights = "./model/run0_weights_intermediate_actor.h5"
+critic_weights = "./model/run0_weights_intermediate_critic.h5"
+scaler_filename = "./model/run0_scaler.save"
 
 print("**** Loading trained model..\n")
 
