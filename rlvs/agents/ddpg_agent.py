@@ -362,6 +362,5 @@ class DDPGAgentGNN(DDPGAgent):
             action = self.get_action(self.get_predicted_action(old_state))
             print(f"Action = {action}")
             updated_complex, old_state, terminal = self.env.step(action)
-            print(f"RMSD = {self.env._complex.rmsd}")
             if terminal:
                 break

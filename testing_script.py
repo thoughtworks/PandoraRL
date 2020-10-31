@@ -6,6 +6,8 @@ import os
 
 from src.main.Path import Path
 
+print("**** Setting up RL Agent..\n")
+
 param = ast.literal_eval(sys.argv[1])
 
 protein_input = param["protein_file_path"]
@@ -25,7 +27,7 @@ actor_weights = "./Results/run5_actor.h5"
 critic_weights = "./Results/run5_critic.h5"
 scaler_filename = "./Results/run5_scaler.save"
 
-print("**** Setting up RL Agent")
+print("**** Loading trained model..\n")
 
 from rlvs.molecule_world.env import TestGraphEnv
 from rlvs.agents.ddpg_agent import DDPGAgentGNN
@@ -45,10 +47,11 @@ env = TestGraphEnv(
     protein_filetype=protein_filetype,
     ligand_filetype=ligand_filetype,
 )
-agent = DDPGAgentGNN(env, weights_path="", log_filename=param["log_path"])
-print("*****Running RL Agent")
+agent = DDPGAgentGNN(env, weights_path="", log_filename="./testing_script_log.log")
+print("***** Running RL Agent..\n")
 agent.test(max_steps=Path.MAX_STEPS, path_actor_weights=actor_weights, path_critic_weights=critic_weights)
 
 # convert complex to pdbqt
-print("***** Saving output file")
+print("***** Creating output file..\n")
 env.save_complex_files(path=param["output_path"], filetype="pdb")
+print("***** Output file generated.\n")

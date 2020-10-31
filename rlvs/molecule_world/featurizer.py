@@ -4,6 +4,8 @@ import numpy as np
 from .molecule import Molecule
 import scipy.sparse as sp
 
+ob.obErrorLog.SetOutputLevel(0)
+
 class Featurizer():    
     def __init__(self):
 

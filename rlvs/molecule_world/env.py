@@ -147,10 +147,15 @@ class TestGraphEnv(GraphEnv):
                     mol_type=-1,
                     path=f'{self.protein_path}'
                 )
-
         if self.ligand_filetype=="smiles_string":
             ligand = OB_to_mol(
                 smiles_to_OB(self.ligand_path, prepare=True),
+                mol_type=1,
+                path=f'{self.ligand_path}'
+            )
+        elif self.ligand_filetype=="pdb":
+            ligand = OB_to_mol(
+                read_to_OB(filename=f'{self.ligand_path}', filetype=self.ligand_filetype, prepare=True),
                 mol_type=1,
                 path=f'{self.ligand_path}'
             )
@@ -160,7 +165,6 @@ class TestGraphEnv(GraphEnv):
                 mol_type=1,
                 path=f'{self.ligand_path}'
             )
-        
         super(TestGraphEnv, self).__init__(complex=Complex(protein, ligand))
 
     def reset(self):
@@ -171,7 +175,7 @@ class TestGraphEnv(GraphEnv):
         terminal = False
 
         delta_change = self._complex.ligand.update_pose(*action)
-        print(f"Delta change: {delta_change}")
+        print(f"Delta change: {delta_change}\n")
         terminal = (delta_change < 0.01).all()
             
         state = self.get_state()

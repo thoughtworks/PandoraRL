@@ -6,15 +6,7 @@ from .molecule import Molecule
 from .complex import Complex
 from .featurizer import Featurizer
 
-DATA_PATH = f'{path.dirname(path.abspath(__file__))}/../../pdbqt_data/'
-PROTEIN_FILES = ['6Y2F_MOD.pdbqt']
-LIGAND_FILES = [
-    'letermovir.pdbqt',
-    'lopinavir.pdbqt',
-    'raltegravir.pdbqt',
-    'ritonavir.pdbqt',
-    'tipranavir.pdbqt'
-]
+ob.obErrorLog.SetOutputLevel(0)
 
 def smiles_to_OB(smile_string, prepare=False):
     mol_py = pybel.readstring("smi", smile_string)
