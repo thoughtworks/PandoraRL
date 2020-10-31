@@ -3,7 +3,7 @@ import time
 
 
 class Path:
-    MAX_STEPS = 200
+    MAX_STEPS = 20
     ARTIFACT_FOLDER_PATH = "./artifacts"
     PROTEIN_FILE_PATH = ARTIFACT_FOLDER_PATH + "/proteinFile"
     LIGAND_FILE_PATH = ARTIFACT_FOLDER_PATH + "/ligandFile"
