@@ -22,11 +22,6 @@ class Critic:
         self.optimizer = Adam(learning_rate=learning_rate)
     
     def update_target_network(self):
-        # model_weights = np.array(self.critic.get_weights())
-        # target_weights = np.array(self.critic_target.get_weights())
-        # target_weights = self._tau * model_weights + (1 - self._tau) * target_weights 
-        # self.critic_target.set_weights(target_weights)
-
         W, target_W = self.critic.get_weights(), self.critic_target.get_weights()
         for i in range(len(W)):
             target_W[i] = self._tau * W[i] + (1 - self._tau)* target_W[i]

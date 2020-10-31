@@ -1,3 +1,5 @@
+# Code referenced from https://gitlab.com/cheminfIBB/pafnucy
+
 from openbabel import pybel
 from openbabel import openbabel as ob
 import numpy as np
@@ -51,7 +53,6 @@ class Featurizer():
             self.__PATTERNS.append(pybel.Smarts(smarts))
 
     def get_atom_features(self, atom, molecule_type):
-        #TODO: add SMARTS patterns 
         '''
         INPUT
         atom: OB Atom object
@@ -103,11 +104,6 @@ class Featurizer():
         smarts_patterns = self.find_smarts(mol_py) # shape = (num_atoms, num_smarts_patterns)
 
         for atom in ob.OBMolAtomIter(obmol):
-            # add only heavy atoms
-            # if atom.GetAtomicNum() > 1:
-            #     atom_id = atom.GetIndex()
-            #     atom_feats = self.get_atom_features(atom, molecule_type)
-            #     idx_node_tuples.append((atom_id, atom_feats))
 
             atom_id = atom.GetIndex()
             atom_feats = self.get_atom_features(atom, molecule_type) # list of features

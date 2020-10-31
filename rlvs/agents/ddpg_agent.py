@@ -296,10 +296,6 @@ class DDPGAgentGNN(DDPGAgent):
                 if episode_length % 5 == 0 and self.memory.num_samples > 32:
                     self.update_network(critic_losses, actor_losses)                
 
-            # training_length = 20 if episode_length > 20 else episode_length
-
-            # for i in range(training_length):
-            # print(f"E_i:{i_episode + 1} {i}/{training_length}")
             self.update_network(critic_losses, actor_losses)                
                 
             returns.append([i_episode + 1, episode_length])

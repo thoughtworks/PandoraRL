@@ -14,9 +14,6 @@ class RMSD:
     def __call__(self, target_molecule):
         if self.reference_molecule.n_atoms != target_molecule.n_atoms:
             raise Exception("error: Structures not same size")
-        
-        # if np.count_nonzero(self.reference_molecule.atoms != target_molecule.atoms):
-            # raise Exception("error: Atoms are not in the same order")
 
         r_cent = self.centroid(self.reference_molecule.get_coords())
         t_cent = self.centroid(target_molecule.get_coords())

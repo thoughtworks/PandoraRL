@@ -125,7 +125,7 @@ class DataStore:
 
     @classmethod
     def init(cls, crop=True):
-        cls.DATA_STORES = [PDBQTData_2()]#, PDBQTData(), PafnucyData()]#, DudeProteaseData()]
+        cls.DATA_STORES = [PDBQTData_2()]
         cls.load(crop)
         cls.scaler = cls.normalize()
 
@@ -135,8 +135,6 @@ class DataStore:
                 
     @classmethod
     def next(cls, crop=True):
-        # datastore = cls.DATA_STORES[np.random.randint(0, len(cls.DATA_STORES))]
-        # return datastore.get_molecules(datastore.random, crop)
         return cls.DATA[np.random.randint(0, len(cls.DATA))]
 
     @classmethod
