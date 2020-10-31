@@ -33,8 +33,7 @@ DataStore.init(crop=False)
 joblib.dump(DataStore.scaler, scaler_filename) 
 ###
 
-scaler = joblib.load(scaler_filename) 
-max_steps = 10
+scaler = joblib.load(scaler_filename)
 env = TestGraphEnv(
     scaler=scaler,
     protein_path=protein_input,
@@ -42,8 +41,8 @@ env = TestGraphEnv(
     protein_filetype=protein_filetype,
     ligand_filetype=ligand_filetype,
 )
-agent = DDPGAgentGNN(env, weights_path = "", log_filename=param["log_path"])
+agent = DDPGAgentGNN(env, weights_path="", log_filename=param["log_path"])
 agent.test(max_steps=Path.MAX_STEPS, path_actor_weights=actor_weights, path_critic_weights=critic_weights)
 
 # convert complex to pdbqt
-env.save_complex_files(path=param["output_path"], filetype="pdbqt")
+env.save_complex_files(path=param["output_path"], filetype="pdb")
