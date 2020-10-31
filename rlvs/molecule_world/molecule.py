@@ -60,7 +60,7 @@ class Molecule(ConvMol):
         self.translate(x, y, z)
         self.rotate('xyz', [roll, pitch, yaw], True)
         new_coords = self.get_coords()
-        delta_change = new_coords - old_coords
+        delta_change = np.abs(new_coords - old_coords)
         return delta_change.mean(axis = 0)
         
     def translate(self,x,y,z):
