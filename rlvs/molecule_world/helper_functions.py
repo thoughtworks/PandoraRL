@@ -16,13 +16,26 @@ LIGAND_FILES = [
     'tipranavir.pdbqt'
 ]
 
-def read_to_OB(filename, filetype):
+def smiles_to_OB(string, prepare=False):
+    mol_py = pybel.readstring("smi", smile_string)
+    if prepare:
+        mol_py.addh()
+        mol_py.calccharges(model="gasteiger")
+    obmol = mol_py.OBMol
+    return obmol
+
+def read_to_OB(filename, filetype, prepare=False):
     obconversion = ob.OBConversion()
     obconversion.SetInFormat(filetype)
     obmol = ob.OBMol()
 
     notatend = obconversion.ReadFile(obmol, filename)
-    # print(obmol.GetFormula())
+    if prepare:
+        mol_py = pybel.Molecule(obmol)
+        mol_py.addh()
+        mol_py.calccharges(model="gasteiger")
+        obmol = mol_py.OBMol
+
     return obmol
 
 def OB_to_mol(obmol, mol_type, path=None):
@@ -42,12 +55,8 @@ def mol_to_OB(mol, filetype, scaler):
 
     return obmol
 
-def OBs_to_file(obmol_protein, obmol_ligand, filename, filetype):
+def OBs_to_file(obmol_ligand, filename, filetype):
 
     mol_py = pybel.Molecule(obmol_ligand)
     mol_py.write(format=filetype, filename=filename, overwrite=True)
-    # outputfile = pybel.Outputfile(format=filetype, filename=filename, overwrite=True)
-    # outputfile.write(pybel.Molecule(obmol_protein))
-    # outputfile.write(pybel.Molecule(obmol_ligand)) 
-    # outputfile.close()
     return

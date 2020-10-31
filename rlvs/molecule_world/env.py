@@ -65,7 +65,7 @@ class GraphEnv:
         
         self.input_shape = self._complex.protein.get_atom_features().shape[1]
 
-        single_step = np.array([50, 50, 50, 10, 10, 10])
+        single_step = np.array([10, 10, 10, 10, 10, 10])
         action_bounds = np.array([-1*single_step, single_step])
         self.action_space = ActionSpace(action_bounds)
 
@@ -143,15 +143,23 @@ class TestGraphEnv(GraphEnv):
         self.scaler = scaler
 
         protein = OB_to_mol(
-                    read_to_OB(filename=f'{protein_path}', filetype=protein_filetype),
+                    read_to_OB(filename=f'{self.protein_path}', filetype=self.protein_filetype),
                     mol_type=-1,
-                    path=f'{protein_path}'
+                    path=f'{self.protein_path}'
                 )
-        ligand = OB_to_mol(
-            read_to_OB(filename=f'{ligand_path}', filetype=ligand_filetype),
-            mol_type=1,
-            path=f'{ligand_path}'
-        )
+
+        if self.ligand_filetype=="smiles_string":
+            ligand = OB_to_mol(
+                smiles_to_OB(self.ligand_path, prepare=True),
+                mol_type=1,
+                path=f'{ligand_path}'
+            )
+        else:
+            ligand = OB_to_mol(
+                read_to_OB(filename=f'{self.ligand_path}', filetype=self.ligand_filetype, prepare=False),
+                mol_type=1,
+                path=f'{self.ligand_path}'
+            )
         
         super(TestGraphEnv, self).__init__(complex=Complex(protein, ligand))
 
@@ -171,8 +179,7 @@ class TestGraphEnv(GraphEnv):
 
     def save_complex_files(self, path, filetype):
         ligand_obmol = mol_to_OB(self._complex.ligand, self.ligand_filetype, self.scaler)
-        protein_obmol = mol_to_OB(self._complex.protein, self.protein_filetype, self.scaler)
-        OBs_to_file(protein_obmol, ligand_obmol, filename=path, filetype=filetype)
+        OBs_to_file(ligand_obmol, filename=path, filetype=filetype)
 
         
 
