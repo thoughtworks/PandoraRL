@@ -4,7 +4,7 @@ channels:
   - plotly
   - anaconda
 dependencies:
-  - python=3.6
+  - python=3.8
   - numpy=1.19.1
   - matplotlib=3.3.1
   - ipython=7.16.1
@@ -15,8 +15,9 @@ dependencies:
   - rdkit=2020.03.6
   - nodejs=10.13.0
   - psutil=5.6.7
+  - pytorch=1.7.1
+  - pip=21.1.2
   - pip:
-      - tensorflow==2.2.0
-      - deepchem
-      - keras==2.4.3
-      - pybuilder==0.11.17
+      - deepchem==2.5.0
+      - pybuilder==0.12.10
+      - torch-geometric==1.7.1
