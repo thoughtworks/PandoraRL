@@ -49,7 +49,7 @@ class DDPGAgent:
             self.ACTOR_LEARNING_RATE,
             self.TAU
         )
-        self._actor_optim = dam(self._actor.parameters(), lr=prate)
+        self._actor_optim = Adam(self._actor.parameters(), lr=prate)
 
 
         self._critiq = CriticGNN(
@@ -64,7 +64,7 @@ class DDPGAgent:
             self.CRITIQ_LEARNING_RATE,
             self.TAU
         )        
-        self._critiq_optim = dam(self._critiq.parameters(), lr=prate)
+        self._critiq_optim = Adam(self._critiq.parameters(), lr=prate)
 
         hard_update(self._actor_target, self._actor) # Make sure target is with the same weight
         hard_update(self._critiq_target, self._critiq)        
