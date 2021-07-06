@@ -33,8 +33,8 @@ def read_to_OB(filename, filetype, prepare=False):
 
 def OB_to_mol(obmol, mol_type, path=None):
     f = Featurizer()
-    nodes, canon_adj_list = f.get_mol_features(obmol=obmol, molecule_type=mol_type, bond_verbose=0)
-    mol = Molecule(atom_features=nodes, canon_adj_list=canon_adj_list, path=path)
+    nodes, canon_adj_list, data = f.get_mol_features(obmol=obmol, molecule_type=mol_type, bond_verbose=0)
+    mol = Molecule(atom_features=nodes, canon_adj_list=canon_adj_list, data=data, path=path)
     return mol
 
 def mol_to_OB(mol, filetype, scaler, prepare):

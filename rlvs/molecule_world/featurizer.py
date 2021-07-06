@@ -6,6 +6,9 @@ import numpy as np
 from .molecule import Molecule
 import scipy.sparse as sp
 
+import torch
+from torch_geometric.data import Data
+
 ob.obErrorLog.SetOutputLevel(0)
 
 class Featurizer():    
@@ -94,6 +97,51 @@ class Featurizer():
         return features
     
     def get_mol_features(self, obmol, molecule_type, bond_verbose=False):
+        num_atoms = obmol.NumAtoms()
+
+        idx_node_tuples = []
+
+        # Calculate SMARTS features
+        mol_py = pybel.Molecule(obmol)
+        smarts_patterns = self.find_smarts(mol_py) # shape = (num_atoms, num_smarts_patterns)
+
+        for atom in ob.OBMolAtomIter(obmol):
+
+            atom_id = atom.GetIndex()
+            atom_feats = self.get_atom_features(atom, molecule_type) # list of features
+            
+            atom_feats.extend(smarts_patterns[atom_id])
+
+            idx_node_tuples.append((atom_id, atom_feats))
+
+        idx_node_tuples.sort()
+        idxs, nodes = list(zip(*idx_node_tuples))
+
+        edge_list = [
+            [bond.GetBeginAtom().GetIndex(), bond.GetEndAtom().GetIndex()] for bond in ob.OBMolBondIter(obmol)
+        ] + [
+            [bond.GetEndAtom().GetIndex(), bond.GetBeginAtom().GetIndex()] for bond in ob.OBMolBondIter(obmol)
+        ] # account for both directions of the bonds
+
+        edge_index = torch.tensor(edge_list, dtype=torch.long)
+        x = torch.tensor(nodes, dtype=torch.float)
+
+        data = Data(x=x, edge_index=edge_index.t().contiguous())
+
+        nodes = np.vstack(nodes)
+        edge_list = [
+            (bond.GetBeginAtom().GetIndex(), bond.GetEndAtom().GetIndex()) for bond in ob.OBMolBondIter(obmol)
+        ]
+
+        # Get canonical adjacency list
+        canon_adj_list = [[] for mol_id in range(len(nodes))]
+        for edge in edge_list:
+            canon_adj_list[edge[0]].append(edge[1])
+            canon_adj_list[edge[1]].append(edge[0])
+                
+        return nodes, canon_adj_list, data
+    
+    def get_mol_features_old(self, obmol, molecule_type, bond_verbose=False):
         
         num_atoms = obmol.NumAtoms()
 

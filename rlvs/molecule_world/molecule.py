@@ -14,7 +14,7 @@ class Molecule(ConvMol):
     - origin: origin (x,y,z) w.r.t which all other coords are defined
     '''
     
-    def __init__(self, atom_features, canon_adj_list, max_deg=10, min_deg=0, origin=[0,0,0], path=None):
+    def __init__(self, atom_features, canon_adj_list, max_deg=10, min_deg=0, origin=[0,0,0], path=None, data=None):
         atom_ids = np.arange(atom_features.shape[0]).reshape(-1, 1)
         atom_features = np.concatenate((atom_features, atom_ids), axis=1) #last feature is ID needed for resorting
         super(Molecule, self).__init__(atom_features=atom_features, adj_list=canon_adj_list, max_deg=max_deg, min_deg=min_deg)
@@ -22,6 +22,8 @@ class Molecule(ConvMol):
         ## now atom features are rearranged by degree
         self.correct_order = self.atom_features[:, -1]
         self.atom_features = self.atom_features[:, 0:-1]
+        self.adgacency = canon_adj_list
+        self._data = data
         ## removed ids from atom features
 
         self.path = path
@@ -29,6 +31,11 @@ class Molecule(ConvMol):
         self.T = lambda x,y,z : np.array([[1,0,0,x], [0,1,0,y], [0,0,1,z], [0,0,0,1]]).astype(float)
         self.rmsd = RMSD(self)
 
+    @property
+    def data(self):
+        return self._data
+
+    #[deprecated]
     def get_ordered_features(self):
         return self.atom_features[np.argsort(self.correct_order)]
 
