@@ -48,7 +48,7 @@ class Molecule(ConvMol):
 
     def randomize(self, box_size):
         x, y, z, r, p, y_ = np.random.uniform(-box_size, box_size, (6,)) * 10
-        self.update_pose(x, y, z, r, p, y)
+        self.update_pose(x, y, z, r, p, y_)
         
     def atom_range(self, axis):
         values = self.get_coords()[:,axis]
