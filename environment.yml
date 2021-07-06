@@ -18,6 +18,9 @@ dependencies:
   - pytorch=1.7.1
   - pip=21.1.2
   - pip:
+      - tensorflow==2.2.0
       - deepchem==2.5.0
       - pybuilder==0.12.10
+      - torch-scatter==2.0.7
+      - torch-sparse==0.6.10
       - torch-geometric==1.7.1
