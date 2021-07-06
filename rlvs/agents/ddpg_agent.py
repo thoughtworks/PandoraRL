@@ -20,13 +20,17 @@ import logging
 
 class DDPGAgent:
     ACTOR_LEARNING_RATE  = 0.00005
-    CRITIQ_LEARNING_RATE = 0.00005
+    CRITIQ_LEARNING_RATE = 0.0001
     TAU                  = 0.001
+    
+    GAMMA                = 0.99
 
     BATCH_SIZE           = 32
-    BUFFER_SIZE          = 20000
+    BUFFER_SIZE          = 200000
+    EXPLORATION_EPISODES = 10000
 
-    def __init__(self, env, warmup=32, prate=0.00005, is_training=1):
+
+    def __init__(self, env, log_filename, weights_path, warmup=32, prate=0.00005, is_training=1):
         self.input_shape = env.input_shape
         self.action_shape = env.action_space.n_outputs
         self.eps = 0.9
@@ -67,7 +71,16 @@ class DDPGAgent:
         self._critiq_optim = Adam(self._critiq.parameters(), lr=prate)
 
         hard_update(self._actor_target, self._actor) # Make sure target is with the same weight
-        hard_update(self._critiq_target, self._critiq)        
+        hard_update(self._critiq_target, self._critiq)
+
+        logging.basicConfig(
+            filename=log_filename,
+            filemode='w',
+            format='%(message)s', 
+            datefmt='%I:%M:%S %p', 
+            level=logging.DEBUG
+        )
+        self.weights_path = weights_path
 
     def memorize(self, state, action, reward, next_state, done):
         self.memory.add_sample({
@@ -87,10 +100,10 @@ class DDPGAgent:
         batch = self.memory.sample(self.BATCH_SIZE)
         batch_len = len(batch)
         
-        states = np.array([val['state'] for val in batch])
+        states = states = self.env.get_state([val['state'] for val in batch])
         actions = np.array([val['action'] for val in batch])
         rewards = np.array([val['reward'] for val in batch])
-        next_states = np.array([val['next_state'] for val in batch ])
+        next_states = self.env.get_state([val['next_state'] for val in batch ])
         terminals = np.array([val['done'] for val in batch ])
         # Prepare for the target q batch
         next_q_values = self._critiq_target([
@@ -166,7 +179,8 @@ class DDPGAgent:
         while i_episode < num_train_episodes:
             critic_losses = []
             actor_losses = []
-            state_t, episode_return, episode_length, terminal = self.env.reset(), 0, 0, False
+            m_complex_t, state_t = self.env.reset()
+            episode_return, episode_length, terminal = 0, 0, False
 
             self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs)
 
@@ -178,12 +192,12 @@ class DDPGAgent:
                     predicted_action = self.get_predicted_action(state_t, episode_length)
 
                 action = self.get_action(predicted_action)
-                state_t_1, reward, terminal = self.env.step(action)
+                m_complex_t_1, state_t_1, reward, terminal = self.env.step(action)
                 
                 d_store = False if episode_length == max_episode_length else terminal
                 reward = 0 if episode_length == max_episode_length else reward
                 
-                self.memorize(state_t[0], predicted_action, reward, state_t_1[0], d_store)
+                self.memorize(m_complex_t, predicted_action, reward, m_complex_t_1, d_store)
 
                 num_steps += 1                
                 
@@ -216,6 +230,9 @@ class DDPGAgent:
                 Critic Loss: {np.mean(critic_losses)} \
                 Actor loss: {np.mean(actor_losses)}"
             )
+
+            if i_episode%10 == 0:
+                self.save_weights(self.weights_path)
 
             i_episode += 1
 
