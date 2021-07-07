@@ -85,7 +85,8 @@ class GraphEnv:
             delta_change = self._complex.ligand.update_pose(*action)
             reward = self._complex.score()
             terminal = self._complex.perfect_fit
-        except:
+        except Exception as e:
+            print(e)
             reward = -1
             terminal = True
             

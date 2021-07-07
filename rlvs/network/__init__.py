@@ -1,2 +1,2 @@
-from .actor import Actor, Actor3D, ActorGNN
-from .critic import Critic, Critic3D, CriticGNN
+from .actor import ActorGNN
+from .critic import CriticGNN

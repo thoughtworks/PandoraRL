@@ -18,7 +18,7 @@ criterion = nn.MSELoss()
 import logging
             
 
-class DDPGAgent:
+class DDPGAgentGNN:
     ACTOR_LEARNING_RATE  = 0.00005
     CRITIQ_LEARNING_RATE = 0.0001
     TAU                  = 0.001
@@ -100,63 +100,70 @@ class DDPGAgent:
         batch = self.memory.sample(self.BATCH_SIZE)
         batch_len = len(batch)
         
-        states = states = self.env.get_state([val['state'] for val in batch])
-        actions = np.array([val['action'] for val in batch])
-        rewards = np.array([val['reward'] for val in batch])
-        next_states = self.env.get_state([val['next_state'] for val in batch ])
-        terminals = np.array([val['done'] for val in batch ])
+        # states = np.array([val['state'] for val in batch])
+        # actions = np.array([val['action'] for val in batch])
+        # rewards = np.array([val['reward'] for val in batch])
+        # next_states = np.array([val['next_state'] for val in batch ])
+        # terminals = np.array([val['done'] for val in batch ])
         # Prepare for the target q batch
-        next_q_values = self._critiq_target([
-            to_tensor(next_state, volatile=True),
-            self._actor_target(to_tensor(next_state, volatile=True)),
-        ])
+        for val in batch:
+            states = val['state']
+            actions = val['action']
+            rewards = np.array([val['reward']])
+            next_states = val['next_state']
+            terminals = np.array([val['done']])
+                    
+            next_q_values = self._critiq_target([
+                next_states,
+                self._actor_target(next_states),
+            ]) 
+
+            with torch.no_grad():
+                # next_q_values.volatile=False
+                target_q_batch = to_tensor(rewards) + \
+                    self.CRITIQ_LEARNING_RATE*to_tensor(terminals.astype(np.float))*next_q_values
+
+                # Critic update
+                self._critiq.zero_grad()
         
-        next_q_values.volatile=False
-
-        target_q_batch = to_tensor(rewards) + \
-            self.CRITIQ_LEARNING_RATE*to_tensor(terminals.astype(np.float))*next_q_values
-
-        # Critic update
-        self._critiq.zero_grad()
-
-        q_batch = self._critiq([ to_tensor(states), to_tensor(actions) ])
+            q_batch = self._critiq([ states, to_tensor(np.array(actions)) ])
         
-        value_loss = criterion(q_batch, target_q_batch)
-        value_loss.backward()
-        self._critiq_optim.step()
+            value_loss = criterion(q_batch, target_q_batch)
+            value_loss.backward()
+            self._critiq_optim.step()
 
-        # Actor update
-        self._actor.zero_grad()
+            # Actor update
+            self._actor.zero_grad()
 
-        policy_loss = -self._critiq([
-            to_tensor(states),
-            self._actor(to_tensor(states))
-        ])
+            policy_loss = -self._critiq([
+                states,
+                self._actor(states)
+            ])
 
-        policy_loss = policy_loss.mean()
-        policy_loss.backward()
-        self._actor_optim.step()
+            policy_loss = policy_loss.mean()
+            policy_loss.backward()
+            self._actor_optim.step()
 
         # Target update
-        soft_update(self._actor_target, self.actor, self.tau)
-        soft_update(self._critiq_target, self._critiq, self.tau)
-        return value_loss, policy_loss
+        soft_update(self._actor_target, self._actor, self.TAU)
+        soft_update(self._critiq_target, self._critiq, self.TAU)
+        # import pdb; pdb.set_trace()
+        return to_numpy(value_loss), to_numpy(policy_loss)
 
     def get_predicted_action(self, state, step=None, decay_epsilon=True):
         # Explore AdaptiveParamNoiseSpec, with normalized action space
         # https://github.com/l5shi/Multi-DDPG-with-parameter-noise/blob/master/Multi_DDPG_with_parameter_noise.ipynb
         action = to_numpy(
-            self._actor(to_tensor(state))
-        ).squeeze(0)
-        print("ACTION", action)
+            self._actor(state[0])[0]
+        )
         
         if step is not None:
             action += self.is_training*max(self.eps, 0)*self.exploration_noise.generate(step)
-
+            
         if decay_epsilon:
             self.eps *= self.eps
 
-
+            
         return action
 
     def random_action(self):
@@ -186,17 +193,19 @@ class DDPGAgent:
             while not (terminal or (episode_length == max_episode_length)):
 
                 if i_episode <= self.warm_up_steps:
-                    predicted_action = agent.random_action()
+                    predicted_action = self.random_action()
                 else:
-                    predicted_action = self.get_predicted_action(state_t, episode_length)
-
+                    predicted_action = self.get_predicted_action(np.array([m_complex_t]), episode_length)
+                
                 action = self.get_action(predicted_action)
+                
+                
                 m_complex_t_1, state_t_1, reward, terminal = self.env.step(action)
                 
                 d_store = False if episode_length == max_episode_length else terminal
                 reward = 0 if episode_length == max_episode_length else reward
                 
-                self.memorize(m_complex_t, predicted_action, reward, m_complex_t_1, d_store)
+                self.memorize(m_complex_t, [predicted_action], reward, m_complex_t_1, d_store)
 
                 num_steps += 1                
                 
@@ -204,7 +213,7 @@ class DDPGAgent:
                 episode_length += 1
                 state_t = state_t_1
 
-                self.log(action, np.round(reward, 4), episode_length)
+                self.log(action, np.round(reward, 4), episode_length, i_episode)
 
                 if i_episode > self.warm_up_steps:
                     critic_loss, actor_loss = self.update_network()
@@ -237,8 +246,24 @@ class DDPGAgent:
 
         return returns
 
-    def log(self, action, reward, episode_length):
-        print("Action:", action, "Reward:", np.round(reward, 4), "E_i:", episode_length,
-              "Block state:", [
-                  self.env.block.block_x, self.env.block.block_y, np.round(self.env.block.rotate_angle, 2), self.env.block.shift_x, self.env.block.shift_y
-              ], "Dist:",  np.round(self.env.block.distance(), 4))
+    def log(self, action, reward, episode_length, i_episode):
+        print(
+            "Action:", action,
+            "Reward:", np.round(reward, 4),
+            "E_i:", episode_length,
+            "RMSD: ", self.env._complex.rmsd,
+            "E:",i_episode
+        )
+        logging.info(f"Action: {action}, Reward: {np.round(reward, 4)}, E_i: {episode_length}, E: {i_episode}, RMSD: {np.round(self.env._complex.rmsd, 4)}")
+
+    def save_weights(self, path):
+        # self._actor.save(path)
+        # self._critiq.save(path)
+        pass
+
+    def load_weights(self, path_actor, path_critic):
+        # self._critiq.load_weights(path_critic)
+        # self._actor.load_weights(path_actor)
+        pass
+
+
