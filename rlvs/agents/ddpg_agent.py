@@ -164,9 +164,8 @@ class DDPGAgent:
 
     def get_action(self, action):
         action *= self.action_bounds[1]
-        
-        x, y, t = np.clip(action, *self.action_bounds)
-        return np.array([np.round(x), np.round(y), t]) #TODO: Revalidate this area
+        x, y, z, r, p, y_ = np.clip(action, *self.action_bounds)
+        return np.array([np.round(x), np.round(y), np.round(z), r, p, y_])
     
         
     def play(self, num_train_episodes):
