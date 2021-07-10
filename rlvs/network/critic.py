@@ -17,15 +17,13 @@ class CriticGNN(nn.Module):
         super(CriticGNN, self).__init__()
         self._learning_rate = learning_rate
         self._tau = tau
-        
-        self.ligand_gcn_in = GCNConv(input_shape, 16)
-        self.ligand_gcn_out = GCNConv(16, 50)
 
-        self.protein_gcn_in = GCNConv(input_shape, 16)
-        self.protein_gcn_out = GCNConv(16, 50)
+        self.complex_gcn_in = GCNConv(input_shape, 16)
+        self.complex_gcn_hidden_1 = GCNConv(16, 64)
+        self.complex_gcn_out = GCNConv(64, 32)
 
-        self.policy_layer_in = nn.Linear(50 + 50, 60)
-        self.policy_layer_hidden = nn.Linear(60 + action_shape, 10)
+        self.policy_layer_in = nn.Linear(32, 64)
+        self.policy_layer_hidden = nn.Linear(64 + action_shape, 10)
         self.policy_layer_out = nn.Linear(10, 1)
         
         # self.init_weights(init_w)
@@ -43,23 +41,17 @@ class CriticGNN(nn.Module):
     
     def forward(self, state):
         complex_, action = state
-        protein, ligand = complex_
-        
-        protein_data, protein_edge_index, protein_batch = protein.x, protein.edge_index, protein.batch
-        ligand_data, ligand_edge_index, ligand_batch = ligand.x, ligand.edge_index, ligand.batch
-        
-        protein_data = self.protein_gcn_in(protein_data, protein_edge_index)
-        protein_data = F.relu(protein_data)
-        protein_data = F.dropout(protein_data, training=self.training)
-        protein_data = self.protein_gcn_out(protein_data, protein_edge_index)
-        protein_data = global_mean_pool(protein_data, protein_batch)
+        complex_data, complex_edge_index, complex_batch = complex_.x, complex_.edge_index, complex_.batch
 
-        ligand_data = self.ligand_gcn_in(ligand_data, ligand_edge_index)
-        ligand_data = F.relu(ligand_data)
-        ligand_data = F.dropout(ligand_data, training=self.training)
-        ligand_data = self.ligand_gcn_out(ligand_data, ligand_edge_index)
-        ligand_data = global_mean_pool(ligand_data, ligand_batch)
-        molecule_data = torch.cat((protein_data, ligand_data), dim=1)
+        complex_data = self.complex_gcn_in(complex_data, complex_edge_index)
+        complex_data = F.relu(complex_data)
+        complex_data = F.dropout(complex_data, training=self.training)
+        complex_data = self.complex_gcn_hidden_1(complex_data, complex_edge_index)
+        complex_data = F.relu(complex_data)
+        complex_data = F.dropout(complex_data, training=self.training)
+        complex_data = self.complex_gcn_out(complex_data, complex_edge_index)
+        molecule_data = global_mean_pool(complex_data, complex_batch)
+
         finger_print = F.relu(self.policy_layer_in(molecule_data))
 
         policy = self.policy_layer_hidden(torch.cat([finger_print, action], 1))

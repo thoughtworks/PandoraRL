@@ -2,6 +2,9 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import copy
+from rlvs.agents.utils import batchify
+from torch_geometric.data import Data
+import torch
 
 class Complex:
     __GOOD_FIT = 0.006
@@ -32,3 +35,10 @@ class Complex:
     def perfect_fit(self):
         rmsd = self.ligand.rmsd(self.__ligand)
         return rmsd < self.__GOOD_FIT
+
+    @property
+    def data(self):
+        batched = batchify([self.protein, self.ligand])
+        # add edges based on distnace
+        batch = torch.tensor([0] * batched.x.shape[0])
+        return Data(x=batched.x, edge_index=batched.edge_index, batch=batch)

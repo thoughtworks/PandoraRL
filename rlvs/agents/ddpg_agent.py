@@ -97,26 +97,20 @@ class DDPGAgentGNN:
         batch = self.memory.sample(self.BATCH_SIZE)
         batch_len = len(batch)
         
-        proteins = np.array([val['state'].protein for val in batch])
-        ligands = np.array([val['state'].ligand for val in batch])
-        proteins_batched = batchify(proteins)
-        ligands_batched = batchify(ligands)
-        states = (proteins_batched, ligands_batched)
+        m_complex = np.array([val['state'] for val in batch])
+        complex_batched = batchify(m_complex)
 
         actions = np.vstack([val['action'] for val in batch])
         rewards = np.array([val['reward'] for val in batch])
-        
-        next_proteins = np.array([val['next_state'].protein for val in batch ])
-        next_ligands = np.array([val['next_state'].ligand for val in batch ])
-        next_proteins_batched = batchify(next_proteins)
-        next_ligands_batched = batchify(next_ligands)
-        next_states = (proteins_batched, ligands_batched)
+
+        next_m_complex = np.array([val['next_state'] for val in batch])
+        next_complex_batched = batchify(next_m_complex)
 
         terminals = np.array([val['done'] for val in batch ])
         # Prepare for the target q batch
         next_q_values = self._critiq_target([
-            next_states,
-            self._actor_target(next_states),
+            next_complex_batched,
+            self._actor_target(next_complex_batched),
         ])
 
         with torch.no_grad():
@@ -126,7 +120,7 @@ class DDPGAgentGNN:
             # Critic update
             self._critiq.zero_grad()
 
-        q_batch = self._critiq([ states, to_tensor(actions) ])
+        q_batch = self._critiq([ complex_batched, to_tensor(actions) ])
 
         value_loss = criterion(q_batch, target_q_batch)
         value_loss.backward()
@@ -136,8 +130,8 @@ class DDPGAgentGNN:
         self._actor.zero_grad()
 
         policy_loss = -self._critiq([
-            states,
-            self._actor(states)
+            complex_batched,
+            self._actor(complex_batched)
         ])
 
         policy_loss = policy_loss.mean()
@@ -147,18 +141,14 @@ class DDPGAgentGNN:
         # Target update
         soft_update(self._actor_target, self._actor, self.TAU)
         soft_update(self._critiq_target, self._critiq, self.TAU)
-        # import pdb; pdb.set_trace()
+        print("Value Loss: ", value_loss, " policy loss: ", policy_loss)
         return to_numpy(value_loss), to_numpy(policy_loss)
 
     def get_predicted_action(self, complex_, step=None, decay_epsilon=True):
         # Explore AdaptiveParamNoiseSpec, with normalized action space
         # https://github.com/l5shi/Multi-DDPG-with-parameter-noise/blob/master/Multi_DDPG_with_parameter_noise.ipynb
-        protein, ligand = complex_.protein, complex_.ligand
-        protein_batched = batchify([protein])
-        ligand_batched = batchify([ligand])
-        state = (protein_batched, ligand_batched)
         action = to_numpy(
-            self._actor(state)[0]
+            self._actor(complex_.data)[0]
         )
         
         if step is not None:

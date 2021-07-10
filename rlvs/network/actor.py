@@ -19,17 +19,12 @@ class ActorGNN(nn.Module):
         self._learning_rate = learning_rate
         self._tau = tau
         
-        self.ligand_gcn_in = GCNConv(input_shape, 16)
-        self.ligand_gcn_out = GCNConv(16, 50)
+        self.complex_gcn_in = GCNConv(input_shape, 16)
+        self.complex_gcn_hidden_1 = GCNConv(16, 64)
+        self.complex_gcn_out = GCNConv(64, 32)
 
-        self.protein_gcn_in = GCNConv(input_shape, 16)
-        self.protein_gcn_out = GCNConv(16, 50)
-        self.protein_flat = nn.Flatten()
-        
-
-
-        self.action_layer_in = nn.Linear(50 + 50, 60)
-        self.action_layer_out = nn.Linear(60, action_shape)
+        self.action_layer_in = nn.Linear(32, 64)
+        self.action_layer_out = nn.Linear(64, action_shape)
         # self.init_weights(init_w)
     
     def init_weights(self, init_w):
@@ -43,23 +38,16 @@ class ActorGNN(nn.Module):
         self.action_layer_out.weight.data.uniform_(-init_w, init_w)
     
     def forward(self, complex_):
-        protein, ligand = complex_
-        
-        protein_data, protein_edge_index, protein_batch = protein.x, protein.edge_index, protein.batch
-        ligand_data, ligand_edge_index, ligand_batch = ligand.x, ligand.edge_index, ligand.batch
+        complex_data, complex_edge_index, complex_batch = complex_.x, complex_.edge_index, complex_.batch
 
-        protein_data = self.protein_gcn_in(protein_data, protein_edge_index)
-        protein_data = F.relu(protein_data)
-        protein_data = F.dropout(protein_data, training=self.training)
-        protein_data = self.protein_gcn_out(protein_data, protein_edge_index)
-        protein_data = global_mean_pool(protein_data, protein_batch)
-
-        ligand_data = self.ligand_gcn_in(ligand_data, ligand_edge_index)
-        ligand_data = F.relu(ligand_data)
-        ligand_data = F.dropout(ligand_data, training=self.training)
-        ligand_data = self.ligand_gcn_out(ligand_data, ligand_edge_index)
-        ligand_data = global_mean_pool(ligand_data, ligand_batch)
-        molecule_data = torch.cat((protein_data, ligand_data), dim=1)
+        complex_data = self.complex_gcn_in(complex_data, complex_edge_index)
+        complex_data = F.relu(complex_data)
+        complex_data = F.dropout(complex_data, training=self.training)
+        complex_data = self.complex_gcn_hidden_1(complex_data, complex_edge_index)
+        complex_data = F.relu(complex_data)
+        complex_data = F.dropout(complex_data, training=self.training)
+        complex_data = self.complex_gcn_out(complex_data, complex_edge_index)
+        molecule_data = global_mean_pool(complex_data, complex_batch)
         
         action = F.relu(self.action_layer_in(molecule_data))
         action = self.action_layer_out(action)
