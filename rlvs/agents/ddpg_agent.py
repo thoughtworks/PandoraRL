@@ -186,7 +186,7 @@ class DDPGAgentGNN:
 
             while not (terminal or (episode_length == max_episode_length)):
 
-                if i_episode <= self.warm_up_steps:
+                if episode_length <= self.warm_up_steps:
                     predicted_action = self.random_action()
                 else:
                     
@@ -210,7 +210,7 @@ class DDPGAgentGNN:
 
                 self.log(action, np.round(reward, 4), episode_length, i_episode)
 
-                if i_episode > self.warm_up_steps:
+                if episode_length > self.warm_up_steps:
                     critic_loss, actor_loss = self.update_network()
                     critic_losses.append(critic_loss)
                     actor_losses.append(actor_loss)
