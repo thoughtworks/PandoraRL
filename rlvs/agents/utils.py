@@ -1,6 +1,9 @@
 import os
 import torch
+import numpy as np
 from torch.autograd import Variable
+from torch_geometric.data import Data
+
 
 #TODO: Find better place for utils.
 # Source: https://raw.githubusercontent.com/ghliu/pytorch-ddpg/master/util.py
@@ -26,3 +29,17 @@ def to_tensor(ndarray, volatile=False, requires_grad=False, dtype=FLOAT):
     return Variable(
         torch.from_numpy(ndarray), volatile=volatile, requires_grad=requires_grad
     ).type(dtype)
+
+def batchify(molecules):
+    X = torch.vstack([mol.data.x for mol in molecules])
+    data_count = [mol.data.x.shape[0] for mol in molecules]
+    edge_index = torch.hstack([
+        mol.data.edge_index + (0 if index == 0 else data_count[index - 1])
+        for index, mol in enumerate(molecules)
+    ])
+    
+    batch = torch.tensor(np.concatenate([[i] * l for i, l in enumerate(data_count)]))
+
+    return Data(x=X, edge_index=edge_index, batch=batch)
+    
+    

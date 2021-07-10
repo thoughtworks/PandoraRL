@@ -10,7 +10,7 @@ from torch.optim import Adam
 from rlvs.network import ActorGNN, CriticGNN
 
 from .memory import Memory
-from .utils import soft_update, hard_update, to_tensor, to_numpy
+from .utils import soft_update, hard_update, to_tensor, to_numpy, batchify
 from .noise import OrnsteinUhlenbeckActionNoise
 
 criterion = nn.MSELoss()
@@ -93,56 +93,56 @@ class DDPGAgentGNN:
     
     
     def update_network(self):
-        # 
-        # state_batch, action_batch, reward_batch, \
-        # next_state_batch, terminal_batch = self.memory.sample_and_split(self.batch_size)
         
         batch = self.memory.sample(self.BATCH_SIZE)
         batch_len = len(batch)
         
-        # states = np.array([val['state'] for val in batch])
-        # actions = np.array([val['action'] for val in batch])
-        # rewards = np.array([val['reward'] for val in batch])
-        # next_states = np.array([val['next_state'] for val in batch ])
-        # terminals = np.array([val['done'] for val in batch ])
+        proteins = np.array([val['state'].protein for val in batch])
+        ligands = np.array([val['state'].ligand for val in batch])
+        proteins_batched = batchify(proteins)
+        ligands_batched = batchify(ligands)
+        states = (proteins_batched, ligands_batched)
+
+        actions = np.vstack([val['action'] for val in batch])
+        rewards = np.array([val['reward'] for val in batch])
+        
+        next_proteins = np.array([val['next_state'].protein for val in batch ])
+        next_ligands = np.array([val['next_state'].ligand for val in batch ])
+        next_proteins_batched = batchify(next_proteins)
+        next_ligands_batched = batchify(next_ligands)
+        next_states = (proteins_batched, ligands_batched)
+
+        terminals = np.array([val['done'] for val in batch ])
         # Prepare for the target q batch
-        for val in batch:
-            states = val['state']
-            actions = val['action']
-            rewards = np.array([val['reward']])
-            next_states = val['next_state']
-            terminals = np.array([val['done']])
-                    
-            next_q_values = self._critiq_target([
-                next_states,
-                self._actor_target(next_states),
-            ]) 
+        next_q_values = self._critiq_target([
+            next_states,
+            self._actor_target(next_states),
+        ])
 
-            with torch.no_grad():
-                # next_q_values.volatile=False
-                target_q_batch = to_tensor(rewards) + \
-                    self.CRITIQ_LEARNING_RATE*to_tensor(terminals.astype(np.float))*next_q_values
+        with torch.no_grad():
+            target_q_batch = to_tensor(rewards) + \
+                self.CRITIQ_LEARNING_RATE*to_tensor(terminals.astype(np.float))*next_q_values
 
-                # Critic update
-                self._critiq.zero_grad()
-        
-            q_batch = self._critiq([ states, to_tensor(np.array(actions)) ])
-        
-            value_loss = criterion(q_batch, target_q_batch)
-            value_loss.backward()
-            self._critiq_optim.step()
+            # Critic update
+            self._critiq.zero_grad()
 
-            # Actor update
-            self._actor.zero_grad()
+        q_batch = self._critiq([ states, to_tensor(actions) ])
 
-            policy_loss = -self._critiq([
-                states,
-                self._actor(states)
-            ])
+        value_loss = criterion(q_batch, target_q_batch)
+        value_loss.backward()
+        self._critiq_optim.step()
 
-            policy_loss = policy_loss.mean()
-            policy_loss.backward()
-            self._actor_optim.step()
+        # Actor update
+        self._actor.zero_grad()
+
+        policy_loss = -self._critiq([
+            states,
+            self._actor(states)
+        ])
+
+        policy_loss = policy_loss.mean()
+        policy_loss.backward()
+        self._actor_optim.step()
 
         # Target update
         soft_update(self._actor_target, self._actor, self.TAU)
@@ -150,11 +150,15 @@ class DDPGAgentGNN:
         # import pdb; pdb.set_trace()
         return to_numpy(value_loss), to_numpy(policy_loss)
 
-    def get_predicted_action(self, state, step=None, decay_epsilon=True):
+    def get_predicted_action(self, complex_, step=None, decay_epsilon=True):
         # Explore AdaptiveParamNoiseSpec, with normalized action space
         # https://github.com/l5shi/Multi-DDPG-with-parameter-noise/blob/master/Multi_DDPG_with_parameter_noise.ipynb
+        protein, ligand = complex_.protein, complex_.ligand
+        protein_batched = batchify([protein])
+        ligand_batched = batchify([ligand])
+        state = (protein_batched, ligand_batched)
         action = to_numpy(
-            self._actor(state[0])[0]
+            self._actor(state)[0]
         )
         
         if step is not None:
@@ -195,7 +199,8 @@ class DDPGAgentGNN:
                 if i_episode <= self.warm_up_steps:
                     predicted_action = self.random_action()
                 else:
-                    predicted_action = self.get_predicted_action(np.array([m_complex_t]), episode_length)
+                    
+                    predicted_action = self.get_predicted_action(m_complex_t, episode_length)
                 
                 action = self.get_action(predicted_action)
                 

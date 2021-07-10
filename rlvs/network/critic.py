@@ -43,13 +43,10 @@ class CriticGNN(nn.Module):
     
     def forward(self, state):
         complex_, action = state
-        protein, ligand = complex_.protein, complex_.ligand
-
-        protein_data, protein_edge_index = protein.data.x, protein.data.edge_index
-        ligand_data, ligand_edge_index = ligand.data.x, ligand.data.edge_index
+        protein, ligand = complex_
         
-        protein_batch = torch.tensor([0] * protein_data.shape[0])
-        ligand_batch = torch.tensor([0] * ligand_data.shape[0])
+        protein_data, protein_edge_index, protein_batch = protein.x, protein.edge_index, protein.batch
+        ligand_data, ligand_edge_index, ligand_batch = ligand.x, ligand.edge_index, ligand.batch
         
         protein_data = self.protein_gcn_in(protein_data, protein_edge_index)
         protein_data = F.relu(protein_data)
@@ -57,15 +54,14 @@ class CriticGNN(nn.Module):
         protein_data = self.protein_gcn_out(protein_data, protein_edge_index)
         protein_data = global_mean_pool(protein_data, protein_batch)
 
-
         ligand_data = self.ligand_gcn_in(ligand_data, ligand_edge_index)
         ligand_data = F.relu(ligand_data)
         ligand_data = F.dropout(ligand_data, training=self.training)
         ligand_data = self.ligand_gcn_out(ligand_data, ligand_edge_index)
         ligand_data = global_mean_pool(ligand_data, ligand_batch)
         molecule_data = torch.cat((protein_data, ligand_data), dim=1)
-
         finger_print = F.relu(self.policy_layer_in(molecule_data))
+
         policy = self.policy_layer_hidden(torch.cat([finger_print, action], 1))
         policy = self.policy_layer_out(F.relu(policy))
 

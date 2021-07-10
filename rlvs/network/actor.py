@@ -43,12 +43,10 @@ class ActorGNN(nn.Module):
         self.action_layer_out.weight.data.uniform_(-init_w, init_w)
     
     def forward(self, complex_):
-        protein, ligand = complex_.protein, complex_.ligand # validate function
+        protein, ligand = complex_
         
-        protein_data, protein_edge_index = protein.data.x, protein.data.edge_index
-        ligand_data, ligand_edge_index = ligand.data.x, ligand.data.edge_index
-        protein_batch = torch.tensor([0] * protein_data.shape[0])
-        ligand_batch = torch.tensor([0] * ligand_data.shape[0])
+        protein_data, protein_edge_index, protein_batch = protein.x, protein.edge_index, protein.batch
+        ligand_data, ligand_edge_index, ligand_batch = ligand.x, ligand.edge_index, ligand.batch
 
         protein_data = self.protein_gcn_in(protein_data, protein_edge_index)
         protein_data = F.relu(protein_data)
