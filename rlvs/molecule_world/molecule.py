@@ -1,7 +1,9 @@
 import numpy as np
+import torch
 from scipy.spatial.transform import Rotation
 from deepchem.feat.mol_graphs import ConvMol
 from .rmsd import RMSD
+
 
 
 class Molecule(ConvMol):
@@ -35,16 +37,23 @@ class Molecule(ConvMol):
     def data(self):
         return self._data
 
-    #[deprecated]
+    # [deprecated]
     def get_ordered_features(self):
         return self.atom_features[np.argsort(self.correct_order)]
 
     def get_coords(self):
-        return self.atom_features[:, 0:3]
+        return self._data.x[:, 0:3]
 
+    def distance(self, coordinates):
+        func = lambda features: np.linalg.norm(coordinates - features[:, :3], axis=1)
+        return func(self.data.x)
+    
     def set_coords(self, new_coords):
-        assert new_coords.shape==(self.n_atoms, 3)
-        self.atom_features[:, 0:3] = new_coords
+        orig = [x for x in self._data.x[0, :3]]
+        new_coords_tensor = torch.tensor(new_coords, dtype=torch.float)
+        assert new_coords.shape == (self.n_atoms, 3)
+        self._data.x[:, 0:3] = new_coords_tensor
+        print('Coords 0', self._data.x[0, :3], orig)
 
     def randomize(self, box_size):
         x, y, z, r, p, y_ = np.random.uniform(-box_size, box_size, (6,)) * 10

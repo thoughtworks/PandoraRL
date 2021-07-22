@@ -170,12 +170,12 @@ class DDPGAgentGNN:
     
         
     def play(self, num_train_episodes):
-        returns      = []
-        num_steps    = 0
-        max_episode_length = 500
+        returns = []
+        num_steps = 0
+        max_episode_length = 50
         max_reward = 0
         i_episode = 0
-        
+
         while i_episode < num_train_episodes:
             critic_losses = []
             actor_losses = []
@@ -186,23 +186,19 @@ class DDPGAgentGNN:
 
             while not (terminal or (episode_length == max_episode_length)):
 
-                if episode_length <= self.warm_up_steps:
+                if num_steps <= self.warm_up_steps:
                     predicted_action = self.random_action()
                 else:
                     
                     predicted_action = self.get_predicted_action(m_complex_t, episode_length)
                 
                 action = self.get_action(predicted_action)
-                
-                
+
                 m_complex_t_1, state_t_1, reward, terminal = self.env.step(action)
-                
                 d_store = False if episode_length == max_episode_length else terminal
                 reward = 0 if episode_length == max_episode_length else reward
                 
                 self.memorize(m_complex_t, [predicted_action], reward, m_complex_t_1, d_store)
-
-                num_steps += 1                
                 
                 episode_return += reward
                 episode_length += 1
@@ -210,10 +206,12 @@ class DDPGAgentGNN:
 
                 self.log(action, np.round(reward, 4), episode_length, i_episode)
 
-                if episode_length > self.warm_up_steps:
+                if num_steps > self.warm_up_steps:
                     critic_loss, actor_loss = self.update_network()
                     critic_losses.append(critic_loss)
                     actor_losses.append(actor_loss)
+                    
+                num_steps += 1
                 
             returns.append([
                 i_episode + 1,

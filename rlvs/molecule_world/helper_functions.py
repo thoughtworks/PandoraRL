@@ -8,6 +8,12 @@ from .featurizer import Featurizer
 
 ob.obErrorLog.SetOutputLevel(0)
 
+def euclidian(point_1, point_2):
+    vec_1 = np.array(point_1)
+    vec_2 = np.array(point_2)
+    
+    return np.linalg.norm(vec_1 - vec_2)
+
 def smiles_to_OB(smile_string, prepare=False):
     mol_py = pybel.readstring("smi", smile_string)
     

@@ -2,13 +2,13 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import copy
-from rlvs.agents.utils import batchify
+from rlvs.agents.utils import batchify, interacting_edges, molecule_median_distance
 from torch_geometric.data import Data
 import torch
 
 class Complex:
     __GOOD_FIT = 0.006
-    def __init__(self, protein, ligand):
+    def __init__(self, protein, ligand, original_ligand = None):
         '''
         max_dist : maximum distance between any atom and box center
         '''
@@ -17,28 +17,36 @@ class Complex:
         self.protein = protein
 
         self.ligand = ligand
-        self.__ligand = copy.deepcopy(ligand)
+        self.original_ligand = copy.deepcopy(ligand) if original_ligand is None else original_ligand
+        self._interacting_edges = None
+        self.update_interacting_edges()
         
     def score(self):
-        rmsd = self.ligand.rmsd(self.__ligand)
-        if rmsd > 200:
+        rmsd = self.ligand.rmsd(self.original_ligand)
+        if rmsd > 8:
             raise Exception("BAD RMSD")
-        if rmsd > 100:
+        if rmsd > 5:
             return 0
         return np.sinh(rmsd**0.25 + np.arcsinh(1))**-1
 
+    def update_interacting_edges(self):
+        l_d_t = molecule_median_distance(self.protein, self.ligand, 0)
+        distance_threshold = molecule_median_distance(self.protein, self.original_ligand)
+        self._interacting_edges  = interacting_edges(self.protein, self.ligand, distance_threshold)
+        print("Distances calculated", self._interacting_edges.shape, distance_threshold, l_d_t)
+    
     @property
     def rmsd(self):
-        return self.ligand.rmsd(self.__ligand)
+        return self.ligand.rmsd(self.original_ligand)
     
     @property
     def perfect_fit(self):
-        rmsd = self.ligand.rmsd(self.__ligand)
+        rmsd = self.ligand.rmsd(self.original_ligand)
         return rmsd < self.__GOOD_FIT
-
+    
     @property
     def data(self):
         batched = batchify([self.protein, self.ligand])
-        # add edges based on distnace
+        edge_index = torch.hstack([batched.edge_index, self._interacting_edges])
         batch = torch.tensor([0] * batched.x.shape[0])
-        return Data(x=batched.x, edge_index=batched.edge_index, batch=batch)
+        return Data(x=batched.x, edge_index=edge_index, batch=batch)
