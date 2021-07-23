@@ -90,13 +90,12 @@ class DDPGAgentGNN:
             'next_state': next_state,
             'done': done
         })
-    
-    
+
     def update_network(self):
-        
+
         batch = self.memory.sample(self.BATCH_SIZE)
         batch_len = len(batch)
-        
+
         m_complex = np.array([val['state'] for val in batch])
         complex_batched = batchify(m_complex)
 
@@ -106,7 +105,7 @@ class DDPGAgentGNN:
         next_m_complex = np.array([val['next_state'] for val in batch])
         next_complex_batched = batchify(next_m_complex)
 
-        terminals = np.array([val['done'] for val in batch ])
+        terminals = np.array([val['done'] for val in batch])
         # Prepare for the target q batch
         next_q_values = self._critiq_target([
             next_complex_batched,
@@ -153,25 +152,25 @@ class DDPGAgentGNN:
         action = to_numpy(
             self._actor(complex_.data)[0]
         )
-        
+
         if step is not None:
-            action += self.is_training*max(self.eps, 0)*self.exploration_noise.generate(step)
-            
+            action += self.is_training * max(
+                self.eps, 0
+            ) * self.exploration_noise.generate(step)
+
         if decay_epsilon:
             self.eps *= self.eps
 
-            
         return action
 
     def random_action(self):
-        return np.random.uniform(-1.,1.,self.action_shape)
+        return np.random.uniform(-1., 1., self.action_shape)
 
     def get_action(self, action):
         action *= self.action_bounds[1]
         x, y, z, r, p, y_ = np.clip(action, *self.action_bounds)
         return np.array([np.round(x), np.round(y), np.round(z), r, p, y_])
-    
-        
+
     def play(self, num_train_episodes):
         returns = []
         num_steps = 0
@@ -185,16 +184,19 @@ class DDPGAgentGNN:
             m_complex_t, state_t = self.env.reset()
             episode_return, episode_length, terminal = 0, 0, False
 
-            self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs)
+            self.exploration_noise = OrnsteinUhlenbeckActionNoise(
+                size=self.env.action_space.n_outputs
+            )
 
             while not (terminal or (episode_length == max_episode_length)):
 
                 if num_steps <= self.warm_up_steps:
                     predicted_action = self.random_action()
                 else:
-                    
-                    predicted_action = self.get_predicted_action(m_complex_t, episode_length)
-                
+                    predicted_action = self.get_predicted_action(
+                        m_complex_t, episode_length
+                    )
+
                 action = self.get_action(predicted_action)
 
                 m_complex_t_1, state_t_1, reward, terminal = self.env.step(action)
