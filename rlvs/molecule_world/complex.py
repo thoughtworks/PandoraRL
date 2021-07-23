@@ -30,10 +30,10 @@ class Complex:
         return np.sinh(rmsd**0.25 + np.arcsinh(1))**-1
 
     def update_interacting_edges(self):
-        l_d_t = molecule_median_distance(self.protein, self.ligand, 0)
-        distance_threshold = molecule_median_distance(self.protein, self.original_ligand)
-        self._interacting_edges  = interacting_edges(self.protein, self.ligand, distance_threshold)
-        print("Distances calculated", self._interacting_edges.shape, distance_threshold, l_d_t)
+        # l_d_t = molecule_median_distance(self.protein, self.ligand, 0)
+        # distance_threshold = molecule_median_distance(self.protein, self.original_ligand)
+        self._interacting_edges  = interacting_edges(self.protein, self.ligand, 50)
+        print("Distances calculated", self._interacting_edges.shape, self.ligand.data.x.shape, self.protein.data.x.shapeg)
     
     @property
     def rmsd(self):

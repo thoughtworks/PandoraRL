@@ -114,13 +114,16 @@ class DDPGAgentGNN:
         ])
 
         with torch.no_grad():
-            target_q_batch = to_tensor(rewards) + \
-                self.CRITIQ_LEARNING_RATE*to_tensor(terminals.astype(np.float))*next_q_values
+            target_q_batch = to_tensor(
+                rewards.reshape((self.BATCH_SIZE, 1))
+            ) + self.CRITIQ_LEARNING_RATE * to_tensor(
+                    terminals.astype(np.float).reshape((self.BATCH_SIZE, 1))
+                ) * next_q_values
 
             # Critic update
             self._critiq.zero_grad()
 
-        q_batch = self._critiq([ complex_batched, to_tensor(actions) ])
+        q_batch = self._critiq([complex_batched, to_tensor(actions)])
 
         value_loss = criterion(q_batch, target_q_batch)
         value_loss.backward()
