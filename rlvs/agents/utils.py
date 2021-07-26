@@ -3,9 +3,10 @@ import torch
 import numpy as np
 from torch.autograd import Variable
 from torch_geometric.data import Data
+from time import time
 
 
-#TODO: Find better place for utils.
+# TODO: Find better place for utils.
 # Source: https://raw.githubusercontent.com/ghliu/pytorch-ddpg/master/util.py
 
 USE_CUDA = torch.cuda.is_available()
@@ -70,3 +71,20 @@ def molecule_median_distance(protein, ligand, quantile=0.5):
     ])
 
     return np.quantile(np.median(distances, axis=1), quantile)
+  
+
+def timeit(function_name):
+    def timer_func(func):
+        # This function shows the execution time of 
+        # the function object passed
+        def wrap_func(*args, **kwargs):
+            t1 = time()
+            result = func(*args, **kwargs)
+            t2 = time()
+            print(f'Function {function_name} executed in {(t2-t1):.4f}s')
+            return result
+        return wrap_func
+
+    return timer_func
+  
+  

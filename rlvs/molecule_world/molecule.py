@@ -49,11 +49,9 @@ class Molecule(ConvMol):
         return func(self.data.x)
     
     def set_coords(self, new_coords):
-        orig = [x for x in self._data.x[0, :3]]
         new_coords_tensor = torch.tensor(new_coords, dtype=torch.float)
         assert new_coords.shape == (self.n_atoms, 3)
         self._data.x[:, 0:3] = new_coords_tensor
-        print('Coords 0', self._data.x[0, :3], orig)
 
     def randomize(self, box_size):
         x, y, z, r, p, y_ = np.random.uniform(-box_size, box_size, (6,)) * 10

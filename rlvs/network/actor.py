@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
+from ..agents.utils import timeit
 
 from .graph_cnn import GraphConv
 from torch_geometric.nn import GCNConv, Sequential, global_mean_pool
@@ -36,7 +37,8 @@ class ActorGNN(nn.Module):
 
         self.action_layer_in = fanin_init(self.action_layer_in.weight.data.size())
         self.action_layer_out.weight.data.uniform_(-init_w, init_w)
-    
+
+    @timeit("actor_forward")
     def forward(self, complex_):
         complex_data, complex_edge_index, complex_batch = complex_.x, complex_.edge_index, complex_.batch
 

@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
+from ..agents.utils import timeit
 
 from .graph_cnn import GraphConv
 from torch_geometric.nn import GCNConv, global_mean_pool
@@ -38,7 +39,8 @@ class CriticGNN(nn.Module):
         self.policy_layer_in = fanin_init(self.policy_layer_in.weight.data.size())
         self.policy_layer_hidden = fanin_init(self.policy_layer_hidden.weight.data.size())
         self.policy_layer_out.weight.data.uniform_(-init_w, init_w)
-    
+
+    @timeit("critic forward")
     def forward(self, state):
         complex_, action = state
         complex_data, complex_edge_index, complex_batch = complex_.x, complex_.edge_index, complex_.batch

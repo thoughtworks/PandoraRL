@@ -94,18 +94,16 @@ class DDPGAgentGNN:
     def update_network(self):
 
         batch = self.memory.sample(self.BATCH_SIZE)
-        batch_len = len(batch)
+        
+        complex_batched = batchify(batch.states)
 
-        m_complex = np.array([val['state'] for val in batch])
-        complex_batched = batchify(m_complex)
+        actions = batch.actions
+        rewards = batch.rewards
 
-        actions = np.vstack([val['action'] for val in batch])
-        rewards = np.array([val['reward'] for val in batch])
+        next_complex_batched = batchify(batch.next_sates)
 
-        next_m_complex = np.array([val['next_state'] for val in batch])
-        next_complex_batched = batchify(next_m_complex)
+        terminals = batch.terminals
 
-        terminals = np.array([val['done'] for val in batch])
         # Prepare for the target q batch
         next_q_values = self._critiq_target([
             next_complex_batched,
@@ -114,14 +112,13 @@ class DDPGAgentGNN:
 
         with torch.no_grad():
             target_q_batch = to_tensor(
-                rewards.reshape((batch_len, 1))
+                rewards
             ) + self.CRITIQ_LEARNING_RATE * to_tensor(
-                    terminals.astype(np.float).reshape((batch_len, 1))
-                ) * next_q_values
+                terminals.astype(np.float)
+            ) * next_q_values
 
-            # Critic update
             self._critiq.zero_grad()
-
+            
         q_batch = self._critiq([complex_batched, to_tensor(actions)])
 
         value_loss = criterion(q_batch, target_q_batch)
@@ -131,6 +128,7 @@ class DDPGAgentGNN:
         # Actor update
         self._actor.zero_grad()
 
+        # critic policy update
         policy_loss = -self._critiq([
             complex_batched,
             self._actor(complex_batched)
@@ -246,13 +244,13 @@ class DDPGAgentGNN:
 
     def log(self, action, reward, episode_length, i_episode):
         print(
-            "Action:", action,
+            "Action:", np.round(np.array(action), 4),
             "Reward:", np.round(reward, 4),
             "E_i:", episode_length,
             "RMSD: ", self.env._complex.rmsd,
-            "E:",i_episode
+            "E:", i_episode
         )
-        logging.info(f"Action: {action}, Reward: {np.round(reward, 4)}, E_i: {episode_length}, E: {i_episode}, RMSD: {np.round(self.env._complex.rmsd, 4)}")
+        logging.info(f"Action: {np.round(np.array(action), 4)}, Reward: {np.round(reward, 4)}, E_i: {episode_length}, E: {i_episode}, RMSD: {np.round(self.env._complex.rmsd, 4)}")
 
     def save_weights(self, path):
         # self._actor.save(path)
