@@ -71,11 +71,11 @@ def molecule_median_distance(protein, ligand, quantile=0.5):
     ])
 
     return np.quantile(np.median(distances, axis=1), quantile)
-  
+
 
 def timeit(function_name):
     def timer_func(func):
-        # This function shows the execution time of 
+        # This function shows the execution time of
         # the function object passed
         def wrap_func(*args, **kwargs):
             t1 = time()
@@ -86,5 +86,3 @@ def timeit(function_name):
         return wrap_func
 
     return timer_func
-  
-  

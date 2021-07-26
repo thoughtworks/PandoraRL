@@ -8,6 +8,7 @@ import torch.nn as nn
 from torch.optim import Adam
 
 from rlvs.network import ActorGNN, CriticGNN
+from rlvs.constants import AgentConstants
 
 from .memory import Memory
 from .utils import soft_update, hard_update, to_tensor, to_numpy, batchify
@@ -19,15 +20,15 @@ import logging
             
 
 class DDPGAgentGNN:
-    ACTOR_LEARNING_RATE  = 0.00005
-    CRITIQ_LEARNING_RATE = 0.0001
-    TAU                  = 0.001
-    
-    GAMMA                = 0.99
-
-    BATCH_SIZE           = 32
-    BUFFER_SIZE          = 200000
-    EXPLORATION_EPISODES = 10000
+    ACTOR_LEARNING_RATE = AgentConstants.ACTOR_LEARNING_RATE 
+    CRITIQ_LEARNING_RATE = AgentConstants.CRITIQ_LEARNING_RATE
+    TAU  = AgentConstants.TAU                 
+                                               
+    GAMMA = AgentConstants.GAMMA               
+                                               
+    BATCH_SIZE = AgentConstants.BATCH_SIZE          
+    BUFFER_SIZE = AgentConstants.BUFFER_SIZE         
+    EXPLORATION_EPISODES = AgentConstants.EXPLORATION_EPISODES
 
 
     def __init__(self, env, log_filename, weights_path, warmup=32, prate=0.00005, is_training=1):
@@ -76,8 +77,8 @@ class DDPGAgentGNN:
         logging.basicConfig(
             filename=log_filename,
             filemode='w',
-            format='%(message)s', 
-            datefmt='%I:%M:%S %p', 
+            format='%(message)s',
+            datefmt='%I:%M:%S %p',
             level=logging.DEBUG
         )
         self.weights_path = weights_path
@@ -94,14 +95,12 @@ class DDPGAgentGNN:
     def update_network(self):
 
         batch = self.memory.sample(self.BATCH_SIZE)
-        
+
         complex_batched = batchify(batch.states)
+        next_complex_batched = batchify(batch.next_sates)
 
         actions = batch.actions
         rewards = batch.rewards
-
-        next_complex_batched = batchify(batch.next_sates)
-
         terminals = batch.terminals
 
         # Prepare for the target q batch

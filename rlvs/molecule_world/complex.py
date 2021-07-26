@@ -6,11 +6,9 @@ from rlvs.agents.utils import batchify, interacting_edges, \
     molecule_median_distance, timeit
 from torch_geometric.data import Data
 import torch
+from rlvs.constants import ComplexConstants
 
 class Complex:
-    __GOOD_FIT = 0.006
-    DIST_THRESHOLD = 75
-
     def __init__(self, protein, ligand, original_ligand=None):
         '''
         max_dist : maximum distance between any atom and box center
@@ -35,7 +33,7 @@ class Complex:
 
     def update_interacting_edges(self):
         self._interacting_edges = interacting_edges(
-            self.protein, self.ligand, self.DIST_THRESHOLD
+            self.protein, self.ligand, ComplexConstants.DISTANCE_THRESHOLD
         )
 
         print(
@@ -51,7 +49,7 @@ class Complex:
     @property
     def perfect_fit(self):
         rmsd = self.ligand.rmsd(self.original_ligand)
-        return rmsd < self.__GOOD_FIT
+        return rmsd < ComplexConstants.GOOD_FIT
 
     @property
     def data(self):
