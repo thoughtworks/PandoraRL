@@ -89,9 +89,9 @@ class GraphEnv:
             print(e)
             reward = -1
             terminal = True
-        print(delta_change)
+            
         self._complex = Complex(self._complex.protein, self._complex.ligand, self._complex.original_ligand)
-        state = self.get_state()
+        state = None #self.get_state()
         return self._complex, state, reward, terminal
 
     def get_state(self, complexes=None):
@@ -177,10 +177,9 @@ class TestGraphEnv(GraphEnv):
         terminal = False
 
         delta_change = self._complex.ligand.update_pose(*action)
-        print(f"Delta change: {delta_change}\n")
         terminal = (delta_change < 0.01).all()
             
-        state = self.get_state()
+        state = None #self.get_state()
         return self._complex, state, terminal
 
     def save_complex_files(self, path, filetype):

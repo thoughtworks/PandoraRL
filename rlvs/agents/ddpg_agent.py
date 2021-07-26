@@ -197,7 +197,7 @@ class DDPGAgentGNN:
 
                 action = self.get_action(predicted_action)
 
-                m_complex_t_1, state_t_1, reward, terminal = self.env.step(action)
+                m_complex_t_1, _, reward, terminal = self.env.step(action)
                 d_store = False if episode_length == max_episode_length else terminal
                 reward = 0 if episode_length == max_episode_length else reward
                 
@@ -205,7 +205,7 @@ class DDPGAgentGNN:
                 
                 episode_return += reward
                 episode_length += 1
-                state_t = state_t_1
+                m_complex_t = m_complex_t_1
 
                 self.log(action, np.round(reward, 4), episode_length, i_episode)
 
