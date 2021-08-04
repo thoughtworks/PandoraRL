@@ -2,7 +2,7 @@ from rlvs.constants import ComplexConstants  # , AgentConstants
 from rlvs.molecule_world.env import GraphEnv
 from rlvs.agents.ddpg_agent import DDPGAgentGNN
 
-ComplexConstants.DISTANCE_THRESHOLD = 75
+ComplexConstants.DISTANCE_THRESHOLD = 50
 
 env = GraphEnv()
 print(env.input_shape)
