@@ -36,9 +36,9 @@ class PafnucyData(Data):
         self._complexes = [
             (
                 OB_to_mol(
-                    read_to_OB(filename=f'{self.DATA_PATH}/{complex}/{complex}_pocket.mol2', filetype="mol2"),
+                    read_to_OB(filename=f'{self.DATA_PATH}/{complex}/{complex}_pocket.pdb', filetype="pdb"),
                     mol_type=-1,
-                    path=f'{self.DATA_PATH}/{complex}/{complex}_pocket.mol2'
+                    path=f'{self.DATA_PATH}/{complex}/{complex}_pocket.pdb'
                 ), OB_to_mol(
                     read_to_OB(filename=f'{self.DATA_PATH}/{complex}/{complex}_ligand.mol2', filetype="mol2"),
                     mol_type=1,
@@ -53,13 +53,13 @@ class PDBQTData(Data):
     def __init__(self):
         super(PDBQTData, self).__init__()
         self.complexes_path = [
-            ('6Y2F_MOD.pdbqt', 'a-ketoamide-13b.pdbqt')
+            ('6Y2F_MOD.pdb', 'a-ketoamide-13b.pdbqt')
         ]
 
         self._complexes = [
             (
                 OB_to_mol(
-                    read_to_OB(filename=f'{self.DATA_PATH}/{complex}', filetype="pdbqt"),
+                    read_to_OB(filename=f'{self.DATA_PATH}/{complex}', filetype="pdb"),
                     mol_type=-1,
                     path=f'{self.DATA_PATH}/{complex}'                    
                 ), OB_to_mol(
