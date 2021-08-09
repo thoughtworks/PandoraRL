@@ -5,6 +5,7 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from .protein import Protein
 from .ligand import Ligand
+from .complex import Complex
 
 ROOT_PATH = f'{path.dirname(path.abspath(__file__))}/../../data'
 
@@ -16,11 +17,10 @@ class Data:
         self.complexes_path = os.listdir(self.DATA_PATH)
 
     def get_molecules(self, complex, crop=True):
-        protein, ligand = complex
         if crop:
-            protein.crop(ligand.get_centroid(), 10, 10, 10)
+            complex.crop(10, 10, 10)
             
-        return protein, ligand
+        return complex
 
     @property
     def random(self):
@@ -38,13 +38,19 @@ class PafnucyData(Data):
             self.complexes_path.remove('affinities.csv')
 
         self._complexes = [
-            (
+            Complex(
                 Protein(
                     read_to_OB(
                         filename=f'{self.DATA_PATH}/{complex}/{complex}_pocket.pdb',
                         filetype="pdb"
                     ),
                     path=f'{self.DATA_PATH}/{complex}/{complex}_pocket.pdb'
+                ), Ligand(
+                    read_to_OB(
+                        filename=f'{self.DATA_PATH}/{complex}/{complex}_ligand.mol2',
+                        filetype="mol2"
+                    ),
+                    path=f'{self.DATA_PATH}/{complex}/{complex}_ligand.mol2'
                 ), Ligand(
                     read_to_OB(
                         filename=f'{self.DATA_PATH}/{complex}/{complex}_ligand.mol2',
@@ -66,13 +72,19 @@ class PDBQTData(Data):
         ]
 
         self._complexes = [
-            (
+            Complex(
                 Protein(
                     read_to_OB(
                         filename=f'{self.DATA_PATH}/{complex}',
                         filetype="pdb"
                     ),
                     path=f'{self.DATA_PATH}/{complex}'
+                ), Ligand(
+                    read_to_OB(
+                        filename=f'{self.DATA_PATH}/{ligand}',
+                        filetype="pdbqt"
+                    ),
+                    path=f'{self.DATA_PATH}/{ligand}'
                 ), Ligand(
                     read_to_OB(
                         filename=f'{self.DATA_PATH}/{ligand}',
@@ -94,13 +106,19 @@ class PDBQTData_2(Data):
         
 
         self._complexes = [
-            (
+            Complex(
                 Protein(
                     read_to_OB(
                         filename=f'{self.DATA_PATH}/{complex}/{complex}_protein.pdb',
                         filetype="pdb"
                     ),
                     path=f'{self.DATA_PATH}/{complex}/{complex}_protein.pdb'
+                ), Ligand(
+                    read_to_OB(
+                        filename=f'{self.DATA_PATH}/{complex}/{complex}_ligand.mol2',
+                        filetype="mol2"
+                    ),
+                    path=f'{self.DATA_PATH}/{complex}/{complex}_ligand.mol2'
                 ), Ligand(
                     read_to_OB(
                         filename=f'{self.DATA_PATH}/{complex}/{complex}_ligand.mol2',
@@ -121,7 +139,7 @@ class DudeProteaseData(Data):
             self.complexes_path.remove('.DS_Store')
 
         self._complexes = [
-            (
+            Complex(
                 Protein(
                     read_to_OB(
                         filename=f'{self.DATA_PATH}/{complex}/receptor.pdb',
@@ -134,7 +152,14 @@ class DudeProteaseData(Data):
                         filetype="mol2"
                     ),
                     path=f'{self.DATA_PATH}/{complex}/crystal_ligand.mol2'
+                ), Ligand(
+                    read_to_OB(
+                        filename=f'{self.DATA_PATH}/{complex}/crystal_ligand.mol2',
+                        filetype="mol2"
+                    ),
+                    path=f'{self.DATA_PATH}/{complex}/crystal_ligand.mol2'
                 )
+                
             ) for complex in self.complexes_path
         ]
 
@@ -147,7 +172,7 @@ class DataStore:
     def init(cls, crop=True):
         cls.DATA_STORES = [PDBQTData()]
         cls.load(crop)
-        cls.scaler = cls.normalize()
+        # cls.scaler = cls.normalize()
 
     @classmethod
     def load(cls, crop=True):
@@ -164,7 +189,8 @@ class DataStore:
     @classmethod
     def normalize(cls):
         X = []
-        for protein, ligand in cls.DATA:
+        for complex in cls.DATA:
+            protein, ligand = complex.protein, complex.ligand
             X.extend(list(protein.get_atom_features()))
             X.extend(list(ligand.get_atom_features()))
         X = np.asarray(X)

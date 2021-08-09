@@ -126,14 +126,13 @@ class Featurizer():
                 molecule_type (1 for ligand, -1 for protein)
             ]
         '''
-        features = atom.coord
+        features = []
+        features.extend(atom.coord)
 
         # one hot encode atomic number
         encoding = np.zeros(self.num_classes)
-        # if atom.ob_atom.GetAtomicNum() == 0:
-        #     print("Zeeerrro", atom.name, atom.idx)
         encoding[self.atom_codes[atom.atomic_num]] = 1
-        features = np.append(features, encoding)
+        features.extend(encoding)
 
         # hybridization, heavy valence, hetero valence, partial charge
         named_features = [
@@ -141,9 +140,9 @@ class Featurizer():
             atom.hetro_degree, atom.partial_charge
         ]
 
-        features = np.append(features, named_features)
-        features = np.append(features, atom.molecule_type)
-        features = np.append(features, self.smarts_patterns[atom.idx])
+        features.extend(named_features)
+        features.extend([atom.molecule_type])
+        features.extend(self.smarts_patterns[atom.idx])
             
         return features
 

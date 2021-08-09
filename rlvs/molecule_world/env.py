@@ -56,10 +56,8 @@ class GraphEnv:
     def __init__(self, complex=None):
         if complex is None:
             DataStore.init(crop=False)
-            self.protein, self.ligand = DataStore.next(False)
-            self._complex = Complex(self.protein, self.ligand)
+            self._complex = DataStore.next(False)            
             self._complex.ligand.randomize(10)
-            self.scaler = DataStore.scaler
         else:
             self._complex = complex
         
@@ -70,13 +68,16 @@ class GraphEnv:
         self.action_space = ActionSpace(action_bounds)
 
     def reset(self):
-        self.protein, self.ligand = DataStore.next(False)
-        self._complex = Complex(self.protein, self.ligand)
+        self._complex = DataStore.next(False)
         self._complex.ligand.randomize(10)
-        print("Complex: ", self.protein.path, "Randomized RMSD:", np.round(self._complex.rmsd, 4))
+        print(
+            "Complex: ", self._complex.protein.path,
+            "Randomized RMSD:", np.round(self._complex.rmsd, 4)
+        )
+        
         self.input_shape = self._complex.protein.get_atom_features().shape[1]
 
-        state = self.get_state()
+        state = None
         return self._complex, state
 
     def step(self, action):
@@ -91,50 +92,8 @@ class GraphEnv:
             terminal = True
             
         self._complex = Complex(self._complex.protein, self._complex.ligand, self._complex.original_ligand)
-        state = None #self.get_state()
+        state = None
         return self._complex, state, reward, terminal
-
-    def get_state(self, complexes=None):
-        if complexes is None:
-            proteins = [self._complex.protein]
-            ligands = [self._complex.ligand]
-        else:
-            proteins = [m_complex.protein for m_complex in complexes]
-            ligands = [m_complex.ligand for m_complex in complexes]
-
-            
-        protein_batch  = self.get_graphcnn_input(self.mols_to_inputs(proteins))
-        ligand_batch  = self.get_graphcnn_input(self.mols_to_inputs(ligands))
-
-        state = [protein_batch, ligand_batch] 
-
-        return state
-
-    def mols_to_inputs(self, mols):
-        multiConvMol = ConvMol.agglomerate_mols(mols)
-        n_samples = np.array([len(mols)])
-        all_atom_features = multiConvMol.get_atom_features()
-        # scaling of first 3 features, i.e., coordinates
-        all_atom_features = self.scaler.transform(all_atom_features)
-        inputs = [all_atom_features, multiConvMol.deg_slice,
-                    np.array(multiConvMol.membership), n_samples]
-        for i in range(1, len(multiConvMol.get_deg_adjacency_lists())):
-            inputs.append(multiConvMol.get_deg_adjacency_lists()[i])
-        return inputs
-
-    @staticmethod
-    def get_graphcnn_input(inputs):
-        atom_features = np.expand_dims(inputs[0], axis=0)
-        degree_slice = np.expand_dims(tf.cast(inputs[1], dtype=tf.int32), axis=0)
-        membership = np.expand_dims(tf.cast(inputs[2], dtype=tf.int32), axis=0)
-        n_samples = np.expand_dims(tf.cast(inputs[3], dtype=tf.int32), axis=0)
-        deg_adjs = [np.expand_dims(tf.cast(deg_adj, dtype=tf.int32), axis=0) for deg_adj in inputs[4:]]
-
-        in_layer = atom_features
-
-        gc_in = [in_layer, degree_slice, membership, n_samples] + deg_adjs
-        
-        return gc_in
 
 class TestGraphEnv(GraphEnv):
     def __init__(self, scaler, protein_path, ligand_path, protein_filetype, ligand_filetype):

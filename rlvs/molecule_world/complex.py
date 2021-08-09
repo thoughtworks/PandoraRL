@@ -9,20 +9,22 @@ import torch
 from rlvs.constants import ComplexConstants
 
 class Complex:
-    def __init__(self, protein, ligand, original_ligand=None):
+    def __init__(self, protein, ligand, original_ligand):
         '''
         max_dist : maximum distance between any atom and box center
         '''
-        self.num_features = ligand.n_feat
+        # self.num_features = ligand.n_feat
 
         self.protein = protein
 
         self.ligand = ligand
-        self.original_ligand = copy.deepcopy(ligand) if original_ligand is \
-            None else original_ligand
-        self._interacting_edges = None
-        self.update_interacting_edges()
+        self.original_ligand = original_ligand 
+        self._interacting_edges = torch.tensor([[],[]], dtype=torch.long)
+        # self.update_interacting_edges()
 
+    def crop(self, x, y, z):
+        self.protein.crop(self.ligand.get_centroid(), x, y, z)
+        
     def score(self):
         rmsd = self.ligand.rmsd(self.original_ligand)
         if rmsd > 8:

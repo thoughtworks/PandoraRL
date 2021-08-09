@@ -1,4 +1,6 @@
 import numpy as np
+import torch
+
 from openbabel import openbabel as ob
 from .molecule import MoleculeType
 from .featurizer import Featurizer
@@ -33,7 +35,7 @@ class Atoms:
                     molecule_type,
                     self.featurizer.atom_codes[atom.GetAtomicNum()],
                     atom.GetAtomicNum(),
-                    np.array([atom.GetX(), atom.GetY(), atom.GetZ()]),
+                    [atom.GetX(), atom.GetY(), atom.GetZ()],
                     atom.GetHyb(),
                     atom.GetHvyDegree(),
                     atom.GetHeteroDegree(),
@@ -48,20 +50,29 @@ class Atoms:
         ]
 
     @property
-    def edges(self):
-        return np.vstack([bond.edge for bond in self.bonds]).T
+    def edge_index(self):
+        return torch.vstack([bond.edge for bond in self.bonds]).t().contiguous()
 
     @property
     def features(self):
-        return np.array(
-            [atom.features(self.featurizer) for atom in self._atoms]
-        )
+        return torch.tensor([
+            atom.features(self.featurizer) for atom in self._atoms
+        ], dtype=torch.float)
 
     @property
     def x(self):
-        return np.array(
-            [atom.features(self.featurizer) for atom in self._atoms]
-        )
+        return torch.tensor([
+            atom.features(self.featurizer) for atom in self._atoms
+        ], dtype=torch.float)
+
+    @property
+    def coords(self):
+        return torch.tensor([atom.coord for atom in self._atoms])
+
+    @coords.setter
+    def coords(self, coords):
+        for idx, coord in enumerate(coords):
+            self._atoms[idx].coord = coord
 
     def __len__(self):
         return len(self._atoms)
@@ -96,11 +107,11 @@ class Atom:
 
     @property
     def is_heavy_metal(self):
-        return self.name == 'metal' and self.ob_atomic.GetAtomicNum() > 20
+        return self.name == 'metal' and self.atomic_num > 20
 
     @property
     def is_heavy_atom(self):
-        return self.ob_atomic.GetAtomicNum() > 5
+        return self.atomic_num > 5
 
     def features(self, featurizer):
         return featurizer.featurize(self)
@@ -113,7 +124,7 @@ class Bond:
 
     @property
     def edge(self):
-        return [[self.atom_a, self.atom_b], [self.atom_b, self.atom_a]]
+        return torch.tensor([[self.atom_a, self.atom_b], [self.atom_b, self.atom_a]], dtype=torch.long)
 
 # Element type
 #  name

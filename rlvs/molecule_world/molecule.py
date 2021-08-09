@@ -6,7 +6,6 @@ from openbabel import pybel
 from openbabel import openbabel as ob
 
 from scipy.spatial.transform import Rotation
-# from deepchem.feat.mol_graphs import ConvMol
 from .rmsd import RMSD
 
 
@@ -37,23 +36,26 @@ class Molecule:
         return self.atoms
 
     def get_atom_features(self):
-        return self.atoms.features    
+        return np.array(self.atoms.features)
+
+    @property
+    def n_atoms(self):
+        return len(self.atoms)
 
     # [deprecated]
     def get_ordered_features(self):
         return self.atom_features[np.argsort(self.correct_order)]
 
     def get_coords(self):
-        return self.atoms.x[:, 0:3]
+        return self.atoms.coords
 
     def distance(self, coordinates):
         func = lambda features: np.linalg.norm(coordinates - features[:, :3], axis=1)
         return func(self.data.x)
     
     def set_coords(self, new_coords):
-        new_coords_tensor = torch.tensor(new_coords, dtype=torch.float)
         assert new_coords.shape == (self.n_atoms, 3)
-        self.atoms.x[:, 0:3] = new_coords_tensor
+        self.atoms.coords = new_coords
 
     def randomize(self, box_size):
         x, y, z, r, p, y_ = np.random.uniform(-box_size, box_size, (6,)) * 10
@@ -81,7 +83,7 @@ class Molecule:
         
     def translate(self,x,y,z):
         ''' translate along axes '''
-        self.set_coords((self.T(x,y,z)@self.homogeneous()).T[:, 0:3])
+        self.set_coords((Molecule.T(x,y,z)@self.homogeneous()).T[:, 0:3])
         
     def rotate(self, axis_seq, angles, degrees):
         '''
@@ -93,7 +95,7 @@ class Molecule:
         R = (Rotation.from_euler(seq=axis_seq, angles=angles, degrees=degrees)).as_matrix()
         R = np.concatenate((np.concatenate((R, np.array([0,0,0]).reshape(3, -1)), axis = 1), np.array([0,0,0,1]).reshape(-1, 4)), axis = 0)
 
-        self.set_coords((self.T(x,y,z)@(R@(self.T(-x,-y,-z)@self.homogeneous()))).T[:,0:3])
+        self.set_coords((Molecule.T(x,y,z)@(R@(Molecule.T(-x,-y,-z)@self.homogeneous()))).T[:,0:3])
 
         assert(self.get_coords().shape == (self.n_atoms, 3))
         
