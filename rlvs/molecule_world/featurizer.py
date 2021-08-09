@@ -11,7 +11,7 @@ ob.obErrorLog.SetOutputLevel(0)
 
 
 class Featurizer():
-    def __init__(self):
+    def __init__(self, obmol=None):
 
         # dict of atom codes for one hot encoding
         self.atom_codes = {}
@@ -56,6 +56,11 @@ class Featurizer():
         for smarts in self.SMARTS:
             self.__PATTERNS.append(pybel.Smarts(smarts))
 
+        self.smarts_patterns = None
+        if obmol is not None:
+            mol_py = pybel.Molecule(obmol)
+            self.smarts_patterns = self.find_smarts(mol_py)
+
     def get_atom_features(self, atom, molecule_type):
         '''
         INPUT
@@ -99,6 +104,49 @@ class Featurizer():
         features.append(molecule_type)
 
         return features
+
+    def featurize(self, atom):
+        '''
+        INPUT
+        atom: OB Atom object
+        molecule_type: 1 for ligand, -1 for protein
+
+        OUTPUT
+
+        features:
+            [
+                x,
+                y,
+                z,
+                encoding (10 bit one hot encoding),
+                hyb (1,2 or 3),
+                heavy_valence (integer),
+                hetero_valence (integer),
+                partial_charge (float),
+                molecule_type (1 for ligand, -1 for protein)
+            ]
+        '''
+        features = atom.coord
+
+        # one hot encode atomic number
+        encoding = np.zeros(self.num_classes)
+        # if atom.ob_atom.GetAtomicNum() == 0:
+        #     print("Zeeerrro", atom.name, atom.idx)
+        encoding[self.atom_codes[atom.atomic_num]] = 1
+        features = np.append(features, encoding)
+
+        # hybridization, heavy valence, hetero valence, partial charge
+        named_features = [
+            atom.hyb, atom.hvy_degree,
+            atom.hetro_degree, atom.partial_charge
+        ]
+
+        features = np.append(features, named_features)
+        features = np.append(features, atom.molecule_type)
+        features = np.append(features, self.smarts_patterns[atom.idx])
+            
+        return features
+
 
     def get_mol_features(self, obmol, molecule_type, bond_verbose=False):
         idx_node_tuples = []

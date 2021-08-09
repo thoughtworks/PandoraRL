@@ -1,12 +1,21 @@
 import numpy as np
+from enum import IntEnum
 import torch
+
+from openbabel import pybel
+from openbabel import openbabel as ob
+
 from scipy.spatial.transform import Rotation
-from deepchem.feat.mol_graphs import ConvMol
+# from deepchem.feat.mol_graphs import ConvMol
 from .rmsd import RMSD
 
 
+class MoleculeType(IntEnum):
+    PROTEIN = -1
+    LIGAND = 1
 
-class Molecule(ConvMol):
+
+class Molecule:
     '''
     Molecule represents collection of Atoms in 3D space
     - num_atoms: number of atoms in molecule
@@ -15,34 +24,27 @@ class Molecule(ConvMol):
     - canon_adj_list: list of neighbors of each node (len = num_atoms)
     - origin: origin (x,y,z) w.r.t which all other coords are defined
     '''
+    T = lambda x,y,z : np.array([[1,0,0,x], [0,1,0,y], [0,0,1,z], [0,0,0,1]]).astype(float)
     
-    def __init__(self, atom_features, canon_adj_list, max_deg=10, min_deg=0, origin=[0,0,0], path=None, data=None):
-        atom_ids = np.arange(atom_features.shape[0]).reshape(-1, 1)
-        atom_features = np.concatenate((atom_features, atom_ids), axis=1) #last feature is ID needed for resorting
-        super(Molecule, self).__init__(atom_features=atom_features, adj_list=canon_adj_list, max_deg=max_deg, min_deg=min_deg)
-
-        ## now atom features are rearranged by degree
-        self.correct_order = self.atom_features[:, -1]
-        self.atom_features = self.atom_features[:, 0:-1]
-        self.adgacency = canon_adj_list
-        self._data = data
-        ## removed ids from atom features
-
+    def __init__(self, path=None):
         self.path = path
-        self.origin = np.array(origin, copy=True).astype(float).reshape(1,3) #initially coords are wrt (0,0,0)
-        self.T = lambda x,y,z : np.array([[1,0,0,x], [0,1,0,y], [0,0,1,z], [0,0,0,1]]).astype(float)
         self.rmsd = RMSD(self)
+        self.pdb_structure = None
+        self.atoms = None
 
     @property
     def data(self):
-        return self._data
+        return self.atoms
+
+    def get_atom_features(self):
+        return self.atoms.features    
 
     # [deprecated]
     def get_ordered_features(self):
         return self.atom_features[np.argsort(self.correct_order)]
 
     def get_coords(self):
-        return self._data.x[:, 0:3]
+        return self.atoms.x[:, 0:3]
 
     def distance(self, coordinates):
         func = lambda features: np.linalg.norm(coordinates - features[:, :3], axis=1)
@@ -51,7 +53,7 @@ class Molecule(ConvMol):
     def set_coords(self, new_coords):
         new_coords_tensor = torch.tensor(new_coords, dtype=torch.float)
         assert new_coords.shape == (self.n_atoms, 3)
-        self._data.x[:, 0:3] = new_coords_tensor
+        self.atoms.x[:, 0:3] = new_coords_tensor
 
     def randomize(self, box_size):
         x, y, z, r, p, y_ = np.random.uniform(-box_size, box_size, (6,)) * 10

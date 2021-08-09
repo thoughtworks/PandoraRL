@@ -39,8 +39,10 @@ def read_to_OB(filename, filetype, prepare=False):
 
 def OB_to_mol(obmol, mol_type, path=None):
     f = Featurizer()
+    # remove featurizer. Embed into molecule
+    # molecule accepts obmol, and all the required features are given by the molecule instead of featurizer
     nodes, canon_adj_list, data = f.get_mol_features(obmol=obmol, molecule_type=mol_type, bond_verbose=0)
-    mol = Molecule(atom_features=nodes, canon_adj_list=canon_adj_list, data=data, path=path)
+    mol = Molecule(atom_features=nodes, canon_adj_list=canon_adj_list, data=data, path=path, molecule_type=mol_type)
     return mol
 
 def mol_to_OB(mol, filetype, scaler, prepare):
