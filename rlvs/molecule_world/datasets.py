@@ -170,7 +170,7 @@ class DataStore:
 
     @classmethod
     def init(cls, crop=True):
-        cls.DATA_STORES = [PDBQTData()]
+        cls.DATA_STORES = [PDBQTData(), PDBQTData_2()]
         cls.load(crop)
         # cls.scaler = cls.normalize()
 

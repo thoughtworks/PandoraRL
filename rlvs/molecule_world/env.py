@@ -91,7 +91,7 @@ class GraphEnv:
             reward = -1
             terminal = True
             
-        self._complex = Complex(self._complex.protein, self._complex.ligand, self._complex.original_ligand)
+        self._complex = Complex(self._complex.protein, self._complex.ligand, self._complex.original_ligand, self._complex.interacting_edges)
         state = None
         return self._complex, state, reward, terminal
 

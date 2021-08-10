@@ -73,6 +73,9 @@ class Atoms:
     def __len__(self):
         return len(self._atoms)
 
+    def where(self, condition):
+        return [atom for atom in self._atoms if condition(atom)]
+
 
 class Atom:
     def __init__(

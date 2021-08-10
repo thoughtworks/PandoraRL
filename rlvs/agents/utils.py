@@ -52,25 +52,12 @@ def batchify(molecules):
     return Data(x=X, edge_index=edge_index, batch=batch)
 
 
-def interacting_edges(protein, ligand, distance_threshold=None, atomic_class=None):
-    ligand_data = ligand.data.x
-    if distance_threshold is not None:
-        distances = np.array([
-            protein.distance(feature[:3]) for feature in ligand_data
-        ])
-
-    _interacting_edges = np.argwhere(distances <= distance_threshold)
-
-    _interacting_edges = np.hstack((
-        _interacting_edges.T,
-        np.array((
-            _interacting_edges[:,1],
-            _interacting_edges[:,0]
-        ))
-    ))
-    return torch.tensor(
-        _interacting_edges,
-        dtype=torch.long
+def interacting_edges(protein, ligand):
+    c_alpha = [atom.idx for atom in protein.atoms.where(lambda x: x.is_c_alpha)]
+    heavy_element = [atom.idx for atom in ligand.atoms.where(lambda x: x.is_heavy_atom)]
+    adg_mat = np.array(np.meshgrid(c_alpha, heavy_element)).T.reshape(-1,2)
+    return torch.from_numpy(
+        np.hstack([adg_mat.T, [adg_mat[:,1], adg_mat[:,0]]])
     )
 
 
