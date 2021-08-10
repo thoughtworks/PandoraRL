@@ -49,28 +49,24 @@ class Atoms:
             for bond in ob.OBMolBondIter(obmol)
         ]
 
-    @property
-    def edge_index(self):
-        return torch.vstack([bond.edge for bond in self.bonds]).t().contiguous()
-
-    @property
-    def features(self):
-        return torch.tensor([
+        self.features = torch.tensor([
             atom.features(self.featurizer) for atom in self._atoms
         ], dtype=torch.float)
+
+        self.edge_index = torch.vstack([bond.edge for bond in self.bonds]).t().contiguous()
 
     @property
     def x(self):
-        return torch.tensor([
-            atom.features(self.featurizer) for atom in self._atoms
-        ], dtype=torch.float)
+        return self.features
 
     @property
     def coords(self):
-        return torch.tensor([atom.coord for atom in self._atoms])
+        return self.features[:,:3]
 
     @coords.setter
     def coords(self, coords):
+        self.features[:, :3] = torch.from_numpy(coords)
+        
         for idx, coord in enumerate(coords):
             self._atoms[idx].coord = coord
 
