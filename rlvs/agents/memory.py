@@ -12,7 +12,7 @@ class Samples:
 
     @property
     def states(self):
-        return np.array([val['state'] for val in self.samples])
+        return [val['state'] for val in self.samples]
 
     @property
     def actions(self):
@@ -23,8 +23,8 @@ class Samples:
         return np.vstack([val['reward'] for val in self.samples])
 
     @property
-    def next_sates(self):
-        return np.array([val['next_state'] for val in self.samples])
+    def next_states(self):
+        return [val['next_state'] for val in self.samples]
 
     @property
     def terminals(self):

@@ -37,11 +37,16 @@ def to_tensor(ndarray, volatile=False, requires_grad=False, dtype=FLOAT):
     ).type(dtype)
 
 
-def batchify(molecules):
-    X = torch.vstack([mol.data.x for mol in molecules])
-    data_count = [mol.data.x.shape[0] for mol in molecules]
+def batchify(molecules, data=True):
+    data_function = {
+        True: lambda mol: mol,
+        False: lambda mol: mol.data
+     }[data]
+    
+    X = torch.vstack([data_function(mol).x for mol in molecules])
+    data_count = [data_function(mol).x.shape[0] for mol in molecules]
     edge_index = torch.hstack([
-        mol.data.edge_index + (0 if index == 0 else data_count[index - 1])
+        data_function(mol).edge_index + (0 if index == 0 else data_count[index - 1])
         for index, mol in enumerate(molecules)
     ])
 

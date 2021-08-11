@@ -58,10 +58,10 @@ class Complex:
 
     @property
     def data(self):
-        batched = batchify([self.protein, self.ligand])
+        batched = batchify([self.protein, self.ligand], data=False)
         edge_index = torch.hstack([
             batched.edge_index,
             self.interacting_edges
             ])
         batch = torch.tensor([0] * batched.x.shape[0])
-        return Data(x=batched.x, edge_index=edge_index, batch=batch)
+        return Data(x=batched.x.detach().clone(), edge_index=edge_index.detach().clone(), batch=batch)

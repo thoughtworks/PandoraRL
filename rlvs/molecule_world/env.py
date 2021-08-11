@@ -90,10 +90,8 @@ class GraphEnv:
             print(e)
             reward = -1
             terminal = True
-            
-        self._complex = Complex(self._complex.protein, self._complex.ligand, self._complex.original_ligand, self._complex.interacting_edges)
-        state = None
-        return self._complex, state, reward, terminal
+
+        return reward, terminal
 
 class TestGraphEnv(GraphEnv):
     def __init__(self, scaler, protein_path, ligand_path, protein_filetype, ligand_filetype):

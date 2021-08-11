@@ -97,7 +97,7 @@ class DDPGAgentGNN:
         batch = self.memory.sample(self.BATCH_SIZE)
 
         complex_batched = batchify(batch.states)
-        next_complex_batched = batchify(batch.next_sates)
+        next_complex_batched = batchify(batch.next_states)
 
         actions = batch.actions
         rewards = batch.rewards
@@ -143,11 +143,11 @@ class DDPGAgentGNN:
         print("Value Loss: ", value_loss, " policy loss: ", policy_loss)
         return to_numpy(value_loss), to_numpy(policy_loss)
 
-    def get_predicted_action(self, complex_, step=None, decay_epsilon=True):
+    def get_predicted_action(self, data, step=None, decay_epsilon=True):
         # Explore AdaptiveParamNoiseSpec, with normalized action space
         # https://github.com/l5shi/Multi-DDPG-with-parameter-noise/blob/master/Multi_DDPG_with_parameter_noise.ipynb
         action = to_numpy(
-            self._actor(complex_.data)[0]
+            self._actor(data)[0]
         )
 
         if step is not None:
@@ -186,25 +186,24 @@ class DDPGAgentGNN:
             )
 
             while not (terminal or (episode_length == max_episode_length)):
+                data = m_complex_t.data
 
                 if num_steps <= self.warm_up_steps:
                     predicted_action = self.random_action()
                 else:
                     predicted_action = self.get_predicted_action(
-                        m_complex_t, episode_length
+                        data, episode_length
                     )
 
                 action = self.get_action(predicted_action)
 
-                m_complex_t_1, _, reward, terminal = self.env.step(action)
+                reward, terminal = self.env.step(action)
                 d_store = False if episode_length == max_episode_length else terminal
                 reward = 0 if episode_length == max_episode_length else reward
-                
-                self.memorize(m_complex_t, [predicted_action], reward, m_complex_t_1, d_store)
+                self.memorize(data, [predicted_action], reward, m_complex_t.data, d_store)
                 
                 episode_return += reward
                 episode_length += 1
-                m_complex_t = m_complex_t_1
 
                 self.log(action, np.round(reward, 4), episode_length, i_episode)
 
