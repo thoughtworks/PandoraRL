@@ -34,7 +34,8 @@ class DDPGAgentGNN:
     def __init__(self, env, log_filename, weights_path, warmup=32, prate=0.00005, is_training=1):
         self.input_shape = env.input_shape
         self.action_shape = env.action_space.n_outputs
-        self.eps = 0.9
+        self.eps = 1.0
+        self.decay_epsilon = 1/50000
         self.action_bounds = env.action_space.action_bounds
         self.memory = Memory(self.BUFFER_SIZE)
         self.env = env
@@ -156,7 +157,7 @@ class DDPGAgentGNN:
             ) * self.exploration_noise.generate(step)
 
         if decay_epsilon:
-            self.eps *= self.eps
+            self.eps -= self.decay_epsilon 
 
         return action
 

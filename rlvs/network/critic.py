@@ -27,20 +27,17 @@ class CriticGNN(nn.Module):
         self.policy_layer_hidden = nn.Linear(64 + action_shape, 10)
         self.policy_layer_out = nn.Linear(10, 1)
         
-        # self.init_weights(init_w)
+        self.init_weights(init_w)
     
     def init_weights(self, init_w):
-        self.ligand_gcn_in = fanin_init(self.ligand_gcn_in.weight.data.size())
-        self.ligand_gcn_out = fanin_init(self.ligand_gcn_out.weight.data.size())
+        self.complex_gcn_in.weight.data = fanin_init(self.complex_gcn_in.weight.data.size())
+        self.complex_gcn_hidden_1.weight.data = fanin_init(self.complex_gcn_hidden_1.weight.data.size())
+        self.complex_gcn_out.weight.data = fanin_init(self.complex_gcn_out.weight.data.size())
 
-        self.protein_gcn_in = fanin_init(self.protein_gcn_in.weight.data.size())
-        self.protein_gcn_out = fanin_init(self.protein_gcn_out.weight.data.size())
-
-        self.policy_layer_in = fanin_init(self.policy_layer_in.weight.data.size())
-        self.policy_layer_hidden = fanin_init(self.policy_layer_hidden.weight.data.size())
+        self.policy_layer_in.weight.data = fanin_init(self.policy_layer_in.weight.data.size())
+        self.policy_layer_hidden.weight.data = fanin_init(self.policy_layer_hidden.weight.data.size())
         self.policy_layer_out.weight.data.uniform_(-init_w, init_w)
 
-    @timeit("critic forward")
     def forward(self, state):
         complex_, action = state
         complex_data, complex_edge_index, complex_batch = complex_.x, complex_.edge_index, complex_.batch
