@@ -79,14 +79,18 @@ class Featurizer():
                 heavy_valence (integer),
                 hetero_valence (integer),
                 partial_charge (float),
-                molecule_type (1 for ligand, -1 for protein)
+                is_heavy_atom,
+                vander_wal_radius,
+                molecule_type (1 for ligand, -1 for protein),
+                smarts_patterns(5)
+              
             ]
         '''
         features = []
         features.extend(atom.coord)
 
         # one hot encode atomic number
-        encoding = np.zeros(self.num_classes)
+        encoding = np.zeros(self.num_classes, dtype=int)
         encoding[self.atom_codes[atom.atomic_num]] = 1
         features.extend(encoding)
 
@@ -97,6 +101,8 @@ class Featurizer():
         ]
 
         features.extend(named_features)
+        features.extend([int(atom.is_heavy_atom)])
+        features.extend([atom.VDWr])
         features.extend([atom.molecule_type])
         features.extend(self.smarts_patterns[atom.idx])
             
