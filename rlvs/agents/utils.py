@@ -58,8 +58,13 @@ def batchify(molecules, data=True):
 
 
 def interacting_edges(protein, ligand):
+    n_p_atoms = len(protein.atoms)
     c_alpha = [atom.idx for atom in protein.atoms.where(lambda x: x.is_c_alpha)]
-    heavy_element = [atom.idx for atom in ligand.atoms.where(lambda x: x.is_heavy_atom)]
+
+    heavy_element = np.array([
+        atom.idx for atom in ligand.atoms.where(lambda x: x.is_heavy_atom)
+    ]) + n_p_atoms
+    
     adg_mat = np.array(np.meshgrid(c_alpha, heavy_element)).T.reshape(-1,2)
     return torch.from_numpy(
         np.hstack([adg_mat.T, [adg_mat[:,1], adg_mat[:,0]]])
