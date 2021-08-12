@@ -27,7 +27,7 @@ class Complex:
         
     def score(self):
         rmsd = self.ligand.rmsd(self.original_ligand)
-        if rmsd > 8:
+        if rmsd > ComplexConstants.RMSD_THRESHOLD:
             raise Exception("BAD RMSD")
         # if rmsd > 5:
         #     return 0

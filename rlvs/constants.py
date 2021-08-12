@@ -1,6 +1,11 @@
 class ComplexConstants:
     DISTANCE_THRESHOLD = 75
     GOOD_FIT = 0.006
+    RMSD_THRESHOLD = 15
+    BOUNDS = 10
+
+class Rewards:
+    PENALTY = -100
 
 
 class AgentConstants:
