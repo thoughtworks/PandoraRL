@@ -5,6 +5,7 @@ from .datasets import DataStore
 from deepchem.feat.mol_graphs import MultiConvMol, ConvMol
 import tensorflow as tf
 from .helper_functions import *
+from rlvs.constants import ComplexConstants, Rewards    
 
 class ActionSpace:
     def __init__(self, action_bounds):
@@ -77,7 +78,7 @@ class GraphEnv:
                 "Complex: ", self._complex.protein.path,
                 "Randomized RMSD:", (rmsd:=np.round(self._complex.rmsd, 4))
             )
-
+            self._complex.previous_rmsd = rmsd
             if rmsd < ComplexConstants.RMSD_THRESHOLD:
                 break
 
