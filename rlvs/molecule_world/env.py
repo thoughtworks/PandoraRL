@@ -69,11 +69,11 @@ class GraphEnv:
         self.action_space = ActionSpace(action_bounds)
 
     def reset(self):
-        self._complex.ligand.set_coords(self._complex.original_ligand.get_coords().data.numpy())
+        self._complex.reset_ligand()
         print("RESET RMSD", self._complex.rmsd)
         while True:
             self._complex = DataStore.next(False)
-            self._complex.ligand.randomize(ComplexConstants.BOUNDS)
+            self._complex.randomize_ligand()
             print(
                 "Complex: ", self._complex.protein.path,
                 "Randomized RMSD:", (rmsd:=np.round(self._complex.rmsd, 4))
@@ -82,6 +82,7 @@ class GraphEnv:
             if rmsd < ComplexConstants.RMSD_THRESHOLD:
                 break
 
+            self._complex.reset_ligand()
         
         self.input_shape = self._complex.protein.get_atom_features().shape[1]
 

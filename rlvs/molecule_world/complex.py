@@ -52,9 +52,17 @@ class Complex:
                 multiplier = 10
             if rmsd < 2:
                 multiplier = 100
-                
+        else:
+            score = 1/score
+            
         return multiplier * score
 
+    def randomize_ligand(self):
+        self.ligand.randomize(ComplexConstants.BOUNDS)
+
+    def reset_ligand(self):
+        self.ligand.set_coords(self.original_ligand.get_coords().data.numpy())
+        
     def update_interacting_edges(self):
         if self.interacting_edges is not None:
             print(
