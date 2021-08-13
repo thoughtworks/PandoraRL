@@ -261,8 +261,8 @@ class DDPGAgentGNN:
         logging.info(f"Action: {np.round(np.array(action), 4)}, Reward: {np.round(reward, 4)}, E_i: {episode_length}, E: {i_episode}, RMSD: {np.round(self.env._complex.rmsd, 4)}")
 
     def save_weights(self, path):
-        torch.save(self._actor.state_dict(), path)
-        torch.save(self._critiq.state_dict(), path)
+        torch.save(self._actor.state_dict(), f'{path}_actor')
+        torch.save(self._critiq.state_dict(), f'{path}_critic')
         
 
     def load_weights(self, path_actor, path_critic):
