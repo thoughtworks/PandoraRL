@@ -167,12 +167,12 @@ class DDPGAgentGNN:
     def get_action(self, action):
         action *= self.action_bounds[1]
         x, y, z, r, p, y_ = np.clip(action, *self.action_bounds)
-        return np.array([np.round(x), np.round(y), np.round(z), r, p, y_])
+        return np.array([x, y, z, r, p, y_])
 
     def play(self, num_train_episodes):
         returns = []
         num_steps = 0
-        max_episode_length = 50
+        max_episode_length = 100
         max_reward = 0
         i_episode = 0
 
@@ -234,6 +234,15 @@ class DDPGAgentGNN:
                 Actor loss: {np.mean(actor_losses)}"
             )
 
+            logging.info(
+                f"Episode: {i_episode + 1} \
+                Return: {episode_return} \
+                episode_length: {episode_length} \
+                Max Reward; {max_reward} \
+                Critic Loss: {np.mean(critic_losses)} \
+                Actor loss: {np.mean(actor_losses)}"
+            )
+
             if i_episode%10 == 0:
                 self.save_weights(self.weights_path)
 
@@ -252,13 +261,13 @@ class DDPGAgentGNN:
         logging.info(f"Action: {np.round(np.array(action), 4)}, Reward: {np.round(reward, 4)}, E_i: {episode_length}, E: {i_episode}, RMSD: {np.round(self.env._complex.rmsd, 4)}")
 
     def save_weights(self, path):
-        # self._actor.save(path)
-        # self._critiq.save(path)
-        pass
+        torch.save(self._actor.state_dict(), path)
+        torch.save(self._critiq.state_dict(), path)
+        
 
     def load_weights(self, path_actor, path_critic):
-        # self._critiq.load_weights(path_critic)
-        # self._actor.load_weights(path_actor)
-        pass
+        model((PATH))
+        self._critiq.load_state_dict(torch.load(path_critic))
+        self._actor.load_state_dict(torch.load(path_actor))
 
 
