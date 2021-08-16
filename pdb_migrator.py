@@ -47,6 +47,23 @@ class PafnucyData(Data):
         ]
 
 
+class SARSVarients(Data):
+    DATA_PATH=f'{ROOT_PATH}/SARS_variants'
+
+    def __init__(self):
+        super(SARSVarients, self).__init__()
+        if '.DS_Store' in self.complexes_path:
+            self.complexes_path.remove('.DS_Store')
+        print(self.complexes_path)
+        self.file_paths = [
+            {
+                "obmol": read_to_OB(f'{self.DATA_PATH}/{complex}/{complex}_protein.pdbqt', 'pdbqt'),
+                "dest_path": f'{self.DATA_PATH}/{complex}/{complex}_protein.pdb',
+                "in_filetype": 'pdbqt'
+             } for complex in self.complexes_path
+        ]
+
+
 class PDBQTData(Data):
     DATA_PATH=f'{ROOT_PATH}/pdbqt_data'
 
@@ -66,7 +83,7 @@ class PDBQTData(Data):
 
 
 def migrate():
-    files = PafnucyData().file_paths + PDBQTData().file_paths
+    files = SARSVarients().file_paths
     for args in files:
         convert_obmol(**args)
         

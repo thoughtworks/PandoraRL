@@ -62,6 +62,39 @@ class PafnucyData(Data):
         ]
 
 
+class SARSVarients(Data):
+    DATA_PATH = f'{ROOT_PATH}/SARS_variants/'
+
+    def __init__(self):
+        super(SARSVarients, self).__init__()
+        if '.DS_Store' in self.complexes_path:
+            self.complexes_path.remove('.DS_Store')
+
+        self._complexes = [
+            Complex(
+                Protein(
+                    read_to_OB(
+                        filename=f'{self.DATA_PATH}/{complex}/{complex}_protein.pdb',
+                        filetype="pdb"
+                    ),
+                    path=f'{self.DATA_PATH}/{complex}/{complex}_protein.pdb'
+                ), Ligand(
+                    read_to_OB(
+                        filename=f'{self.DATA_PATH}/{complex}/{complex}_ligand.pdbqt',
+                        filetype="pdbqt"
+                    ),
+                    path=f'{self.DATA_PATH}/{complex}/{complex}_ligand.pdbqt'
+                ), Ligand(
+                    read_to_OB(
+                        filename=f'{self.DATA_PATH}/{complex}/{complex}_ligand.pdbqt',
+                        filetype="pdbqt"
+                    ),
+                    path=f'{self.DATA_PATH}/{complex}/{complex}_ligand.pdbqt'
+                )
+            ) for complex in self.complexes_path
+        ]
+
+
 class PDBQTData(Data):
     DATA_PATH = f'{ROOT_PATH}/pdbqt_data'
 
@@ -170,7 +203,7 @@ class DataStore:
 
     @classmethod
     def init(cls, crop=True):
-        cls.DATA_STORES = [PDBQTData(), PDBQTData_2()]
+        cls.DATA_STORES = [SARSVarients()]
         cls.load(crop)
         # cls.scaler = cls.normalize()
 
