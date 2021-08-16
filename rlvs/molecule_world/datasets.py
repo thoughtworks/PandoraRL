@@ -203,7 +203,7 @@ class DataStore:
 
     @classmethod
     def init(cls, crop=True):
-        cls.DATA_STORES = [SARSVarients()]
+        cls.DATA_STORES = [PDBQTData(), PDBQTData_2()]
         cls.load(crop)
         # cls.scaler = cls.normalize()
 
