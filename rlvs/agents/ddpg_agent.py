@@ -201,7 +201,7 @@ class DDPGAgentGNN:
                 reward, terminal = self.env.step(action)
                 d_store = False if episode_length == max_episode_length else terminal
                 reward = 0 if episode_length == max_episode_length else reward
-                self.memorize(data, [action], reward, m_complex_t.data, d_store)
+                self.memorize(data, [predicted_action], reward, m_complex_t.data, d_store)
                 
                 episode_return += reward
                 episode_length += 1
