@@ -57,7 +57,7 @@ class SARSVarients(Data):
         print(self.complexes_path)
         self.file_paths = [
             {
-                "obmol": read_to_OB(f'{self.DATA_PATH}/{complex}/{complex}_protein.pdbqt', 'pdbqt'),
+                "obmol": read_to_OB(f'{self.DATA_PATH}/{complex}/{complex}_protein.mol2', 'mol2'),
                 "dest_path": f'{self.DATA_PATH}/{complex}/{complex}_protein.pdb',
                 "in_filetype": 'pdbqt'
              } for complex in self.complexes_path
