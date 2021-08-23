@@ -166,8 +166,7 @@ class DDPGAgentGNN:
 
     def get_action(self, action):
         action *= self.action_bounds[1]
-        x, y, z, r, p, y_ = np.clip(action, *self.action_bounds)
-        return np.array([x, y, z, r, p, y_])
+        return np.clip(action, *self.action_bounds)
 
     def play(self, num_train_episodes):
         returns = []
