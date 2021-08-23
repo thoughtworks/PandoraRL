@@ -53,7 +53,7 @@ class Complex:
             if rmsd < 2:
                 multiplier = 100
         else:
-            score = 0.002
+            score = 0
             
         return multiplier * score
 
