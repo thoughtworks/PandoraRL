@@ -1,12 +1,14 @@
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import copy
+import torch
+
 from rlvs.agents.utils import batchify, interacting_edges, \
     molecule_median_distance, timeit
 from torch_geometric.data import Data
-import torch
 from rlvs.constants import ComplexConstants
+
+from .scoring.vina_score import VinaScore
 
 class Complex:
     def __init__(self, protein, ligand, original_ligand, interacting_edges=None):
@@ -22,10 +24,14 @@ class Complex:
         self.interacting_edges = interacting_edges
         self.update_interacting_edges()
         self.previous_rmsd = None
+        self.vina = VinaScore(protein, ligand)
 
     def crop(self, x, y, z):
         self.protein.crop(self.ligand.get_centroid(), x, y, z)
-        
+
+    def vina_score(self):
+        return self.vina.total_energy()
+
     def score(self):
         print(
              "complex Stats: interacting Edges: ", self.interacting_edges.shape,

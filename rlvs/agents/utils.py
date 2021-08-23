@@ -64,14 +64,6 @@ def filter_by_distance(protein, ligand, distance_threshold=4):
         ])
 
     _interacting_edges = np.argwhere(distances <= distance_threshold)
-
-    _interacting_edges = np.hstack((
-        _interacting_edges.T,
-        np.array((
-            _interacting_edges[:,1],
-            _interacting_edges[:,0]
-        ))
-    ))
     return _interacting_edges
 
 

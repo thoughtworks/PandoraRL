@@ -5,6 +5,8 @@ from openbabel import openbabel as ob
 from .molecule import MoleculeType
 from .featurizer import Featurizer
 
+from rlvs.constants import H
+
 
 class Atoms:
     def __init__(self, molecule_type, obmol, pdb_structure=None):
@@ -90,6 +92,9 @@ class Atoms:
     def where(self, condition):
         return [atom for atom in self._atoms if condition(atom)]
 
+    def __getitem__(self, idx):
+        return self._atoms[idx]
+
 
 class Atom:
     def __init__(
@@ -122,6 +127,7 @@ class Atom:
 
         self.residue = residue
         self.bonds = np.array([])
+        self.hydrogens = np.array([])
 
     @property
     def molecule_type(self):
@@ -145,6 +151,11 @@ class Atom:
     def add_bond(self, bond):
         self.bonds = np.append(self.bonds, bond)
 
+    def update_hydrogens(self, neighbour, bond):
+        if self.donor and neighbour == H:
+            self.hydrogens = np.append(self.hydrogens, bond)
+            
+
 
 class Bond:
     def __init__(self, atom_a, atom_b, bond_length, update_edge=True):
@@ -156,6 +167,8 @@ class Bond:
         if update_edge:
             atom_a.add_bond(self)
             atom_b.add_bond(self)
+            atom_a.update_hydrogens(atom_b, self)
+            atom_b.update_hydrogens(atom_a, self)
 
     @property
     def edge(self):
@@ -163,3 +176,39 @@ class Bond:
             [self.atom_a.idx, self.atom_b.idx],
             [self.atom_b.idx, self.atom_a.idx]
         ], dtype=torch.long)
+
+    def saperation(self, dest, named_atom):
+        source = self.atom_a if self.atom_a == named_atom else \
+            self.atom_b if self.atom_b == named_atom else None
+
+        if source is None:
+            raise Exception(f"atom not found {atomic_num}")
+
+        return np.sqrt(np.sum((source.coord - dest.coord) ** 2))
+
+    def angle(self, atom1=None, atom2=None, atom3=None, named_atom2=None, named_atom3=None):
+        if atom2 is None:            
+            atom2 = self.atom_a if self.atom_a == named_atom2 else \
+            self.atom_b if self.atom_b == named_atom2 else None
+
+        if atom3 is None:            
+            atom3 = self.atom_a if self.atom_a == named_atom2 else \
+            self.atom_b if self.atom_b == named_atom2 else None
+
+        if atom2 is None:
+            raise Exception(f"atom not found {atom2_atomic_num}")
+
+        if atom3 is None:
+            raise Exception(f"atom not found {atom3_atomic_num}")
+
+        a = atom1.coord
+        b = atom2.coord
+        c = atom3.coord
+        
+        ba = a - b
+        bc = c - b
+
+        cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+        angle = np.arccos(cosine_angle)
+
+        return np.degrees(angle)   
