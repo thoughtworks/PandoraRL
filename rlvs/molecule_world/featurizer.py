@@ -6,6 +6,7 @@ import numpy as np
 
 import torch
 from torch_geometric.data import Data
+from .molecule import MoleculeType
 
 ob.obErrorLog.SetOutputLevel(0)
 
@@ -32,6 +33,30 @@ class Featurizer():
             ([9, 17, 35, 53], 'halogen'),
             (metals, 'metal')
         ]
+
+
+        self.residues = {
+            "ALA": 0,
+            "ARG": 1,
+            "ASN": 2,
+            "ASP": 3,
+            "CYS": 4,
+            "GLU": 5,
+            "GLN": 6,
+            "GLY": 7,
+            "HIS": 8,
+            "ILE": 9,
+            "LEU": 10,
+            "LYS": 11,
+            "MET": 12,
+            "PHE": 13,
+            "PRO": 14,
+            "SER": 15,
+            "THR": 16,
+            "TRP": 17,
+            "TYR": 18,
+            "VAL": 19
+        }
 
         for code, (atom, name) in enumerate(atom_classes):
             if type(atom) is list:
@@ -83,7 +108,7 @@ class Featurizer():
                 vander_wal_radius,
                 molecule_type (1 for ligand, -1 for protein),
                 smarts_patterns(5)
-              
+                encoding residue type for protein atoms
             ]
         '''
         features = []
@@ -100,11 +125,17 @@ class Featurizer():
             atom.hetro_degree, atom.partial_charge
         ]
 
+        residue = np.zeros(len(self.residues), dtype=int)
+
+        if atom.molecule_type == MoleculeType.PROTEIN:
+            residue[self.residues[atom.residue.upper()]] = 1
+
         features.extend(named_features)
         features.extend([int(atom.is_heavy_atom)])
         features.extend([atom.VDWr])
         features.extend([atom.molecule_type])
         features.extend(self.smarts_patterns[atom.idx])
+        features.extend(residue)
             
         return features
 
