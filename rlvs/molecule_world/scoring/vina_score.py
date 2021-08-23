@@ -101,6 +101,28 @@ class VinaScore:
 
         return hybnd
 
+    def possible_hydrogen_bonds(self, valid_pairs):
+        oxygen_or_nitrogen = lambda atom1, atom2: O == atom1 or N == atom2
+
+        valid_pair_objects = [
+            [idx, self.ligand.atoms[pair[0]], self.protein.atoms[pair[1]]]
+            for idx, pair in enumerate(valid_pairs)
+        ]
+
+        return [
+            HydrogenBondPair(pair[0], pair[1], pair[2]) for pair in valid_pair_objects
+            if (
+                len(pair[1].hydrogens) > 0 and pair[2].acceptor and 
+                    oxygen_or_nitrogen(pair[1], pair[2])
+            )
+        ] + [
+            HydrogenBondPair(pair[0], pair[2], pair[1]) for pair in valid_pair_objects
+            if (
+                len(pair[2].hydrogens) > 0 and pair[1].acceptor and 
+                    oxygen_or_nitrogen(pair[1], pair[2])
+            )
+        ]
+
     def total_energy(self):
         valid_pairs = filter_by_distance(self.protein, self.ligand)
 
@@ -123,26 +145,7 @@ class VinaScore:
             :, 1, Features.VDWr
         ])
         
-        valid_pair_objects = [
-            [idx, self.ligand.atoms[pair[0]], self.protein.atoms[pair[1]]]
-            for idx, pair in enumerate(valid_pairs)
-        ]
-
-        oxygen_or_nitrogen = lambda atom1, atom2: O == atom1 or N == atom2
-
-        possible_hydrogen_bonds = [
-            HydrogenBondPair(pair[0], pair[1], pair[2]) for pair in valid_pair_objects
-            if (
-                len(pair[1].hydrogens) > 0 and pair[2].acceptor and 
-                    oxygen_or_nitrogen(pair[1], pair[2])
-            )
-        ] + [
-            HydrogenBondPair(pair[0], pair[2], pair[1]) for pair in valid_pair_objects
-            if (
-                len(pair[2].hydrogens) > 0 and pair[1].acceptor and 
-                    oxygen_or_nitrogen(pair[1], pair[2])
-            )
-        ]
+        possible_hydrogen_bonds = self.possible_hydrogen_bonds(valid_pairs)
         
         gauss1 = self.gauss1(surface_dist)
         gauss2 = self.gauss2(surface_dist)
