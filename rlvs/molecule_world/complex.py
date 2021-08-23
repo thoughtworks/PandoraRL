@@ -57,8 +57,8 @@ class Complex:
             
         return multiplier * score
 
-    def randomize_ligand(self):
-        self.ligand.randomize(ComplexConstants.BOUNDS)
+    def randomize_ligand(self, action_shape):
+        self.ligand.randomize(ComplexConstants.BOUNDS, action_shape)
 
     def reset_ligand(self):
         self.ligand.set_coords(self.original_ligand.get_coords().data.numpy())

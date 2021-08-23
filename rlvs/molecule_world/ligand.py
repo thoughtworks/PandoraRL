@@ -9,7 +9,7 @@ class Ligand(Molecule):
         self.atoms = Atoms(self.molecule_type, obmol)
         self.atom_features = self.atoms.features
 
-    def randomize(self, box_size):
-        x, y, z, r, p, y_ = np.random.uniform(-box_size, box_size, (6,)) * 10
-        print("Randomized", x, y, z, r, p, y_)
-        self.update_pose(x, y, z, r, p, y_)
+    def randomize(self, box_size, action_shape):
+        random_pose = np.random.uniform(-box_size, box_size, (action_shape,)) * 10
+        print("Randomized", random_pose)
+        self.update_pose(*random_pose)
