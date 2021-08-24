@@ -154,6 +154,12 @@ class VinaScore:
         hydrophobic = self.hydrophobic(surface_dist, feature_lists)
         hydrogen_bonds = self.hydrogenbond(surface_dist, possible_hydrogen_bonds)
 
+        print(f"""Gauss1:{gauss1}
+        Gauss2: {gauss2}
+        Repulsion: {repulsion}
+        Hydrophobic: {hydrophobic}
+        HydrogenBond: {hydrogen_bonds}""")
+
         return np.sum(self.W1 * gauss1 +
                         self.W2 * gauss2 +
                         self.W3 * repulsion +
