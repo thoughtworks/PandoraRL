@@ -1,5 +1,5 @@
 import numpy as np
-from rlvs.constants import H, C, O, N, Features, Vina, HydrogenBondPair
+from rlvs.constants import H, C, O, N, S, Features, Vina, HydrogenBondPair
 from rlvs.agents.utils import filter_by_distance, to_numpy
 
 class VinaScore:
@@ -102,7 +102,8 @@ class VinaScore:
         return hybnd
 
     def possible_hydrogen_bonds(self, valid_pairs):
-        oxygen_or_nitrogen = lambda atom1, atom2: O == atom1 or N == atom2
+        is_H_bond_functional_group = lambda atom1, atom2: (O == atom1 and (N == atom2 or O == atom2)) or\
+            (N == atom1 and (O == atom2 or N == atom2 or S == atom2)) or (S == atom1 and N == atom2)
 
         valid_pair_objects = [
             [idx, self.ligand.atoms[pair[0]], self.protein.atoms[pair[1]]]
@@ -113,13 +114,13 @@ class VinaScore:
             HydrogenBondPair(pair[0], pair[1], pair[2]) for pair in valid_pair_objects
             if (
                 len(pair[1].hydrogens) > 0 and pair[2].acceptor and 
-                    oxygen_or_nitrogen(pair[1], pair[2])
+                    is_H_bond_functional_group(pair[1], pair[2])
             )
         ] + [
             HydrogenBondPair(pair[0], pair[2], pair[1]) for pair in valid_pair_objects
             if (
                 len(pair[2].hydrogens) > 0 and pair[1].acceptor and 
-                    oxygen_or_nitrogen(pair[1], pair[2])
+                    is_H_bond_functional_group(pair[1], pair[2])
             )
         ]
 

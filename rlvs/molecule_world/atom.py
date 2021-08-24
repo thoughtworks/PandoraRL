@@ -182,7 +182,7 @@ class Bond:
             self.atom_b if self.atom_b == named_atom else None
 
         if source is None:
-            raise Exception(f"atom not found {atomic_num}")
+            raise Exception(f"atom not found")
 
         return np.sqrt(np.sum((source.coord - dest.coord) ** 2))
 
@@ -196,10 +196,10 @@ class Bond:
             self.atom_b if self.atom_b == named_atom2 else None
 
         if atom2 is None:
-            raise Exception(f"atom not found {atom2_atomic_num}")
+            raise Exception("atom2 not found")
 
         if atom3 is None:
-            raise Exception(f"atom not found {atom3_atomic_num}")
+            raise Exception("atom3 not found")
 
         a = atom1.coord
         b = atom2.coord
