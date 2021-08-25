@@ -165,7 +165,7 @@ class DDPGAgentGNN:
         return np.random.uniform(-1., 1., self.action_shape)
 
     def get_action(self, action):
-        # action *= self.action_bounds[1]  # Remove as the multiplier has been removed
+        action *= self.action_bounds[1]  # Remove as the multiplier has been removed
         return np.clip(action, *self.action_bounds)
 
     def play(self, num_train_episodes):

@@ -56,7 +56,7 @@ class Env:
 class GraphEnv:
     def __init__(self, complex=None):
         # single_step = np.array([10, 10, 10, 10, 10, 10])
-        single_step = np.array([10, 10, 10])
+        single_step = np.array([1, 1, 1])
         action_bounds = np.array([-1*single_step, single_step])
         self.action_space = ActionSpace(action_bounds)
         
