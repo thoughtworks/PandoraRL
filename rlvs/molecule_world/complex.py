@@ -23,7 +23,6 @@ class Complex:
         self.original_ligand = original_ligand 
         self.interacting_edges = interacting_edges
         self.update_interacting_edges()
-        self.previous_rmsd = None
         self.vina = VinaScore(protein, ligand)
 
     def crop(self, x, y, z):
@@ -39,29 +38,14 @@ class Complex:
              "Protein Shape", self.protein.data.x.shape
         )
         rmsd = self.ligand.rmsd(self.original_ligand)
-        score = np.sinh(rmsd**0.25 + np.arcsinh(1))**-1
-        multiplier = 1
-        if self.previous_rmsd is not None:
-            multiplier = -1 if self.previous_rmsd < rmsd else 1
-
-        self.previous_rmsd = rmsd
+        rmsd_score = np.sinh(rmsd**0.25 + np.arcsinh(1))**-1
         
         if rmsd > ComplexConstants.RMSD_THRESHOLD:
             raise Exception("BAD RMSD")
 
-        if multiplier > 0:
-            if rmsd < 7:
-                multiplier = 5
-            if rmsd < 5:
-                multiplier = 7.5
-            if rmsd < 3:
-                multiplier = 10
-            if rmsd < 2:
-                multiplier = 100
-        else:
-            score = 0
-            
-        return multiplier * score
+        vina_score = 10 if (vina_score:=self.vina.total_energy() > 10) else vina_score
+
+        return rmsd_score - vina_score
 
     def randomize_ligand(self, action_shape):
         self.ligand.randomize(ComplexConstants.BOUNDS, action_shape)
