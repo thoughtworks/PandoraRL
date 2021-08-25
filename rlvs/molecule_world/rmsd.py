@@ -15,8 +15,8 @@ class RMSD:
         if self.reference_molecule.n_atoms != target_molecule.n_atoms:
             raise Exception("error: Structures not same size")
 
-        r_cent = 0#self.centroid(self.reference_molecule.get_coords())
-        t_cent = 0#self.centroid(target_molecule.get_coords())
+        r_cent = 0  # self.centroid(self.reference_molecule.get_coords())
+        t_cent = 0  # self.centroid(target_molecule.get_coords())
 
         r_coord = self.reference_molecule.get_coords() - r_cent
         t_coord = target_molecule.get_coords() - t_cent
@@ -26,7 +26,7 @@ class RMSD:
     @staticmethod
     def __rmsd(V, W):
         N = len(V)
-        return np.sqrt(((V-W)**2).sum() / N) / 10
+        return np.sqrt(((V-W)**2).sum() / N)
 
     @staticmethod
     def centroid(X):

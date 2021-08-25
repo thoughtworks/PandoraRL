@@ -162,7 +162,7 @@ class DDPGAgentGNN:
         return action
 
     def random_action(self):
-        return np.random.uniform(-1., 1., self.action_shape)
+        return np.random.uniform(-0.2, 0.2, self.action_shape)
 
     def get_action(self, action):
         action *= self.action_bounds[1]
