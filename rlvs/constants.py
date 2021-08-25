@@ -7,10 +7,11 @@ class ComplexConstants:
     DISTANCE_THRESHOLD = 75
     GOOD_FIT = 0.006
     RMSD_THRESHOLD = 12
+    VINA_SCORE_THRESHOLD = 200
     BOUNDS = 4
 
 class Rewards:
-    PENALTY = -100
+    PENALTY = -1000
 
 
 class AgentConstants:

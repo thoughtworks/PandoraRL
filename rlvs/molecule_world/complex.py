@@ -39,11 +39,10 @@ class Complex:
         )
         rmsd = self.ligand.rmsd(self.original_ligand)
         rmsd_score = np.sinh(rmsd**0.25 + np.arcsinh(1))**-1
+        vina_score = self.vina.total_energy()
         
-        if rmsd > ComplexConstants.RMSD_THRESHOLD:
-            raise Exception("BAD RMSD")
-
-        vina_score = 10 if (vina_score:=self.vina.total_energy() > 10) else vina_score
+        if rmsd > ComplexConstants.RMSD_THRESHOLD or vina_score > ComplexConstants.VINA_SCORE_THRESHOLD:
+            raise Exception("BAD State")
 
         return rmsd_score - vina_score
 
