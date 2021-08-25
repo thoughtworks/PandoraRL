@@ -125,7 +125,9 @@ class VinaScore:
         ]
 
     def total_energy(self):
-        valid_pairs = filter_by_distance(self.protein, self.ligand)
+        valid_pairs = filter_by_distance(self.protein, self.ligand, distance_threshold=8)
+
+        subset_by_distance = lambda var, distance, threshold: var[distance < threshold] 
 
         if len(valid_pairs) == 0:
             return 0
@@ -140,31 +142,39 @@ class VinaScore:
         ] - feature_lists[
             :, 1, Features.COORD
         ], axis=1)
+
         surface_dist = distances - (feature_lists[
             :, 0, Features.VDWr
         ] + feature_lists[
             :, 1, Features.VDWr
         ])
-        
-        possible_hydrogen_bonds = self.possible_hydrogen_bonds(valid_pairs)
-        
-        gauss1 = self.gauss1(surface_dist)
-        gauss2 = self.gauss2(surface_dist)
-        repulsion = self.repulsion(surface_dist)
+
+        gauss1 = np.sum(self.gauss1(surface_dist))
+        gauss2 = np.sum(self.gauss2(surface_dist))
+        repulsion = np.sum(self.repulsion(surface_dist))
+
+        valid_pairs = subset_by_distance(valid_pairs, distances, 4)
+        feature_lists = subset_by_distance(feature_lists, distances, 4)
+        surface_dist = subset_by_distance(surface_dist, distances, 4)
+
         hydrophobic = self.hydrophobic(surface_dist, feature_lists)
+
+        possible_hydrogen_bonds = self.possible_hydrogen_bonds(valid_pairs)
         hydrogen_bonds = self.hydrogenbond(surface_dist, possible_hydrogen_bonds)
 
-        print(f"""Gauss1:{np.sum(gauss1)}
-        Gauss2: {np.sum(gauss2)}
-        Repulsion: {np.sum(repulsion)}
-        Hydrophobic: {np.sum(hydrophobic)}
-        HydrogenBond: {np.sum(hydrogen_bonds)}""")
+        total_energy = self.W1 * gauss1 + self.W2 * gauss2 + self.W3 * repulsion +\
+            np.sum(self.W4 * hydrophobic + self.W5 * hydrogen_bonds)
 
-        return np.sum(self.W1 * gauss1 +
-                        self.W2 * gauss2 +
-                        self.W3 * repulsion +
-                        self.W4 * hydrophobic +
-                        self.W5 * hydrogen_bonds)
+        print(
+            f"""Gauss1:{gauss1}
+Gauss2: {gauss2}
+Repulsion: {repulsion}
+Hydrophobic: {np.sum(hydrophobic)}
+HydrogenBond: {np.sum(hydrogen_bonds)}
+Total Energy : {total_energy}"""
+                      )
+
+        return total_energy
         
 
       
