@@ -32,19 +32,28 @@ class Complex:
         return self.vina.total_energy()
 
     def score(self):
+        complex_saperation = np.linalg.norm(self.protein.atoms.centroid - self.ligand.atoms.centroid)
+
         print(
-             "complex Stats: interacting Edges: ", self.interacting_edges.shape,
-             "Ligand Shape", self.ligand.data.x.shape,
-             "Protein Shape", self.protein.data.x.shape
+            "complex Stats: interacting Edges: ", self.interacting_edges.shape,
+            "Ligand Shape", self.ligand.data.x.shape,
+            "Protein Shape", self.protein.data.x.shape,
+            "Centroid Saperation: ", complex_saperation
         )
-        rmsd = self.ligand.rmsd(self.original_ligand)
-        rmsd_score = np.sinh(rmsd**0.25 + np.arcsinh(1))**-1
+
+        # rmsd = self.ligand.rmsd(self.original_ligand)
+        # rmsd_score = np.sinh(rmsd**0.25 + np.arcsinh(1))**-1
+
+        # Introduce saperation as an exit criterio
+
+        
         vina_score = self.vina.total_energy()
         
-        if rmsd > ComplexConstants.RMSD_THRESHOLD or vina_score > ComplexConstants.VINA_SCORE_THRESHOLD:
-            raise Exception("BAD State")
+        if complex_saperation > ComplexConstants.DISTANCE_THRESHOLD or\
+           vina_score > ComplexConstants.VINA_SCORE_THRESHOLD:
+            raise Exception(f"BAD State: VinaScore: {vina_score}, distance: {complex_saperation}")
 
-        return rmsd_score - vina_score
+        return -vina_score
 
     def randomize_ligand(self, action_shape):
         self.ligand.randomize(ComplexConstants.BOUNDS, action_shape)

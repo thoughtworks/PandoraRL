@@ -76,6 +76,10 @@ class Atoms:
     def coords(self):
         return self.features[:,:3]
 
+    @property
+    def centroid(self):
+        return self.features[:, :3].mean(axis=0)
+
     @coords.setter
     def coords(self, coords):
         self.features[:, :3] = torch.from_numpy(coords)
