@@ -106,7 +106,7 @@ class GraphEnv:
 
         return reward, terminal
 
-    def save_complex_files(self, path, filetype=None):
+    def save_complex_files(self, path, filetype="pdb"):
         filetype = filetype if filetype is not None else self._complex.ligand.filetype
         self._complex.ligand.save(f'{path}.{filetype}', filetype)
 
