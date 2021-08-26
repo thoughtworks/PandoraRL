@@ -106,6 +106,11 @@ class GraphEnv:
 
         return reward, terminal
 
+    def save_complex_files(self, path, filetype=None):
+        filetype = filetype if filetype is not None else self._complex.ligand.filetype
+        self._complex.ligand.save(f'{path}.{filetype}', filetype)
+
+        
 class TestGraphEnv(GraphEnv):
     def __init__(self, scaler, protein_path, ligand_path, protein_filetype, ligand_filetype):
         self.protein_filetype = protein_filetype
@@ -151,11 +156,3 @@ class TestGraphEnv(GraphEnv):
             
         state = None #self.get_state()
         return self._complex, state, terminal
-
-    def save_complex_files(self, path, filetype):
-        ligand_obmol = mol_to_OB(self._complex.ligand, self.ligand_filetype, self.scaler, prepare=True)
-        OBs_to_file(ligand_obmol, filename=path, filetype=filetype)
-
-        
-
-

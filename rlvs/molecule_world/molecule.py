@@ -8,6 +8,7 @@ from openbabel import openbabel as ob
 from scipy.spatial.transform import Rotation
 from .rmsd import RMSD
 
+from .helper_functions import read_to_OB, mol_to_OB
 
 class MoleculeType(IntEnum):
     PROTEIN = -1
@@ -119,3 +120,12 @@ class Molecule:
         print(f"Number of features = {self.n_feat}")
         print(f"Max distance between atoms along\nx:{self.atom_range(0)}\ny:{self.atom_range(1)}\nz:{self.atom_range(2)}")
         
+
+    def save(self, output_path, output_type):
+        obmol = read_to_OB(filename=self.path, filetype=self.filetype, prepare=True)
+        assert(obmol.NumAtoms() == len(self.atoms))
+        for atom in ob.OBMolAtomIter(obmol):
+            atom.SetVector(*(self.atoms[atom.GetIndex()].coord))
+
+        mol_py = pybel.Molecule(obmol)
+        mol_py.write(format=output_type, filename=output_path, overwrite=True)

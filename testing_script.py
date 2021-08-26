@@ -53,5 +53,5 @@ agent.test(max_steps=Path.MAX_STEPS, path_actor_weights=actor_weights, path_crit
 
 # convert complex to pdbqt
 print("***** Creating output file..\n")
-env.save_complex_files(path=param["output_path"], filetype="pdb")
+env.save_complex_files(path=param["output_path"])
 print("***** Output file generated.\n")
