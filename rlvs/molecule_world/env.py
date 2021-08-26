@@ -74,10 +74,13 @@ class GraphEnv:
         print("RESET RMSD", self._complex.rmsd)
         while True:
             self._complex = DataStore.next(False)
+            original_vina_score = self._complex.vina.total_energy()
             self._complex.randomize_ligand(self.action_space.n_outputs)
             print(
                 "Complex: ", self._complex.protein.path,
-                "Randomized RMSD:", (rmsd:=np.round(self._complex.rmsd, 4))
+                "Original VinaScore:", original_vina_score,
+                "Randomized RMSD:", (rmsd:=np.round(self._complex.rmsd, 4)),
+                "Randomized Vina Score:", self._complex.vina.total_energy()
             )
             self._complex.previous_rmsd = rmsd
             if rmsd < ComplexConstants.RMSD_THRESHOLD:
