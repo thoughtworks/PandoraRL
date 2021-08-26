@@ -1,6 +1,6 @@
 import os
 from os import path
-from .helper_functions import OB_to_mol, read_to_OB
+from .helper_functions import read_to_OB
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from .protein import Protein
@@ -40,23 +40,14 @@ class PafnucyData(Data):
         self._complexes = [
             Complex(
                 Protein(
-                    read_to_OB(
-                        filename=f'{self.DATA_PATH}/{complex}/{complex}_pocket.pdb',
-                        filetype="pdb"
-                    ),
-                    path=f'{self.DATA_PATH}/{complex}/{complex}_pocket.pdb'
+                    path=f'{self.DATA_PATH}/{complex}/{complex}_pocket.pdb',
+                    filetype="pdb"
                 ), Ligand(
-                    read_to_OB(
-                        filename=f'{self.DATA_PATH}/{complex}/{complex}_ligand.mol2',
-                        filetype="mol2"
-                    ),
-                    path=f'{self.DATA_PATH}/{complex}/{complex}_ligand.mol2'
+                    path=f'{self.DATA_PATH}/{complex}/{complex}_ligand.mol2',
+                    filetype="mol2"
                 ), Ligand(
-                    read_to_OB(
-                        filename=f'{self.DATA_PATH}/{complex}/{complex}_ligand.mol2',
-                        filetype="mol2"
-                    ),
-                    path=f'{self.DATA_PATH}/{complex}/{complex}_ligand.mol2'
+                    path=f'{self.DATA_PATH}/{complex}/{complex}_ligand.mol2',
+                    filetype="mol2"
                 )
             ) for complex in self.complexes_path
         ]
@@ -73,23 +64,14 @@ class SARSVarients(Data):
         self._complexes = [
             Complex(
                 Protein(
-                    read_to_OB(
-                        filename=f'{self.DATA_PATH}/{complex}/{complex}_protein.pdb',
-                        filetype="pdb"
-                    ),
-                    path=f'{self.DATA_PATH}/{complex}/{complex}_protein.pdb'
+                    path=f'{self.DATA_PATH}/{complex}/{complex}_protein.pdb',
+                    filetype="pdb"
                 ), Ligand(
-                    read_to_OB(
-                        filename=f'{self.DATA_PATH}/{complex}/{complex}_ligand.pdbqt',
-                        filetype="pdbqt"
-                    ),
-                    path=f'{self.DATA_PATH}/{complex}/{complex}_ligand.pdbqt'
+                    path=f'{self.DATA_PATH}/{complex}/{complex}_ligand.pdbqt',
+                    filetype="pdbqt"
                 ), Ligand(
-                    read_to_OB(
-                        filename=f'{self.DATA_PATH}/{complex}/{complex}_ligand.pdbqt',
-                        filetype="pdbqt"
-                    ),
-                    path=f'{self.DATA_PATH}/{complex}/{complex}_ligand.pdbqt'
+                    path=f'{self.DATA_PATH}/{complex}/{complex}_ligand.pdbqt',
+                    filetype="pdbqt"
                 )
             ) for complex in self.complexes_path
         ]
@@ -107,22 +89,13 @@ class PDBQTData(Data):
         self._complexes = [
             Complex(
                 Protein(
-                    read_to_OB(
-                        filename=f'{self.DATA_PATH}/{complex}',
-                        filetype="pdb"
-                    ),
-                    path=f'{self.DATA_PATH}/{complex}'
+                    path=f'{self.DATA_PATH}/{complex}',
+                    filetype="pdb"
                 ), Ligand(
-                    read_to_OB(
-                        filename=f'{self.DATA_PATH}/{ligand}',
-                        filetype="pdbqt"
-                    ),
+                    filetype="pdbqt",
                     path=f'{self.DATA_PATH}/{ligand}'
                 ), Ligand(
-                    read_to_OB(
-                        filename=f'{self.DATA_PATH}/{ligand}',
-                        filetype="pdbqt"
-                    ),
+                    filetype="pdbqt",
                     path=f'{self.DATA_PATH}/{ligand}'
                 )
             ) for complex, ligand in self.complexes_path
@@ -141,22 +114,13 @@ class PDBQTData_2(Data):
         self._complexes = [
             Complex(
                 Protein(
-                    read_to_OB(
-                        filename=f'{self.DATA_PATH}/{complex}/{complex}_protein.pdb',
-                        filetype="pdb"
-                    ),
+                    filetype="pdb",
                     path=f'{self.DATA_PATH}/{complex}/{complex}_protein.pdb'
                 ), Ligand(
-                    read_to_OB(
-                        filename=f'{self.DATA_PATH}/{complex}/{complex}_ligand.mol2',
-                        filetype="mol2"
-                    ),
+                    filetype="mol2",
                     path=f'{self.DATA_PATH}/{complex}/{complex}_ligand.mol2'
                 ), Ligand(
-                    read_to_OB(
-                        filename=f'{self.DATA_PATH}/{complex}/{complex}_ligand.mol2',
-                        filetype="mol2"
-                    ),
+                    filetype="mol2",
                     path=f'{self.DATA_PATH}/{complex}/{complex}_ligand.mol2'
                 )
             ) for complex in self.complexes_path
@@ -174,22 +138,13 @@ class DudeProteaseData(Data):
         self._complexes = [
             Complex(
                 Protein(
-                    read_to_OB(
-                        filename=f'{self.DATA_PATH}/{complex}/receptor.pdb',
-                        filetype="pdb"
-                    ),
+                    filetype="pdb",
                     path=f'{self.DATA_PATH}/{complex}/receptor.pdb'
                 ), Ligand(
-                    read_to_OB(
-                        filename=f'{self.DATA_PATH}/{complex}/crystal_ligand.mol2',
-                        filetype="mol2"
-                    ),
+                    filetype="mol2",
                     path=f'{self.DATA_PATH}/{complex}/crystal_ligand.mol2'
                 ), Ligand(
-                    read_to_OB(
-                        filename=f'{self.DATA_PATH}/{complex}/crystal_ligand.mol2',
-                        filetype="mol2"
-                    ),
+                    filetype="mol2",
                     path=f'{self.DATA_PATH}/{complex}/crystal_ligand.mol2'
                 )
                 

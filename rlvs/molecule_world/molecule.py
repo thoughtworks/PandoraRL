@@ -25,8 +25,9 @@ class Molecule:
     '''
     T = lambda x,y,z : np.array([[1,0,0,x], [0,1,0,y], [0,0,1,z], [0,0,0,1]]).astype(float)
     
-    def __init__(self, path=None):
+    def __init__(self, path=None, filetype=None):
         self.path = path
+        self.filetype=filetype
         self.rmsd = RMSD(self)
         self.pdb_structure = None
         self.atoms = None
