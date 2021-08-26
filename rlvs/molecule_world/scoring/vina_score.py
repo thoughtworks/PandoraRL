@@ -1,5 +1,5 @@
 import numpy as np
-from rlvs.constants import H, C, O, N, S, Features, Vina, HydrogenBondPair
+from rlvs.constants import H, C, O, N, S, Features, Vina, HydrogenBondPair, HydrophobicPair
 from rlvs.agents.utils import filter_by_distance, to_numpy
 
 class VinaScore:
@@ -33,38 +33,34 @@ class VinaScore:
 
         return rep
 
-    def hydrophobic(self, surface_dist, feature_lists):
+    def hydrophobic(self, surface_dist, possible_hydrophobic_bonds):
         p1 = 0.5
         p2 = 1.5
 
         hyph = np.zeros(surface_dist.shape)
+        valid_hydrophobic_bond_ids = [h_bond_pair.idx for h_bond_pair in possible_hydrophobic_bonds]
 
-        # TODO: add constant indexes for hydrophobic, and carbon, hydrogen
-
-        hyph[
-            (feature_lists[:, 0, C.feature_list_index] == 1) & # carbon in protein
-            (feature_lists[:, 1, C.feature_list_index] == 1) & # carbon in ligand
-            (feature_lists[:, 0, Features.HYDROPHOBIC]== 1) & # atom is hydrophobic in protein
-            (feature_lists[:, 1, Features.HYDROPHOBIC] == 1) &  # atom is hydrophobic in ligand
-            (surface_dist < p1)
-        ] = 1
-
-        hyph[
-            (feature_lists[:, 0, C.feature_list_index] == 1) & # carbon in protein
-            (feature_lists[:, 1, C.feature_list_index] == 1) & # carbon in ligand
-            (feature_lists[:, 0, Features.HYDROPHOBIC]== 1) & # atom is hydrophobic in protein
-            (feature_lists[:, 1, Features.HYDROPHOBIC] == 1) &  # atom is hydrophobic in ligand
-            (surface_dist >= p1) & (surface_dist < p2)
-        ] = (p2 - surface_dist[
-            (feature_lists[:, 0, C.feature_list_index] == 1) & # carbon in protein
-            (feature_lists[:, 1, C.feature_list_index] == 1) & # carbon in ligand
-            (feature_lists[:, 0, Features.HYDROPHOBIC]== 1) & # atom is hydrophobic in protein
-            (feature_lists[:, 1, Features.HYDROPHOBIC] == 1) &  # atom is hydrophobic in ligand
-            (surface_dist >= p1) & (surface_dist < p2)
-        ])/(p2 - p1)
+        hyph[valid_hydrophobic_bond_ids] = np.where(
+            surface_dist[valid_hydrophobic_bond_ids] < p1, 1,
+            np.where(
+                (
+                    surface_dist[valid_hydrophobic_bond_ids] >= p1
+                ) & (
+                    surface_dist[valid_hydrophobic_bond_ids] < p2
+                ), p2 - surface_dist[valid_hydrophobic_bond_ids]/(p2 -p1),
+                0
+            )
+        )
 
         return hyph
-    
+
+    def possible_hydrophobic_bonds(self, valid_pairs):
+        is_hydrophobic = lambda p_atom, l_atom: p_atom == C and l_atom == C and p_atom.hydrophobic and l_atom.hydrophobic
+        return [
+            HydrophobicPair(idx, self.protein.atoms[pair[1]], self.ligand.atoms[pair[0]])
+            for idx, pair in enumerate(valid_pairs) if is_hydrophobic(self.protein.atoms[pair[1]], self.ligand.atoms[pair[0]])
+        ]
+
 
     def hydrogenbond(self, surface_dist, possible_hydrogen_bonds):
         h1 = -0.7
@@ -154,13 +150,13 @@ class VinaScore:
         repulsion = np.sum(self.repulsion(surface_dist))
 
         valid_pairs = subset_by_distance(valid_pairs, distances, 4)
-        feature_lists = subset_by_distance(feature_lists, distances, 4)
         surface_dist = subset_by_distance(surface_dist, distances, 4)
 
-        hydrophobic = self.hydrophobic(surface_dist, feature_lists)
-
         possible_hydrogen_bonds = self.possible_hydrogen_bonds(valid_pairs)
+        possible_hydrophobic_bonds = self.possible_hydrophobic_bonds(valid_pairs)
+
         hydrogen_bonds = self.hydrogenbond(surface_dist, possible_hydrogen_bonds)
+        hydrophobic = self.hydrophobic(surface_dist, possible_hydrophobic_bonds)
 
         total_energy = self.W1 * gauss1 + self.W2 * gauss2 + self.W3 * repulsion +\
             np.sum(self.W4 * hydrophobic + self.W5 * hydrogen_bonds)
