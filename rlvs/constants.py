@@ -1,8 +1,4 @@
-from collections import namedtuple
 from rlvs.molecule_world.named_atom import NamedAtom
-
-HydrogenBondPair = namedtuple("HydrogenBondPair", ["idx", "donor", "acceptor"])
-HydrophobicPair = namedtuple("HydrophobicPair", ["idx", "p_atom", "l_atom"])
 
 class ComplexConstants:
     DISTANCE_THRESHOLD = 75

@@ -1,5 +1,6 @@
 import numpy as np
-from rlvs.constants import H, C, O, N, S, Features, Vina, HydrogenBondPair, HydrophobicPair
+from rlvs.constants import H, C, O, N, S, Features, Vina
+from ..bond import HydrogenBond, HydrophobicBond
 from rlvs.agents.utils import filter_by_distance, to_numpy
 
 class VinaScore:
@@ -57,7 +58,7 @@ class VinaScore:
     def possible_hydrophobic_bonds(self, valid_pairs):
         is_hydrophobic = lambda p_atom, l_atom: p_atom == C and l_atom == C and p_atom.hydrophobic and l_atom.hydrophobic
         return [
-            HydrophobicPair(idx, self.protein.atoms[pair[1]], self.ligand.atoms[pair[0]])
+            HydrophobicBond(idx, self.protein.atoms[pair[1]], self.ligand.atoms[pair[0]])
             for idx, pair in enumerate(valid_pairs) if is_hydrophobic(self.protein.atoms[pair[1]], self.ligand.atoms[pair[0]])
         ]
 
@@ -107,13 +108,13 @@ class VinaScore:
         ]
 
         return [
-            HydrogenBondPair(pair[0], pair[1], pair[2]) for pair in valid_pair_objects
+            HydrogenBond(pair[0], pair[1], pair[2]) for pair in valid_pair_objects
             if (
                 len(pair[1].hydrogens) > 0 and pair[2].acceptor and 
                     is_H_bond_functional_group(pair[1], pair[2])
             )
         ] + [
-            HydrogenBondPair(pair[0], pair[2], pair[1]) for pair in valid_pair_objects
+            HydrogenBond(pair[0], pair[2], pair[1]) for pair in valid_pair_objects
             if (
                 len(pair[2].hydrogens) > 0 and pair[1].acceptor and 
                     is_H_bond_functional_group(pair[1], pair[2])
