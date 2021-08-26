@@ -37,7 +37,31 @@ class Features:
     VDWr = 18
     COORD = slice(3)
 
-    
+
+RESIDUES = {
+    "ALA": 0,
+    "ARG": 1,
+    "ASN": 2,
+    "ASP": 3,
+    "CYS": 4,
+    "GLU": 5,
+    "GLN": 6,
+    "GLY": 7,
+    "HIS": 8,
+    "ILE": 9,
+    "LEU": 10,
+    "LYS": 11,
+    "MET": 12,
+    "PHE": 13,
+    "PRO": 14,
+    "SER": 15,
+    "THR": 16,
+    "TRP": 17,
+    "TYR": 18,
+    "VAL": 19,
+    "XXX": 20
+}
+
 
 
 H = NamedAtom(1, 'H', 3)

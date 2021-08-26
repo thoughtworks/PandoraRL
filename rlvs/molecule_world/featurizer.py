@@ -8,6 +8,8 @@ import torch
 from torch_geometric.data import Data
 from .molecule import MoleculeType
 
+from rlvs.constants import RESIDUES
+
 ob.obErrorLog.SetOutputLevel(0)
 
 
@@ -35,28 +37,7 @@ class Featurizer():
         ]
 
 
-        self.residues = {
-            "ALA": 0,
-            "ARG": 1,
-            "ASN": 2,
-            "ASP": 3,
-            "CYS": 4,
-            "GLU": 5,
-            "GLN": 6,
-            "GLY": 7,
-            "HIS": 8,
-            "ILE": 9,
-            "LEU": 10,
-            "LYS": 11,
-            "MET": 12,
-            "PHE": 13,
-            "PRO": 14,
-            "SER": 15,
-            "THR": 16,
-            "TRP": 17,
-            "TYR": 18,
-            "VAL": 19
-        }
+        self.residues = RESIDUES
 
         for code, (atom, name) in enumerate(atom_classes):
             if type(atom) is list:
@@ -128,7 +109,7 @@ class Featurizer():
         residue = np.zeros(len(self.residues), dtype=int)
 
         if atom.molecule_type == MoleculeType.PROTEIN:
-            residue[self.residues[atom.residue.upper()]] = 1
+            residue[self.residues.get(atom.residue.upper(), 20)] = 1
 
         features.extend(named_features)
         features.extend([int(atom.is_heavy_atom)])
