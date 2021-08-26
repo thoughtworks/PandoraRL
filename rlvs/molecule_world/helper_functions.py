@@ -2,17 +2,9 @@ from openbabel import pybel
 from openbabel import openbabel as ob
 from os import path
 import numpy as np
-from .molecule import Molecule
 from .complex import Complex
-from .featurizer import Featurizer
 
 ob.obErrorLog.SetOutputLevel(0)
-
-def euclidian(point_1, point_2):
-    vec_1 = np.array(point_1)
-    vec_2 = np.array(point_2)
-    
-    return np.linalg.norm(vec_1 - vec_2)
 
 def smiles_to_OB(smile_string, prepare=False):
     mol_py = pybel.readstring("smi", smile_string)
@@ -36,29 +28,3 @@ def read_to_OB(filename, filetype, prepare=False):
         obmol = mol_py.OBMol
 
     return obmol
-
-def OB_to_mol(obmol, mol_type, path=None):
-    f = Featurizer()
-    # remove featurizer. Embed into molecule
-    # molecule accepts obmol, and all the required features are given by the molecule instead of featurizer
-    nodes, canon_adj_list, data = f.get_mol_features(obmol=obmol, molecule_type=mol_type, bond_verbose=0)
-    mol = Molecule(atom_features=nodes, canon_adj_list=canon_adj_list, data=data, path=path, molecule_type=mol_type)
-    return mol
-
-def mol_to_OB(mol, filetype, scaler, prepare):
-    all_features = mol.get_ordered_features()
-    if filetype=="smiles_string":
-        obmol = smiles_to_OB(mol.path, prepare=prepare)
-    else:   
-        obmol = read_to_OB(mol.path, filetype, prepare=prepare)
-    assert(obmol.NumAtoms()==all_features.shape[0])
-    for atom_id, atom in enumerate(ob.OBMolAtomIter(obmol)):
-        atom.SetVector(*(all_features[atom_id, 0:3]))
-
-    return obmol
-
-def OBs_to_file(obmol_ligand, filename, filetype):
-
-    mol_py = pybel.Molecule(obmol_ligand)
-    mol_py.write(format=filetype, filename=filename, overwrite=True)
-    return

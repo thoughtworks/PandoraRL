@@ -8,7 +8,7 @@ from openbabel import openbabel as ob
 from scipy.spatial.transform import Rotation
 from .rmsd import RMSD
 
-from .helper_functions import read_to_OB, mol_to_OB
+from .helper_functions import read_to_OB
 
 class MoleculeType(IntEnum):
     PROTEIN = -1
