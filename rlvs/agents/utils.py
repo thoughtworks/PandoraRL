@@ -69,7 +69,7 @@ def filter_by_distance(protein, ligand, distance_threshold=4):
 
 def interacting_edges(protein, ligand):
     n_p_atoms = len(protein.atoms)
-    c_alpha = [atom.idx for atom in protein.atoms.where(lambda x: x.is_c_alpha)]
+    c_alpha = [atom.idx for atom in protein.atoms.where(lambda x: x.is_heavy_atom)]
 
     heavy_element = np.array([
         atom.idx for atom in ligand.atoms.where(lambda x: x.is_heavy_atom)
