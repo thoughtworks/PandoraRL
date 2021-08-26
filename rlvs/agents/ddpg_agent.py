@@ -31,7 +31,7 @@ class DDPGAgentGNN:
     EXPLORATION_EPISODES = AgentConstants.EXPLORATION_EPISODES
 
 
-    def __init__(self, env, log_filename, weights_path, warmup=32, prate=0.00005, is_training=1):
+    def __init__(self, env, log_filename, weights_path, complex_path=None, warmup=32, prate=0.00005, is_training=1):
         self.input_shape = env.input_shape
         self.action_shape = env.action_space.n_outputs
         self.eps = 1.0
@@ -83,6 +83,7 @@ class DDPGAgentGNN:
             level=logging.DEBUG
         )
         self.weights_path = weights_path
+        self.complex_path = complex_path
 
     def memorize(self, state, action, reward, next_state, done):
         self.memory.add_sample({
@@ -244,6 +245,7 @@ class DDPGAgentGNN:
 
             if i_episode%10 == 0:
                 self.save_weights(self.weights_path)
+                self.env.save_complex_files(f'{self.complex_path}_{i_episode}')
 
             i_episode += 1
 

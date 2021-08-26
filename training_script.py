@@ -13,6 +13,7 @@ path_prefix = f"{folder}run{run_id}_"
 agent = DDPGAgentGNN(
     env,
     weights_path=path_prefix+"weights_intermediate",
+    complex_path=path_prefix+"ligand_intermediate",
     log_filename=path_prefix+"training_log.log"
 )
 actions = agent.play(50000)
