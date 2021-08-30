@@ -212,7 +212,10 @@ class DDPGAgentGNN:
                     critic_loss, actor_loss = self.update_network()
                     critic_losses.append(critic_loss)
                     actor_losses.append(actor_loss)
-                    
+
+                if (num_steps + 1) % 20 and i_episode > 100 == 0:
+                    self.env.save_complex_files(f'{self.complex_path}_{i_episode}_{num_steps}')
+
                 num_steps += 1
                 
             returns.append([
