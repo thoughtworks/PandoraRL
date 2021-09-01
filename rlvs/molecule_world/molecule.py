@@ -1,5 +1,4 @@
 import numpy as np
-from enum import IntEnum
 import torch
 
 from openbabel import pybel
@@ -9,10 +8,7 @@ from scipy.spatial.transform import Rotation
 from .rmsd import RMSD
 
 from .helper_functions import read_to_OB
-
-class MoleculeType(IntEnum):
-    PROTEIN = -1
-    LIGAND = 1
+from .types import MoleculeType
 
 
 class Molecule:

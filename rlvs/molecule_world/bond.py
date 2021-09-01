@@ -1,12 +1,8 @@
 from collections import namedtuple
 import numpy as np
 import torch
-from enum import IntEnum
 
-class BondType(IntEnum):
-    COVALENT = 0
-    HYDROGEN = 1
-    HYDROPHOBIC = 2
+from .types import MoleculeType, BondType
 
 
 class Bond:
@@ -64,17 +60,23 @@ class Bond:
         cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
         angle = np.arccos(cosine_angle)
 
-        return np.degrees(angle)   
+        return np.degrees(angle)
+
+    def update_bond_type(self, bond_type):
+        if self.bond_type is None:
+            self.bond_type = bond_type
+        else:
+            self.bond_type = self.bond_type | bond_type
 
 
 class InterMolecularBond(Bond):
-    def __init__(self, p_atom, l_atom, bond_length, update_edge=True, bond_type=None, ligand_offset=0):
+    def __init__(self, atom_a, atom_b, bond_length, update_edge=True, bond_type=None, ligand_offset=0):
         super(
             InterMolecularBond, self
-        ).__init__(p_atom, l_atom, bond_length, update_edge, bond_type)
+        ).__init__(atom_a, atom_b, bond_length, update_edge, bond_type)
 
-        self.l_atom = l_atom
-        self.p_atom = p_atom
+        self.p_atom = atom_a if atom_a.molecule_type == MoleculeType.PROTEIN else atom_b
+        self.l_atom = atom_a if atom_a.molecule_type == MoleculeType.LIGAND else atom_b
         self.ligand_offset = ligand_offset
 
     @property
@@ -115,3 +117,4 @@ class HydrophobicBond(InterMolecularBond):
         ).__init__(p_atom, l_atom, None,
                    update_edge=False, bond_type=BondType.HYDROPHOBIC, ligand_offset=ligand_offset)
         self.idx = idx
+

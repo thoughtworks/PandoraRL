@@ -2,9 +2,9 @@ import numpy as np
 import torch
 
 from openbabel import openbabel as ob
-from .molecule import MoleculeType
+from .types import MoleculeType, BondType
 from .featurizer import Featurizer
-from .bond import Bond, BondType
+from .bond import Bond
 
 from rlvs.constants import H
 

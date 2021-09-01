@@ -1,6 +1,7 @@
 import numpy as np
-from rlvs.constants import H, C, O, N, S, Features, Vina
+from rlvs.constants import H, Features, Vina
 from ..bond import HydrogenBond, HydrophobicBond
+from ..types import BondType
 from rlvs.agents.utils import filter_by_distance, to_numpy
 
 class VinaScore:
@@ -34,6 +35,32 @@ class VinaScore:
 
         return rep
 
+    def possible_hydrogen_bonds(self, valid_pairs):
+        valid_pair_objects = [
+            [idx, self.ligand.atoms[pair[0]], self.protein.atoms[pair[1]]]
+            for idx, pair in enumerate(valid_pairs)
+        ]
+
+        return [
+            HydrogenBond(pair[0], pair[1], pair[2]) for pair in valid_pair_objects
+            if BondType.is_hydrogen_bond(pair[1], pair[2])
+        ] + [
+            HydrogenBond(pair[0], pair[2], pair[1]) for pair in valid_pair_objects
+            if BondType.is_hydrogen_bond(pair[2], pair[1])
+        ]
+
+    def possible_hydrophobic_bonds(self, valid_pairs):
+        return [
+            HydrophobicBond(
+                idx,
+                self.protein.atoms[pair[1]],
+                self.ligand.atoms[pair[0]]
+            ) for idx, pair in enumerate(valid_pairs) if BondType.is_hydrophobic(
+                    self.protein.atoms[pair[1]], self.ligand.atoms[pair[0]]
+            )
+        ]
+
+
     def hydrophobic(self, surface_dist, possible_hydrophobic_bonds):
         p1 = 0.5
         p2 = 1.5
@@ -54,14 +81,6 @@ class VinaScore:
         )
 
         return hyph
-
-    def possible_hydrophobic_bonds(self, valid_pairs):
-        is_hydrophobic = lambda p_atom, l_atom: p_atom == C and l_atom == C and p_atom.hydrophobic and l_atom.hydrophobic
-        return [
-            HydrophobicBond(idx, self.protein.atoms[pair[1]], self.ligand.atoms[pair[0]])
-            for idx, pair in enumerate(valid_pairs) if is_hydrophobic(self.protein.atoms[pair[1]], self.ligand.atoms[pair[0]])
-        ]
-
 
     def hydrogenbond(self, surface_dist, possible_hydrogen_bonds):
         h1 = -0.7
@@ -97,29 +116,6 @@ class VinaScore:
         )
 
         return hybnd
-
-    def possible_hydrogen_bonds(self, valid_pairs):
-        is_H_bond_functional_group = lambda atom1, atom2: (O == atom1 and (N == atom2 or O == atom2)) or\
-            (N == atom1 and (O == atom2 or N == atom2 or S == atom2)) or (S == atom1 and N == atom2)
-
-        valid_pair_objects = [
-            [idx, self.ligand.atoms[pair[0]], self.protein.atoms[pair[1]]]
-            for idx, pair in enumerate(valid_pairs)
-        ]
-
-        return [
-            HydrogenBond(pair[0], pair[1], pair[2]) for pair in valid_pair_objects
-            if (
-                len(pair[1].hydrogens) > 0 and pair[2].acceptor and 
-                    is_H_bond_functional_group(pair[1], pair[2])
-            )
-        ] + [
-            HydrogenBond(pair[0], pair[2], pair[1]) for pair in valid_pair_objects
-            if (
-                len(pair[2].hydrogens) > 0 and pair[1].acceptor and 
-                    is_H_bond_functional_group(pair[1], pair[2])
-            )
-        ]
 
     def total_energy(self):
         valid_pairs = filter_by_distance(self.protein, self.ligand, distance_threshold=8)
