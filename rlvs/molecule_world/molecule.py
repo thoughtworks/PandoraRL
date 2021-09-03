@@ -67,11 +67,10 @@ class Molecule:
         ''' returns homogeneous form of coordinates (column major form) for translation and rotation matrix multiplication '''
         return np.concatenate((self.get_coords(), np.ones((self.get_coords().shape[0], 1))), axis = 1).T
 
-    # def update_pose(self, x, y, z, roll, pitch, yaw):
-    def update_pose(self, x, y, z):
+    def update_pose(self, x=0, y=0, z=0, roll=0, pitch=0, yaw=0):
         old_coords = np.copy(self.get_coords())
         self.translate(x, y, z)
-        # self.rotate('xyz', [roll, pitch, yaw], True)
+        self.rotate('xyz', [roll, pitch, yaw], True)
         new_coords = self.get_coords()
         delta_change = np.abs(new_coords - old_coords)
         return delta_change.mean(axis = 0)
