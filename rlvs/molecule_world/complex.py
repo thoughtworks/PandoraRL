@@ -80,7 +80,7 @@ class Complex:
         vina_score = self.vina.total_energy()
         
         if complex_saperation > ComplexConstants.DISTANCE_THRESHOLD or\
-           vina_score > ComplexConstants.VINA_SCORE_THRESHOLD:
+           vina_score > ComplexConstants.VINA_SCORE_THRESHOLD or vina_score == 0:
             raise Exception(f"BAD State: VinaScore: {vina_score}, distance: {complex_saperation}")
 
         return -vina_score
