@@ -2,12 +2,12 @@ from rlvs.constants import ComplexConstants  # , AgentConstants
 from rlvs.molecule_world.env import GraphEnv
 from rlvs.agents.ddpg_agent import DDPGAgentGNN
 
+import os
+
 ComplexConstants.DISTANCE_THRESHOLD = 50
 
 env = GraphEnv()
-print(env.input_shape)
-
-run_id = 0
+run_id = os.getenv('RUNID', 0)
 folder = "./model/"
 path_prefix = f"{folder}run{run_id}_"
 agent = DDPGAgentGNN(
