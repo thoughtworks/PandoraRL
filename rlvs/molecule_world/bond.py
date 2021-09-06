@@ -6,7 +6,7 @@ from .types import MoleculeType, BondType
 
 
 class Bond:
-    def __init__(self, atom_a, atom_b, bond_length, update_edge=True, bond_type=None, ob_bond = None):
+    def __init__(self, atom_a, atom_b, bond_length, update_edge=True, bond_type=0, ob_bond = None):
         self.atom_a = atom_a
         self.atom_b = atom_b
         self.distance = np.linalg.norm(atom_a.coord - atom_b.coord)
@@ -34,6 +34,13 @@ class Bond:
             [self.atom_a.idx, self.atom_b.idx],
             [self.atom_b.idx, self.atom_a.idx]
         ], dtype=torch.long)
+
+    @property
+    def feature(self):
+        encoding = BondType.encoding(self.bond_type)
+        encoding.extend([self.distance])
+        return encoding
+
 
     def saperation(self, dest, named_atom):
         source = self.atom_a if self.atom_a == named_atom else \
@@ -94,11 +101,6 @@ class InterMolecularBond(Bond):
             [self.p_atom.idx, self.l_atom.idx + self.ligand_offset],
             [self.l_atom.idx + self.ligand_offset, self.p_atom.idx]
         ], dtype=torch.long)
-
-    @property
-    def feature(self):
-        encoding = BondType.encoding(self.bond_type)
-        return np.append(encoding, self.distance)
 
 
 class HydrogenBond(InterMolecularBond):

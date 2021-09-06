@@ -6,7 +6,7 @@ import numpy as np
 
 import torch
 from torch_geometric.data import Data
-from .molecule import MoleculeType
+from .types import MoleculeType
 
 from rlvs.constants import RESIDUES
 

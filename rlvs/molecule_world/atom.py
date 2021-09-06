@@ -69,6 +69,14 @@ class Atoms:
             [bond.edge for bond in self.bonds]
         ).t().contiguous()
 
+        self.edge_attr = torch.vstack([
+            torch.tensor([
+                bond.feature,
+                bond.feature
+            ], dtype=torch.float32)
+            for bond in self.bonds
+        ])
+
     @property
     def x(self):
         return self.features

@@ -50,11 +50,15 @@ def batchify(molecules, data=True):
         for index, mol in enumerate(molecules)
     ])
 
+    edge_attr = torch.vstack([
+        data_function(mol).edge_attr for mol in molecules
+    ])
+
     batch = torch.tensor(np.concatenate(
         [[i] * l for i, l in enumerate(data_count)]
     ))
 
-    return Data(x=X, edge_index=edge_index, batch=batch)
+    return Data(x=X, edge_index=edge_index, batch=batch, edge_attr=edge_attr)
 
 def filter_by_distance(protein, ligand, distance_threshold=4):
     ligand_data = ligand.data.x

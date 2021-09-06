@@ -33,6 +33,7 @@ class DDPGAgentGNN:
 
     def __init__(self, env, log_filename, weights_path, complex_path=None, warmup=32, prate=0.00005, is_training=1):
         self.input_shape = env.input_shape
+        self.edge_shape = env.edge_shape
         self.action_shape = env.action_space.n_outputs
         self.eps = 1.0
         self.decay_epsilon = 1/50000
@@ -45,12 +46,14 @@ class DDPGAgentGNN:
 
         self._actor = ActorGNN(
             self.input_shape,
+            self.edge_shape,
             self.action_shape,
             self.ACTOR_LEARNING_RATE,
             self.TAU
         )
         self._actor_target = ActorGNN(
             self.input_shape,
+            self.edge_shape,
             self.action_shape,
             self.ACTOR_LEARNING_RATE,
             self.TAU
@@ -60,12 +63,14 @@ class DDPGAgentGNN:
 
         self._critiq = CriticGNN(
             self.input_shape,
+            self.edge_shape,
             self.action_shape,
             self.CRITIQ_LEARNING_RATE,
             self.TAU
         )        
         self._critiq_target = CriticGNN(
             self.input_shape,
+            self.edge_shape,
             self.action_shape,
             self.CRITIQ_LEARNING_RATE,
             self.TAU

@@ -28,6 +28,14 @@ class Complex:
             bond.edge for bond in self.inter_molecular_interactions
         ]).t().contiguous()
 
+        self.inter_molecular_edge_attr = torch.vstack([
+            torch.tensor([
+                bond.feature,
+                bond.feature
+            ], dtype=torch.float32)
+            for bond in self.inter_molecular_interactions
+        ])
+
     def crop(self, x, y, z):
         self.protein.crop(self.ligand.get_centroid(), x, y, z)
 
@@ -47,7 +55,8 @@ class Complex:
                 self.ligand.atoms[l_idx],
                 None,
                 update_edge=False,
-                ligand_offset=n_p_atoms
+                ligand_offset=n_p_atoms,
+                bond_type=0
             ) for l_idx, p_idx in adg_mat ]
 
         for edge in inter_molecular_edges:
@@ -140,5 +149,15 @@ class Complex:
             batched.edge_index,
             self.interacting_edges
             ])
+
+        edge_attr = torch.vstack([
+            batched.edge_attr,
+            self.inter_molecular_edge_attr
+        ])
         batch = torch.tensor([0] * batched.x.shape[0])
-        return Data(x=batched.x.detach().clone(), edge_index=edge_index.detach().clone(), batch=batch)
+        
+        return Data(
+            x=batched.x.detach().clone(),
+            edge_index=edge_index.detach().clone(),
+            edge_attr=edge_attr.detach().clone(),
+            batch=batch)

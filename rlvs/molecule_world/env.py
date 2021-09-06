@@ -68,6 +68,7 @@ class GraphEnv:
             self._complex = complex
         
         self.input_shape = self._complex.protein.get_atom_features().shape[1]
+        self.edge_shape = self._complex.inter_molecular_edge_attr.shape[1]
 
     def reset(self):
         self._complex.reset_ligand()
