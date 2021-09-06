@@ -9,7 +9,7 @@ class Bond:
     def __init__(self, atom_a, atom_b, bond_length, update_edge=True, bond_type=None, ob_bond = None):
         self.atom_a = atom_a
         self.atom_b = atom_b
-        self.distance = np.sqrt(np.sum((atom_a.coord - atom_b.coord) ** 2))
+        self.distance = np.linalg.norm(atom_a.coord - atom_b.coord)
         self.lenght = bond_length
         self.bond_type = bond_type
 
@@ -97,8 +97,7 @@ class InterMolecularBond(Bond):
 
     @property
     def feature(self):
-        encoding = np.zeros(len(BondType), dtype=int)
-        encoding[self.bond_type] = 1
+        encoding = BondType.encoding(self.bond_type)
         return np.append(encoding, self.distance)
 
 
