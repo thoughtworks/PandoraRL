@@ -1,5 +1,5 @@
 from enum import IntEnum
-from rlvs.constants import H, C, O, N, S
+from .named_atom import H, C, O, N, S, F, Cl, Br, I
 
 class BondType(IntEnum):
     COVALENT = 0

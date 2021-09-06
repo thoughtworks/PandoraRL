@@ -5,8 +5,7 @@ from openbabel import openbabel as ob
 from .types import MoleculeType, BondType
 from .featurizer import Featurizer
 from .bond import Bond
-
-from rlvs.constants import H
+from .named_atom import H
 
 
 class Atoms:

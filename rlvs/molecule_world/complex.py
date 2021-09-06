@@ -6,8 +6,9 @@ import torch
 from rlvs.agents.utils import batchify, interacting_edges, \
     molecule_median_distance, timeit
 from torch_geometric.data import Data
-from rlvs.constants import ComplexConstants, H
+from rlvs.constants import ComplexConstants
 
+from .named_atom import H
 from .scoring.vina_score import VinaScore
 from .bond import InterMolecularBond
 from .types import BondType

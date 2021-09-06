@@ -1,9 +1,9 @@
 import numpy as np
-from rlvs.constants import H, Features, Vina
+from rlvs.constants import Features, Vina
 from ..bond import HydrogenBond, HydrophobicBond
 from ..types import BondType
 from rlvs.agents.utils import filter_by_distance, to_numpy
-
+from ..named_atom import H
 class VinaScore:
     W1 = -0.0356
     W2 = -0.00516
