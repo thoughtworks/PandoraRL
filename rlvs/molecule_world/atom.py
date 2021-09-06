@@ -159,4 +159,19 @@ class Atom:
     def update_hydrogens(self, neighbour, bond):
         if self.donor and neighbour == H:
             self.hydrogens = np.append(self.hydrogens, bond)
-            
+
+    @property
+    def amide(self):
+        for bond in self.bonds:
+            if bond.is_amide:
+                return True
+
+        return False
+
+    @property
+    def carbonyl(self):
+        for bond in self.bonds:
+            if bond.is_carbonyl:
+                return True
+
+        return False

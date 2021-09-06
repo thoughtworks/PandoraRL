@@ -6,13 +6,22 @@ from .types import MoleculeType, BondType
 
 
 class Bond:
-    def __init__(self, atom_a, atom_b, bond_length, update_edge=True, bond_type=None):
+    def __init__(self, atom_a, atom_b, bond_length, update_edge=True, bond_type=None, ob_bond = None):
         self.atom_a = atom_a
         self.atom_b = atom_b
         self.distance = np.sqrt(np.sum((atom_a.coord - atom_b.coord) ** 2))
         self.lenght = bond_length
         self.bond_type = bond_type
 
+        self.is_amide = None
+        self.is_aromatic = None
+        self.is_carbonyl = None
+
+        if ob_bond is not None:
+            self.is_amide = ob_bond.IsAmide()
+            self.is_aromatic = ob_bond.IsAromatic()
+            self.is_carbonyl = ob_bond.IsCarbonyl()
+            
         if update_edge:
             atom_a.add_bond(self)
             atom_b.add_bond(self)

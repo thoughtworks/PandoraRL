@@ -55,9 +55,27 @@ class Complex:
                BondType.is_hydrogen_bond(edge.l_atom, edge.p_atom):
                 edge.update_bond_type(BondType.HYDROGEN)
 
-            if BondType.is_hydrophobic(edge.p_atom, edge.l_atom):
+            if BondType.is_hydrophobic_1(edge.p_atom, edge.l_atom):
                 edge.update_bond_type(BondType.HYDROPHOBIC)
-            
+
+            if BondType.is_multi_polar_halogen(edge.p_atom, edge.l_atom):
+                edge.update_bond_type(BondType.MULTI_POLAR_HALOGEN)
+
+            if BondType.is_halogen(edge.p_atom, edge.l_atom):
+                edge.update_bond_type(BondType.HALOGEN_BOND)
+
+            if BondType.is_amide_stacking(edge.p_atom, edge.l_atom):
+                edge.update_bond_type(BondType.AMIDE_STACKING)
+
+            if BondType.is_pi_stacking(edge.p_atom, edge.l_atom):
+                edge.update_bond_type(BondType.PI_STACKING)
+
+            if BondType.is_salt_bridge(edge.p_atom, edge.l_atom):
+                edge.update_bond_type(BondType.SALT_BRIDGE)
+
+            if BondType.is_cation_pi(edge.p_atom, edge.l_atom):
+                edge.update_bond_type(BondType.CATION_PI)
+                
         return inter_molecular_edges
         
 
