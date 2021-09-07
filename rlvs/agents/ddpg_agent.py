@@ -31,7 +31,7 @@ class DDPGAgentGNN:
     EXPLORATION_EPISODES = AgentConstants.EXPLORATION_EPISODES
 
 
-    def __init__(self, env, log_filename, weights_path, complex_path=None, warmup=32, prate=0.00005, is_training=1):
+    def __init__(self, env, weights_path, complex_path=None, warmup=32, prate=0.00005, is_training=1):
         self.input_shape = env.input_shape
         self.edge_shape = env.edge_shape
         self.action_shape = env.action_space.n_outputs
@@ -80,13 +80,6 @@ class DDPGAgentGNN:
         hard_update(self._actor_target, self._actor) # Make sure target is with the same weight
         hard_update(self._critiq_target, self._critiq)
 
-        logging.basicConfig(
-            filename=log_filename,
-            filemode='w',
-            format='%(message)s',
-            datefmt='%I:%M:%S %p',
-            level=logging.DEBUG
-        )
         self.weights_path = weights_path
         self.complex_path = complex_path
 
