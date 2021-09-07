@@ -5,7 +5,7 @@ from rlvs.agents.ddpg_agent import DDPGAgentGNN
 import os
 import logging
 
-ComplexConstants.DISTANCE_THRESHOLD = 50
+ComplexConstants.DISTANCE_THRESHOLD = 10
 
 run_id = os.getenv('RUNID', 0)
 folder = "./model/"

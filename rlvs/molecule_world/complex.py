@@ -115,7 +115,7 @@ class Complex:
 
     
     def score(self):
-        complex_saperation = np.linalg.norm(self.protein.atoms.centroid - self.ligand.atoms.centroid)
+        complex_saperation = np.linalg.norm(self.original_ligand.atoms.centroid - self.ligand.atoms.centroid)
 
         print(
             "complex Stats: InterMolecularBond: ", self.inter_molecular_edges.shape,
