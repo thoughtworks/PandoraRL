@@ -131,6 +131,8 @@ class Complex:
 
         
         vina_score = self.vina.total_energy()
+
+        logging.debug(f"Centroid Saperation: {complex_saperation}, vina score: {vina_score}")
         
         if complex_saperation > ComplexConstants.DISTANCE_THRESHOLD or\
            vina_score > ComplexConstants.VINA_SCORE_THRESHOLD or vina_score == 0:
