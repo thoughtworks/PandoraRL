@@ -13,6 +13,8 @@ from .scoring.vina_score import VinaScore
 from .bond import InterMolecularBond
 from .types import BondType
 
+import logging
+
 class Complex:
     def __init__(self, protein, ligand, original_ligand, interacting_edges=None):
         self.protein = protein
@@ -35,6 +37,14 @@ class Complex:
             ], dtype=torch.float32)
             for bond in self.inter_molecular_interactions
         ])
+
+        logging.debug(
+            f"""complex Stats: InterMolecularBond: {self.inter_molecular_edges.shape},
+            Ligand Shape: {self.ligand.data.x.shape},
+            Protein Shape: {self.protein.data.x.shape},
+            Initial Vina Score: {self.vina.total_energy()}"""
+        )
+
 
     def crop(self, x, y, z):
         self.protein.crop(self.ligand.get_centroid(), x, y, z)
@@ -99,6 +109,7 @@ class Complex:
                 edge_count[BondType.CATION_PI] = edge_count.get(BondType.CATION_PI, 0) + 1
 
         print("Total updated intermolecular edges: ", edge_count)
+        logging.debug(f"Total updated intermolecular edges: {edge_count}")
         return inter_molecular_edges
         
 
