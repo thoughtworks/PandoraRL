@@ -64,6 +64,9 @@ class Complex:
                BondType.is_hydrogen_bond(edge.l_atom, edge.p_atom):
                 edge.update_bond_type(BondType.HYDROGEN)
 
+            if BondType.is_weak_hydrogen_bond(edge.p_atom, edge.l_atom):
+                edge.update_bond_type(BondType.WEAK_HYDROGEN)
+
             if BondType.is_hydrophobic_1(edge.p_atom, edge.l_atom):
                 edge.update_bond_type(BondType.HYDROPHOBIC)
 

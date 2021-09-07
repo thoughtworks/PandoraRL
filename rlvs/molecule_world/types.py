@@ -4,13 +4,14 @@ from .named_atom import H, C, O, N, S, F, Cl, Br, I
 class BondType(IntEnum):
     COVALENT = 1
     HYDROGEN = 2
-    HYDROPHOBIC = 4
-    PI_STACKING = 8
-    SALT_BRIDGE = 16
-    AMIDE_STACKING = 32
-    HALOGEN_BOND = 64
-    MULTI_POLAR_HALOGEN = 128
-    CATION_PI = 256
+    WEAK_HYDROGEN = 4
+    HYDROPHOBIC = 8
+    PI_STACKING = 16
+    SALT_BRIDGE = 32
+    AMIDE_STACKING = 64
+    HALOGEN_BOND = 128
+    MULTI_POLAR_HALOGEN = 256
+    CATION_PI = 512
 
     @classmethod
     def encoding(cls, bond_type):
@@ -21,7 +22,7 @@ class BondType(IntEnum):
         is_H_bond_functional_group = lambda atom1, atom2: (O == atom1 and (N == atom2 or O == atom2)) or\
             (N == atom1 and (O == atom2 or N == atom2 or S == atom2)) or (S == atom1 and N == atom2)
 
-        return len(atom1.hydrogens) > 0 and atom2.acceptor and \
+        return atom1.has_hydrogen and atom2.acceptor and \
             is_H_bond_functional_group(atom1, atom2)
 
     @staticmethod
@@ -36,6 +37,14 @@ class BondType(IntEnum):
             p_atom == C and l_atom in [F, Cl, Br, I]
         ) or (
             p_atom == S and l_atom == C and l_atom.aromatic
+        )
+
+    @staticmethod
+    def is_weak_hydrogen_bond(atom1, atom2):
+        return (
+            atom1 == O and atom2 == C and atom2.has_hydrogen
+        ) or (
+            atom2 == O and atom1 == C and atom1.has_hydrogen
         )
 
     @staticmethod

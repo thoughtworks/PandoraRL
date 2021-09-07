@@ -155,6 +155,10 @@ class Atom:
         return self.name == 'metal' and self.atomic_num > 20
 
     @property
+    def has_hydrogen(self):
+        return len(self.hydrogens) > 0
+
+    @property
     def is_heavy_atom(self):
         return self.atomic_num > 5
 
