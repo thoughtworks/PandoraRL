@@ -16,7 +16,7 @@ from .types import BondType
 import logging
 
 class Complex:
-    def __init__(self, protein, ligand, original_ligand, interacting_edges=None):
+    def __init__(self, protein, ligand, original_ligand):
         self.protein = protein
         self.ligand = ligand
         self.original_ligand = original_ligand 
@@ -24,8 +24,6 @@ class Complex:
         self.vina = VinaScore(protein, ligand)
         
         self.inter_molecular_interactions = self.inter_molecular_bonds()
-        self.interacting_edges = interacting_edges
-        self.update_interacting_edges()
         self.inter_molecular_edges = torch.vstack([
             bond.edge for bond in self.inter_molecular_interactions
         ]).t().contiguous()
@@ -146,20 +144,6 @@ class Complex:
     def reset_ligand(self):
         self.ligand.set_coords(self.original_ligand.get_coords().data.numpy())
         
-    def update_interacting_edges(self):
-        if self.interacting_edges is not None:
-            print(
-            "complex Stats: interacting Edges: ", self.inter_molecular_bonds.shape,
-            "Ligand Shape", self.ligand.data.x.shape,
-            "Protein Shape", self.protein.data.x.shape
-            )
-
-            return
-        
-        self.interacting_edges = interacting_edges(
-            self.protein, self.ligand
-        )
-
     @property
     def rmsd(self):
         return self.ligand.rmsd(self.original_ligand)
