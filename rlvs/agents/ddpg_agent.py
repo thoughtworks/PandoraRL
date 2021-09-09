@@ -268,7 +268,6 @@ class DDPGAgentGNN:
         
 
     def load_weights(self, path_actor, path_critic):
-        model((PATH))
         self._critiq.load_state_dict(torch.load(path_critic))
         self._actor.load_state_dict(torch.load(path_actor))
 
