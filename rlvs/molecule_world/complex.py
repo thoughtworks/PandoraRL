@@ -174,7 +174,7 @@ class Complex:
         batched = batchify([self.protein, self.ligand], data=False)
         edge_index = torch.hstack([
             batched.edge_index,
-            self.interacting_edges
+            self.inter_molecular_edges
             ])
 
         edge_attr = torch.vstack([
