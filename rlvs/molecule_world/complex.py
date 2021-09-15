@@ -184,3 +184,10 @@ class Complex:
             edge_index=edge_index.detach().clone(),
             edge_attr=edge_attr.detach().clone(),
             batch=batch)
+
+    def save(self, path, filetype=None):
+        ligand_filetype = filetype if filetype is not None else self.ligand.filetype
+        protein_filetype =  self.protein.filetype
+        self.ligand.save(f'{path}.{ligand_filetype}', ligand_filetype)
+        self.protein.save(f'{path}_protein.{protein_filetype}', protein_filetype)
+

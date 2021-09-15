@@ -108,9 +108,7 @@ class GraphEnv:
         return reward, terminal
 
     def save_complex_files(self, path, filetype="pdb"):
-        filetype = filetype if filetype is not None else self._complex.ligand.filetype
-        self._complex.ligand.save(f'{path}.{filetype}', filetype)
-
+        self._complex.save(path, filetype)
         
 class TestGraphEnv(GraphEnv):
     def __init__(self, scaler, protein_path, ligand_path, protein_filetype, ligand_filetype):
