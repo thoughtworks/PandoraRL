@@ -11,11 +11,13 @@ from .named_atom import H
 class Atoms:
     def __init__(self, molecule_type, obmol, pdb_structure=None):
         self._atoms = []
-        featurizer = Featurizer(obmol)
+        self._cropped_atoms = []
+        self.featurizer = Featurizer(obmol)
         if molecule_type == MoleculeType.PROTEIN:
             pdb_atoms = [atom for atom in pdb_structure.get_atoms()]
             self._atoms = [
                 Atom(
+                    index,
                     (idx:=ob_atom.GetIndex()),
                     molecule_type,
                     pdb_atoms[idx].name,
@@ -26,19 +28,20 @@ class Atoms:
                     ob_atom.GetHeteroDegree(),
                     ob_atom.GetPartialCharge(),
                     ob.GetVdwRad(atm_no),
-                    featurizer.smarts_patterns[idx],
+                    self.featurizer.smarts_patterns[idx],
                     pdb_atoms[idx],
                     ob_atom.GetResidue().GetName()
                 )
-                for ob_atom in ob.OBMolAtomIter(obmol)
+                for index, ob_atom in enumerate(ob.OBMolAtomIter(obmol))
             ]
 
         elif molecule_type == MoleculeType.LIGAND:
             self._atoms = [
                 Atom(
+                    index,
                     (idx:=atom.GetIndex()),
                     molecule_type,
-                    featurizer.atom_codes[(atm_no:=atom.GetAtomicNum())],
+                    self.featurizer.atom_codes[(atm_no:=atom.GetAtomicNum())],
                     atm_no,
                     np.array([atom.GetX(), atom.GetY(), atom.GetZ()]),
                     atom.GetHyb(),
@@ -46,9 +49,9 @@ class Atoms:
                     atom.GetHeteroDegree(),
                     atom.GetPartialCharge(),
                     ob.GetVdwRad(atm_no),
-                    featurizer.smarts_patterns[idx]
+                    self.featurizer.smarts_patterns[idx]
                 )
-                for atom in ob.OBMolAtomIter(obmol)
+                for index, atom in enumerate(ob.OBMolAtomIter(obmol))
             ]
 
         self.bonds = [
@@ -61,21 +64,8 @@ class Atoms:
             for bond in ob.OBMolBondIter(obmol)
         ]
 
-        self.features = torch.tensor([
-            atom.features(featurizer) for atom in self._atoms
-        ], dtype=torch.float)
-
-        self.edge_index = torch.vstack(
-            [bond.edge for bond in self.bonds]
-        ).t().contiguous()
-
-        self.edge_attr = torch.vstack([
-            torch.tensor([
-                bond.feature,
-                bond.feature
-            ], dtype=torch.float32)
-            for bond in self.bonds
-        ])
+        self._update_features()
+        self._update_edges()
 
     @property
     def x(self):
@@ -96,6 +86,51 @@ class Atoms:
         for idx, coord in enumerate(coords):
             self._atoms[idx].coord = coord
 
+    def crop(self, condition):
+        
+        croped_bonds = []
+        for atom in self._atoms:
+            if not condition(atom):
+                croped_bonds = np.append(
+                    croped_bonds,
+                    atom.bonds
+                )
+
+        croped_bonds = set(croped_bonds)            
+        
+        self._atoms = [atom for atom in self._atoms if condition(atom)]
+        
+        for index, atom in enumerate(self._atoms):
+            atom.idx = index
+
+        for bond in croped_bonds:
+            bond.atom_a.bonds.remove(bond)
+            bond.atom_b.bonds.remove(bond)
+            self.bonds.remove(bond)
+            
+        self._update_features()
+        self._update_edges()
+
+    def _update_features(self):
+        self.features = torch.tensor([
+            atom.features(self.featurizer) for atom in self._atoms
+        ], dtype=torch.float)
+
+
+    def _update_edges(self):
+        self.edge_index = torch.vstack(
+            [bond.edge for bond in self.bonds]
+        ).t().contiguous()
+
+        self.edge_attr = torch.vstack([
+            torch.tensor([
+                bond.feature,
+                bond.feature
+            ], dtype=torch.float32)
+            for bond in self.bonds
+        ])
+
+        
     def __len__(self):
         return len(self._atoms)
 
@@ -111,7 +146,7 @@ class Atoms:
 
 class Atom:
     def __init__(
-            self, idx=-1, molecule_type=MoleculeType.LIGAND,
+            self, idx=-1, atom_idx=None, molecule_type=MoleculeType.LIGAND,
             name=None, atomic_num=None,
             coord=None, hyb=None, hvy_degree=None,
             hetro_degree=None, partial_charge=None,
@@ -120,6 +155,7 @@ class Atom:
             
     ):
         self.idx = idx
+        self.atom_idx = atom_idx
         self._type = molecule_type
         self.atomic_num = atomic_num
         self.name = name
@@ -139,7 +175,7 @@ class Atom:
         )
 
         self.residue = residue
-        self.bonds = np.array([])
+        self.bonds = []
         self.hydrogens = np.array([])
 
     @property
@@ -166,7 +202,7 @@ class Atom:
         return featurizer.featurize(self)
 
     def add_bond(self, bond):
-        self.bonds = np.append(self.bonds, bond)
+        self.bonds.append(bond)
 
     def update_hydrogens(self, neighbour, bond):
         if self.donor and neighbour == H:

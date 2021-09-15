@@ -47,6 +47,20 @@ class Complex:
     def crop(self, x, y, z):
         self.protein.crop(self.ligand.get_centroid(), x, y, z)
 
+        self.inter_molecular_interactions = self.inter_molecular_bonds()
+        self.inter_molecular_edges = torch.vstack([
+            bond.edge for bond in self.inter_molecular_interactions
+        ]).t().contiguous()
+
+        self.inter_molecular_edge_attr = torch.vstack([
+            torch.tensor([
+                bond.feature,
+                bond.feature
+            ], dtype=torch.float32)
+            for bond in self.inter_molecular_interactions
+        ])
+
+
     def vina_score(self):
         return self.vina.total_energy()
 

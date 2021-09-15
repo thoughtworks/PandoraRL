@@ -99,12 +99,12 @@ class Molecule:
         min_x, max_x = center_coord[:,0][0] - x, center_coord[:,0][0] + x
         min_y, max_y = center_coord[:,1][0] - y, center_coord[:,1][0] + y
         min_z, max_z = center_coord[:,2][0] - z, center_coord[:,2][0] + z
-        
-        mask = np.zeros(self.n_atoms, dtype=bool)
-        for i, (X,Y,Z) in enumerate(self.get_coords()):
-            mask[i] = check_range(X, min_x, max_x) and check_range(Y, min_y, max_y) and check_range(Z, min_z, max_z)
-            
-        self.apply_crop_mask(mask)
+
+        crop_condition = lambda atom: check_range(atom.coord[0], min_x, max_x) \
+            and check_range(atom.coord[1], min_y, max_y) \
+            and check_range(atom.coord[2], min_z, max_z)
+
+        self.atoms.crop(crop_condition)
 
     def apply_crop_mask(self, mask):
         self.atom_features = self.atom_features[mask, :]
