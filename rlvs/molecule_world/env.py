@@ -61,7 +61,7 @@ class GraphEnv:
         self.action_space = ActionSpace(action_bounds)
         
         if complex is None:
-            DataStore.init(crop=False)
+            DataStore.init(crop=True)
             self._complex = DataStore.next(False)            
             self._complex.randomize_ligand(self.action_space.n_outputs)
         else:
