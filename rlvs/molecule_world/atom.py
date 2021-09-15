@@ -56,6 +56,7 @@ class Atoms:
 
         self.bonds = [
             Bond(
+                bond.GetIdx(),
                 self._atoms[bond.GetBeginAtom().GetIndex()],
                 self._atoms[bond.GetEndAtom().GetIndex()],
                 bond.GetLength(),
@@ -96,7 +97,7 @@ class Atoms:
                     atom.bonds
                 )
 
-        croped_bonds = set(croped_bonds)            
+        croped_bonds = set(croped_bonds)
         
         self._atoms = [atom for atom in self._atoms if condition(atom)]
         

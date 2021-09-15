@@ -43,7 +43,6 @@ class Complex:
             Initial Vina Score: {self.vina.total_energy()}"""
         )
 
-
     def crop(self, x, y, z):
         self.protein.crop(self.ligand.get_centroid(), x, y, z)
 
@@ -59,7 +58,6 @@ class Complex:
             ], dtype=torch.float32)
             for bond in self.inter_molecular_interactions
         ])
-
 
     def vina_score(self):
         return self.vina.total_energy()

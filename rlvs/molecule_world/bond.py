@@ -6,7 +6,8 @@ from .types import MoleculeType, BondType
 
 
 class Bond:
-    def __init__(self, atom_a, atom_b, bond_length, update_edge=True, bond_type=0, ob_bond = None):
+    def __init__(self, idx, atom_a, atom_b, bond_length, update_edge=True, bond_type=0, ob_bond = None):
+        self.idx = idx
         self.atom_a = atom_a
         self.atom_b = atom_b
         self.distance = np.linalg.norm(atom_a.coord - atom_b.coord)
@@ -89,7 +90,7 @@ class InterMolecularBond(Bond):
     def __init__(self, atom_a, atom_b, bond_length, update_edge=True, bond_type=None, ligand_offset=0):
         super(
             InterMolecularBond, self
-        ).__init__(atom_a, atom_b, bond_length, update_edge, bond_type)
+        ).__init__(-1, atom_a, atom_b, bond_length, update_edge, bond_type)
 
         self.p_atom = atom_a if atom_a.molecule_type == MoleculeType.PROTEIN else atom_b
         self.l_atom = atom_a if atom_a.molecule_type == MoleculeType.LIGAND else atom_b
