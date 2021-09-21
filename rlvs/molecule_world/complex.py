@@ -127,15 +127,15 @@ class Complex:
     def score(self):
         complex_saperation = np.linalg.norm(self.original_ligand.atoms.centroid - self.ligand.atoms.centroid)
 
-        print(
-            "complex Stats: InterMolecularBond: ", self.inter_molecular_edges.shape,
-            "Ligand Shape", self.ligand.data.x.shape,
-            "Protein Shape", self.protein.data.x.shape,
-            "Centroid Saperation: ", complex_saperation
-        )
+        # print(
+        #     "complex Stats: InterMolecularBond: ", self.inter_molecular_edges.shape,
+        #     "Ligand Shape", self.ligand.data.x.shape,
+        #     "Protein Shape", self.protein.data.x.shape,
+        #     "Centroid Saperation: ", complex_saperation
+        # )
 
-        # rmsd = self.ligand.rmsd(self.original_ligand)
-        # rmsd_score = np.sinh(rmsd**0.25 + np.arcsinh(1))**-1
+        rmsd = self.ligand.rmsd(self.original_ligand)
+        rmsd_score = np.sinh(rmsd**0.25 + np.arcsinh(1))**-1
 
         # Introduce saperation as an exit criterio
 
@@ -145,10 +145,11 @@ class Complex:
         logging.debug(f"Centroid Saperation: {complex_saperation}, vina score: {vina_score}")
         
         if complex_saperation > ComplexConstants.DISTANCE_THRESHOLD or\
-           vina_score > ComplexConstants.VINA_SCORE_THRESHOLD or vina_score == 0:
+           rmsd > ComplexConstants.RMSD_THRESHOLD:
+           # vina_score > ComplexConstants.VINA_SCORE_THRESHOLD or vina_score == 0:
             raise Exception(f"BAD State: VinaScore: {vina_score}, distance: {complex_saperation}")
 
-        return -vina_score
+        return 1000 if self.perfect_fit else rmsd_score
 
     def randomize_ligand(self, action_shape):
         self.ligand.randomize(ComplexConstants.BOUNDS, action_shape)

@@ -1,12 +1,13 @@
 from rlvs.molecule_world.named_atom import NamedAtom
 
 class ComplexConstants:
-    DISTANCE_THRESHOLD = 75
-    GOOD_FIT = 0.006
-    RMSD_THRESHOLD = 12
-    DISTANCE_THRESHOLD = 70
+    GOOD_FIT = 0.1
+    RMSD_THRESHOLD = 4
+    DISTANCE_THRESHOLD = 4
     VINA_SCORE_THRESHOLD = 200
     BOUNDS = 4
+    TRANSLATION_DELTA = 0.1
+    ROTATION_DELTA = 0.1
 
 class Rewards:
     PENALTY = -1000

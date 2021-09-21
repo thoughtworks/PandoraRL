@@ -11,7 +11,26 @@ class ActionSpace:
     def __init__(self, action_bounds):
         self.action_bounds = np.asarray(action_bounds)
         self.n_outputs = self.action_bounds.shape[1]
+        self.degree_of_freedom = self.n_outputs * 2
 
+        self._action_vectors = [
+            [-ComplexConstants.TRANSLATION_DELTA, 0, 0, 0, 0, 0],
+            [ComplexConstants.TRANSLATION_DELTA, 0, 0, 0, 0, 0],
+            [0, -ComplexConstants.TRANSLATION_DELTA, 0, 0, 0, 0],
+            [0, ComplexConstants.TRANSLATION_DELTA, 0, 0, 0, 0],
+            [0, 0, -ComplexConstants.TRANSLATION_DELTA, 0, 0, 0],
+            [0, 0, ComplexConstants.TRANSLATION_DELTA, 0, 0, 0],
+            [0, 0, 0, -ComplexConstants.ROTATION_DELTA, 0, 0],
+            [0, 0, 0, ComplexConstants.ROTATION_DELTA, 0, 0],
+            [0, 0, 0, 0, -ComplexConstants.ROTATION_DELTA, 0],
+            [0, 0, 0, 0, ComplexConstants.ROTATION_DELTA, 0],
+            [0, 0, 0, 0, 0, -ComplexConstants.ROTATION_DELTA],
+            [0, 0, 0, 0, 0, ComplexConstants.ROTATION_DELTA],            
+        ]
+        
+    def get_action(self, predicted_action_index):
+        return self._action_vectors[predicted_action_index]
+    
     def sample(self):
         return np.diff(
             self.action_bounds, axis = 0
@@ -54,9 +73,7 @@ class Env:
     
 
 class GraphEnv:
-    def __init__(self, complex=None):
-        # single_step = np.array([10, 10, 10, 10, 10, 10])
-        single_step = np.array([1, 1, 1])
+    def __init__(self, complex=None, single_step=np.array([1, 1, 1])):
         action_bounds = np.array([-1*single_step, single_step])
         self.action_space = ActionSpace(action_bounds)
         
@@ -99,7 +116,7 @@ class GraphEnv:
         try:
             delta_change = self._complex.ligand.update_pose(*action)
             reward = self._complex.score()
-            terminal = self._complex.perfect_fit
+            # terminal = self._complex.perfect_fit
         except Exception as e:
             print(e)
             reward = Rewards.PENALTY

@@ -1,6 +1,6 @@
 import random
 import numpy as np
-
+import torch
 
 class Samples:
     def __init__(self, samples):

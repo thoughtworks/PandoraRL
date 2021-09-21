@@ -1,11 +1,10 @@
 from rlvs.constants import ComplexConstants  # , AgentConstants
 from rlvs.molecule_world.env import GraphEnv
-from rlvs.agents.ddpg_agent import DDPGAgentGNN
+from rlvs.agents.dqn_agent import DQNAgentGNN
 
 import os
 import logging
-
-ComplexConstants.DISTANCE_THRESHOLD = 10
+import numpy as np
 
 run_id = os.getenv('RUNID', 0)
 folder = "./model/"
@@ -20,8 +19,8 @@ logging.basicConfig(
             level=logging.DEBUG
         )
 
-env = GraphEnv()
-agent = DDPGAgentGNN(
+env = GraphEnv(single_step=np.array([1]))
+agent = DQNAgentGNN(
     env,
     weights_path=path_prefix+"weights_intermediate",
     complex_path=path_prefix+"ligand_intermediate"

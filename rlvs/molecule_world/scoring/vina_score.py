@@ -158,14 +158,14 @@ class VinaScore:
         total_energy = self.W1 * gauss1 + self.W2 * gauss2 + self.W3 * repulsion +\
             np.sum(self.W4 * hydrophobic + self.W5 * hydrogen_bonds)
 
-        print(
-            f"""Gauss1:{gauss1}
-Gauss2: {gauss2}
-Repulsion: {repulsion}
-Hydrophobic: {np.sum(hydrophobic)}
-HydrogenBond: {np.sum(hydrogen_bonds)}
-Total Energy : {total_energy}"""
-                      )
+#         print(
+#             f"""Gauss1:{gauss1}
+# Gauss2: {gauss2}
+# Repulsion: {repulsion}
+# Hydrophobic: {np.sum(hydrophobic)}
+# HydrogenBond: {np.sum(hydrogen_bonds)}
+# Total Energy : {total_energy}"""
+#                       )
 
         return total_energy
         

@@ -54,3 +54,28 @@ class ActorGNN(nn.Module):
         action = self.action_layer_out(action)
         action = torch.tanh(action)
         return action
+
+
+class ActorDQN(ActorGNN):
+    def __init__(self, input_shape, edge_shape, action_shape, learning_rate, tau=0.001, init_w=3e-3):
+        super(
+            ActorDQN, self
+        ).__init__(
+            input_shape, edge_shape, action_shape, learning_rate, tau, init_w
+        )
+
+    def forward(self, complex_):
+        complex_data, complex_edge_index, \
+            complex_edge_attr, complex_batch = complex_.x, complex_.edge_index,\
+                complex_.edge_attr, complex_.batch
+
+        complex_data = self.node_encoder(complex_data)
+        complex_edge_attr = self.edge_encoder(complex_edge_attr)
+
+        complex_data = self.complex_gcn_in(complex_data, complex_edge_index, complex_edge_attr)
+
+        molecule_data = global_mean_pool(complex_data, complex_batch)
+        
+        action = F.relu(self.action_layer_in(molecule_data))
+        action = self.action_layer_out(action)
+        return action
