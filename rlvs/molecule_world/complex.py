@@ -134,8 +134,8 @@ class Complex:
             "Centroid Saperation: ", complex_saperation
         )
 
-        # rmsd = self.ligand.rmsd(self.original_ligand)
-        # rmsd_score = np.sinh(rmsd**0.25 + np.arcsinh(1))**-1
+        rmsd = self.ligand.rmsd(self.original_ligand)
+        rmsd_score = np.sinh(rmsd**0.25 + np.arcsinh(1))**-1
 
         # Introduce saperation as an exit criterio
 
@@ -148,7 +148,9 @@ class Complex:
            vina_score > ComplexConstants.VINA_SCORE_THRESHOLD or vina_score == 0:
             raise Exception(f"BAD State: VinaScore: {vina_score}, distance: {complex_saperation}")
 
-        return -vina_score
+        # Found that adding weights to rmsd_score was not having much effect, rmsd_score was mostly being used when the first term went to zero.
+        return 0.7**(vina_score) + rmsd_score
+        #return -vina_score
 
     def randomize_ligand(self, action_shape):
         self.ligand.randomize(ComplexConstants.BOUNDS, action_shape)
