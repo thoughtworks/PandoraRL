@@ -146,8 +146,8 @@ class VinaScore:
         gauss2 = np.sum(self.gauss2(surface_dist))
         repulsion = np.sum(self.repulsion(surface_dist))
 
-        valid_pairs = subset_by_distance(valid_pairs, distances, 4)
-        surface_dist = subset_by_distance(surface_dist, distances, 4)
+        valid_pairs = subset_by_distance(valid_pairs, distances, 8)
+        surface_dist = subset_by_distance(surface_dist, distances, 8)
 
         possible_hydrogen_bonds = self.possible_hydrogen_bonds(valid_pairs)
         possible_hydrophobic_bonds = self.possible_hydrophobic_bonds(valid_pairs)
