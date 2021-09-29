@@ -30,22 +30,12 @@ class ActorGNN(nn.Module):
 
         self.init_weights(init_w)
 
-        if USE_CUDA:
-            self.update_device()
-
     def init_weights(self, init_w):
         self.node_encoder.weight.data = fanin_init(self.node_encoder.weight.data.size())
         self.edge_encoder.weight.data = fanin_init(self.edge_encoder.weight.data.size())
         
         self.action_layer_in.weight.data = fanin_init(self.action_layer_in.weight.data.size())
         self.action_layer_out.weight.data.uniform_(-init_w, init_w)
-
-    def update_device(self):
-        self.node_encoder.cuda()
-        self.edge_encoder.cuda()
-        self.complex_gcn_in.cuda()
-        self.action_layer_in.cuda()
-        self.action_layer_out.cuda()
 
     @timeit("actor_forward")
     def forward(self, complex_):
