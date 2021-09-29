@@ -4,7 +4,7 @@ import copy
 import torch
 
 from rlvs.agents.utils import batchify, interacting_edges, \
-    molecule_median_distance, timeit
+    molecule_median_distance, timeit, USE_CUDA
 from torch_geometric.data import Data
 from rlvs.constants import ComplexConstants
 
@@ -24,18 +24,8 @@ class Complex:
         self.vina = VinaScore(protein, ligand)
         
         self.inter_molecular_interactions = self.inter_molecular_bonds()
-        self.inter_molecular_edges = torch.vstack([
-            bond.edge for bond in self.inter_molecular_interactions
-        ]).t().contiguous()
-
-        self.inter_molecular_edge_attr = torch.vstack([
-            torch.tensor([
-                bond.feature,
-                bond.feature
-            ], dtype=torch.float32)
-            for bond in self.inter_molecular_interactions
-        ])
-
+        self.update_edges()
+        
         logging.debug(
             f"""complex Stats: InterMolecularBond: {self.inter_molecular_edges.shape},
             Ligand Shape: {self.ligand.data.x.shape},
@@ -47,10 +37,16 @@ class Complex:
         self.protein.crop(self.ligand.get_centroid(), x, y, z)
 
         self.inter_molecular_interactions = self.inter_molecular_bonds()
+        self.update_edges()
+
+    def update_edges(self):
         self.inter_molecular_edges = torch.vstack([
             bond.edge for bond in self.inter_molecular_interactions
         ]).t().contiguous()
 
+        self.inter_molecular_edges = self.inter_molecular_edges.cuda() if USE_CUDA \
+            else self.inter_molecular_edges
+        
         self.inter_molecular_edge_attr = torch.vstack([
             torch.tensor([
                 bond.feature,
@@ -59,6 +55,10 @@ class Complex:
             for bond in self.inter_molecular_interactions
         ])
 
+        self.inter_molecular_edge_attr = self.inter_molecular_edge_attr.cuda() if USE_CUDA \
+            else self.inter_molecular_edge_attr
+
+    
     def vina_score(self):
         return self.vina.total_energy()
 
@@ -149,7 +149,8 @@ class Complex:
            # vina_score > ComplexConstants.VINA_SCORE_THRESHOLD or vina_score == 0:
             raise Exception(f"BAD State: VinaScore: {vina_score}, distance: {complex_saperation}")
 
-        return 1000 if self.perfect_fit else rmsd_score
+        # Found that adding weights to rmsd_score was not having much effect, rmsd_score was mostly being used when the first term went to zero.
+        return 0.7**(vina_score) + rmsd_score
 
     def randomize_ligand(self, action_shape):
         self.ligand.randomize(ComplexConstants.BOUNDS, action_shape)
@@ -179,6 +180,7 @@ class Complex:
             self.inter_molecular_edge_attr
         ])
         batch = torch.tensor([0] * batched.x.shape[0])
+        batch = batch.cuda() if USE_CUDA else batch
         
         return Data(
             x=batched.x.detach().clone(),

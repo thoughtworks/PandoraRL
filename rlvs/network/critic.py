@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-from ..agents.utils import timeit
+from ..agents.utils import timeit, USE_CUDA
 
 from torch_geometric.nn import GENConv, global_mean_pool
 
@@ -31,6 +31,9 @@ class CriticGNN(nn.Module):
 
         self.init_weights(init_w)
         
+        if USE_CUDA:
+            self.update_device()        
+        
     def init_weights(self, init_w):
         self.node_encoder.weight.data = fanin_init(self.node_encoder.weight.data.size())
         self.edge_encoder.weight.data = fanin_init(self.edge_encoder.weight.data.size())
@@ -38,6 +41,15 @@ class CriticGNN(nn.Module):
         self.policy_layer_in.weight.data = fanin_init(self.policy_layer_in.weight.data.size())
         self.policy_layer_hidden.weight.data = fanin_init(self.policy_layer_hidden.weight.data.size())
         self.policy_layer_out.weight.data.uniform_(-init_w, init_w)
+
+    def update_device(self):
+        self.node_encoder.cuda()
+        self.edge_encoder.cuda()
+        self.complex_gcn_in.cuda()
+        self.policy_layer_in.cuda()
+        self.policy_layer_hidden.cuda()
+        self.policy_layer_out.cuda()
+
 
     @timeit("critic_forward")
     def forward(self, state):
