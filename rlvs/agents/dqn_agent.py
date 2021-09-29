@@ -12,10 +12,10 @@ from rlvs.network import ActorDQN
 from rlvs.constants import AgentConstants
 
 from .memory import Memory
-from .utils import soft_update, hard_update, to_tensor, to_numpy, batchify, FLOAT
+from .utils import soft_update, hard_update, to_tensor, to_numpy, batchify, FLOAT, LONG, INT32
 from .noise import OrnsteinUhlenbeckActionNoise
 
-criterion = nn.MSELoss()
+criterion = nn.SmoothL1Loss()
 
 import logging
             
@@ -36,8 +36,7 @@ class DQNAgentGNN:
         self.input_shape = env.input_shape
         self.edge_shape = env.edge_shape
         self.action_shape = env.action_space.degree_of_freedom
-        self.eps = 1.0
-        self.decay_epsilon = 0.996
+        self.eps = 0.99
         self.memory = Memory(self.BUFFER_SIZE)
         self.env = env
         self.warm_up_steps = warmup
@@ -78,43 +77,36 @@ class DQNAgentGNN:
 
     def act(self, data):
         if random.random() > self.eps:
-            print("Actual Action")
-            self._actor.eval()
             with torch.no_grad():
                 predicted_action = self._actor(data)
 
-            self._actor.train()
+            print("PREDICTED", predicted_action)
 
             return np.argmax(to_numpy(predicted_action[0]))
         else:
-            print("Random Action")
             return random.choice(np.arange(self.action_shape))
 
-    def learn(self):
+    def learn(self, sync=False):
         batch = self.memory.sample(self.BATCH_SIZE)
 
         complex_batched = batchify(batch.states)
         next_complex_batched = batchify(batch.next_states)
 
-        actions = torch.from_numpy(batch.actions)
+        actions = to_tensor(batch.actions, dtype=LONG)
         rewards = to_tensor(batch.rewards)
-        terminals = batch.terminals
-
-        self._actor.train()
-        self._actor_target.eval()
-
+        terminals = to_tensor(batch.terminals, dtype=INT32)
         predicted_targets = self._actor(complex_batched).gather(1,actions)
+        labels_next = self._actor_target(next_complex_batched).detach().max(1)[0].unsqueeze(1)
 
-        with torch.no_grad():
-            labels_next = self._actor_target(next_complex_batched).detach().max(1)[0].unsqueeze(1)
-
-        labels = torch.tensor(rewards + (self.GAMMA * labels_next*(1-terminals)), dtype=torch.float32)
+        labels = (rewards + (self.GAMMA * labels_next*(1-terminals))).type(FLOAT)
+        
         loss = criterion(predicted_targets,labels)
-        self._actor_optim.zero_grad()
         loss.backward()
         self._actor_optim.step()
 
-        soft_update(self._actor_target, self._actor, self.TAU)
+        if sync:
+            soft_update(self._actor_target, self._actor, self.TAU)
+
         return loss
 
     def play(self, num_train_episodes):
@@ -125,10 +117,11 @@ class DQNAgentGNN:
         i_episode = 0
         losses = []
         loss = 0
-
+        sync_counter = 0
         while i_episode < num_train_episodes:
             m_complex_t, state_t = self.env.reset()
             episode_return, episode_length, terminal = 0, 0, False
+            
             losses = []
             while not (terminal or (episode_length == max_episode_length)):
                 data = m_complex_t.data
@@ -137,14 +130,12 @@ class DQNAgentGNN:
                 reward, terminal = self.env.step(molecule_action)
                 d_store = False if episode_length == max_episode_length else terminal
                 reward = 0 if episode_length == max_episode_length else reward
-        
                 self.memorize(data, [action], reward, m_complex_t.data, d_store)
-
-                if num_steps % self.LEARN_INTERVAL == 0:
-                    if num_steps > self.warm_up_steps:
-                        self.warm_up_steps = -1
-                        num_steps = 0
-                        loss = self.learn()
+                
+                if (num_steps := num_steps % self.LEARN_INTERVAL) == 0:
+                    if self.memory.has_samples(self.BATCH_SIZE):
+                        sync_counter = (sync_counter + 1) % 5
+                        loss = self.learn(sync_counter == 0)
                         losses.append(to_numpy(loss))
 
                 self.log(action, reward, episode_length, i_episode, loss)               
@@ -153,9 +144,9 @@ class DQNAgentGNN:
                 num_steps += 1
                 episode_return += reward
                 episode_length += 1
-
+            
+            self.eps = max(self.eps * self.eps, 0.01)
             max_reward = max_reward if max_reward > episode_return else episode_return
-            self.eps = max(self.eps * self.decay_epsilon, 0.01)
 
             print(
                 f"Episode: {i_episode + 1} \

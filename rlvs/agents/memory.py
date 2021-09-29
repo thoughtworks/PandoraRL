@@ -56,3 +56,6 @@ class Memory:
     @property
     def num_samples(self):
         return len(self._samples)
+
+    def has_samples(self, size):
+        return len(self._samples) >= size

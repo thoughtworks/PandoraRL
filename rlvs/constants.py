@@ -10,18 +10,18 @@ class ComplexConstants:
     ROTATION_DELTA = 0.1
 
 class Rewards:
-    PENALTY = -1000
+    PENALTY = -100
 
 
 class AgentConstants:
-    ACTOR_LEARNING_RATE = 0.00005
+    ACTOR_LEARNING_RATE = 0.001
     CRITIQ_LEARNING_RATE = 0.0001
-    TAU = 0.001
+    TAU = 0.01
 
     GAMMA = 0.99
 
     BATCH_SIZE = 32
-    BUFFER_SIZE = 200000
+    BUFFER_SIZE = 5000
     EXPLORATION_EPISODES = 10000
 
 

@@ -11,6 +11,8 @@ from time import time
 
 USE_CUDA = torch.cuda.is_available()
 FLOAT = torch.cuda.FloatTensor if USE_CUDA else torch.FloatTensor
+LONG = torch.cuda.LongTensor if USE_CUDA else torch.LongTensor
+INT32 = torch.cuda.IntTensor if USE_CUDA else torch.IntTensor
 
 
 def soft_update(target, source, tau):

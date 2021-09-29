@@ -2,10 +2,12 @@ from .atom import Atoms
 from .molecule import Molecule, MoleculeType
 import numpy as np
 
-from .helper_functions import read_to_OB
+from .helper_functions import read_to_OB, randomizer
+import logging
 
 class Ligand(Molecule):
     molecule_type = MoleculeType.LIGAND
+    
     def __init__(self, path=None, name=None, filetype=None):
         super(Ligand, self).__init__(path, filetype=filetype)
         obmol = read_to_OB(filename=path, filetype=filetype)
@@ -13,6 +15,7 @@ class Ligand(Molecule):
         self.atom_features = self.atoms.features
 
     def randomize(self, box_size, action_shape):
-        random_pose = np.random.uniform(-box_size, box_size, (action_shape,))
+        random_pose = randomizer(action_shape)
         print("Randomized", random_pose)
+        logging.info(f'Randomized Pose: {random_pose}')
         self.update_pose(*random_pose)

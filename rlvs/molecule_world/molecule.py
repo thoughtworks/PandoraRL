@@ -94,7 +94,7 @@ class Molecule:
         assert(self.get_coords().shape == (self.n_atoms, 3))
         
     def crop(self, center_coord, x, y, z):
-        check_range = lambda x, min_x, max_x: True if (x >= min_x and x < max_x) else False
+        check_range = lambda x, min_x, max_x: (x >= min_x and x < max_x)
         center_coord = center_coord.reshape(1,3)
         min_x, max_x = center_coord[:,0][0] - x, center_coord[:,0][0] + x
         min_y, max_y = center_coord[:,1][0] - y, center_coord[:,1][0] + y

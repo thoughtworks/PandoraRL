@@ -19,13 +19,28 @@ class Complex:
     def __init__(self, protein, ligand, original_ligand):
         self.protein = protein
         self.ligand = ligand
-        self.original_ligand = original_ligand 
+        self.original_ligand = original_ligand
+        self.previous_rmsd = 0
 
         self.vina = VinaScore(protein, ligand)
         
         self.inter_molecular_interactions = self.inter_molecular_bonds()
         self.update_edges()
         
+
+        max_coord = torch.vstack([
+            self.protein.atoms.coords.max(axis=0).values,
+            self.ligand.atoms.coords.max(axis=0).values]).max(axis=0).values
+
+        min_coord = torch.vstack([
+            self.protein.atoms.coords.min(axis=0).values,
+            self.ligand.atoms.coords.min(axis=0).values]).min(axis=0).values
+
+        max_coord = max_coord.cuda() if USE_CUDA else max_coord
+        min_coord = min_coord.cuda() if USE_CUDA else min_coord
+        
+        self.normfactor = lambda coord: (coord - min_coord) /(max_coord - min_coord)
+
         logging.debug(
             f"""complex Stats: InterMolecularBond: {self.inter_molecular_edges.shape},
             Ligand Shape: {self.ligand.data.x.shape},
@@ -133,12 +148,11 @@ class Complex:
         #     "Protein Shape", self.protein.data.x.shape,
         #     "Centroid Saperation: ", complex_saperation
         # )
-
-        rmsd = self.ligand.rmsd(self.original_ligand)
-        rmsd_score = np.sinh(rmsd**0.25 + np.arcsinh(1))**-1
+        previous_rmsd = self.previous_rmsd
+        self.previous_rmsd = rmsd = self.ligand.rmsd(self.original_ligand)
+        rmsd_score = np.sinh(rmsd + np.arcsinh(0))**-1
 
         # Introduce saperation as an exit criterio
-
         
         vina_score = self.vina.total_energy()
 
@@ -174,7 +188,9 @@ class Complex:
             batched.edge_index,
             self.inter_molecular_edges
             ])
-
+        
+        batched.x[:, :3] = self.normfactor(batched.x[:, :3])
+        
         edge_attr = torch.vstack([
             batched.edge_attr,
             self.inter_molecular_edge_attr
