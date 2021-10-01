@@ -3,7 +3,7 @@ from rlvs.molecule_world.env import GraphEnv
 from rlvs.molecule_world.protein import Protein
 from rlvs.molecule_world.ligand import Ligand
 from rlvs.molecule_world.complex import Complex
-from rlvs.agents.utils import batchify, to_tensor, to_numpy
+from rlvs.agents.utils import batchify, to_tensor, to_numpy, USE_CUDA
 
 from rlvs.constants import AgentConstants
 
@@ -13,6 +13,8 @@ from torch.optim import Adam
 from torch.autograd import Variable
 import numpy as np
 import rlvs.molecule_world.helper_functions as hf
+from torch_geometric.data import Data
+
 import os
 import logging
 
@@ -20,16 +22,18 @@ class Loader:
     def __init__(self, path):
         self.path = path
         self.protein = Protein(path=f'/home/justin/Documents/Projects/LifeScience/rl-virtual-screening/data/dqn_spike/3v3m/3v3m_protein.pdb', name='3v3m', filetype='pdb')
+        self.ligand = lambda idx: Ligand(path=f'{self.path}/{idx}/3v3m_ligand.pdbqt', filetype='pdbqt')
+        self.complex = Complex(self.protein, lig:=self.ligand(0), lig)
+        self.complex.crop(10, 10, 10)
         self.data = {}
     
     def get(self, indexs):
-        ligand = lambda idx: Ligand(path=f'{self.path}/{idx}/3v3m_ligand.pdbqt', filetype='pdbqt')
-        complex = Complex(self.protein, lig:=ligand(0), lig)
+        
         data = []
         for idx in indexs:
             # if idx not in self.data:
-            complex.ligand = ligand(idx)
-            data.append(complex.data)
+            self.complex.ligand = self.ligand(idx)
+            data.append(self.complex.data)
                 
         # data = [Complex(self.protein, lig:=ligand(idx), lig).data for idx in indexs]
 
@@ -41,12 +45,14 @@ criterion = nn.BCELoss()
 def get_network(prate=0.00005):
     env = GraphEnv(single_step=np.array([1]))
     actor = ActorDQN(
-        env.input_shape,
+        1, #env.input_shape,
         env.edge_shape,
         env.action_space.degree_of_freedom,
         AgentConstants.ACTOR_LEARNING_RATE ,
         AgentConstants.TAU
     )
+
+    actor = actor.cuda() if USE_CUDA else actor
 
     actor_optim = Adam(actor.parameters(), lr=prate)
 
@@ -64,8 +70,9 @@ def train(actor, actor_optim, data_loader, y_actual, epochs, indexs, batch_size=
             batch = data_loader.get(indexs[beg_i:beg_i+batch_size])
                 
             y = to_tensor(y_actual[indexs[beg_i:beg_i+batch_size]])
-            # actor_optim.zero_grad()
+            actor_optim.zero_grad()
             y_hat = actor(batch)
+            print(y_hat, y)
             loss = criterion(y_hat, y)
             loss.backward()
             actor_optim.step()
@@ -80,8 +87,9 @@ def train(actor, actor_optim, data_loader, y_actual, epochs, indexs, batch_size=
     return losses
 
 def test(actor, data_loader, indexs, y_actual):
+    import pdb;pdb.set_trace()
     actor.eval()
-    y_hat = actor(data.get(indexs))
+    y_hat = actor(data_loader.get(indexs))
     cls = np.argmax(y_hat, dim=1)
     original = y_actual[indexs]
     import pdb;pdb.set_trace()
@@ -132,6 +140,7 @@ if __name__ == '__main__':
     actor, optim = get_network()
     data_loader = Loader(path)
     test_, train_, y_actual, rmsd = read_data(path)
-    train(actor, optim, data_loader, y_actual, 10, train_)
+    losses = train(actor, optim, data_loader, y_actual, 5, train_, 1)
+    import pdb;pdb.set_trace()
     test(actor, data_loader, y_actual, test_)
     print(path)

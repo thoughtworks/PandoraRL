@@ -94,5 +94,5 @@ class BondType(IntEnum):
         )   
 
 class MoleculeType(IntEnum):
-    PROTEIN = -1
+    PROTEIN = 0
     LIGAND = 1

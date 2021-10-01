@@ -71,7 +71,7 @@ class Featurizer():
         '''
         INPUT
         atom: OB Atom object
-        molecule_type: 1 for ligand, -1 for protein
+        molecule_type: 1 for ligand, 0 for protein
 
         OUTPUT
 

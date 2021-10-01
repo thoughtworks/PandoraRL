@@ -12,7 +12,7 @@ from rlvs.network import ActorDQN
 from rlvs.constants import AgentConstants
 
 from .memory import Memory
-from .utils import soft_update, hard_update, to_tensor, to_numpy, batchify, FLOAT, LONG, INT32
+from .utils import soft_update, hard_update, to_tensor, to_numpy, batchify, FLOAT, LONG, INT32, USE_CUDA
 from .noise import OrnsteinUhlenbeckActionNoise
 
 criterion = nn.SmoothL1Loss()
@@ -58,6 +58,10 @@ class DQNAgentGNN:
             self.TAU
         )
 
+        if USE_CUDA:
+            self._actor.cuda()
+            self._actor_target.cuda()
+
         self._actor_optim = Adam(self._actor.parameters(), lr=prate)
 
 
@@ -87,27 +91,30 @@ class DQNAgentGNN:
             return random.choice(np.arange(self.action_shape))
 
     def learn(self, sync=False):
-        batch = self.memory.sample(self.BATCH_SIZE)
-
-        complex_batched = batchify(batch.states)
-        next_complex_batched = batchify(batch.next_states)
-
-        actions = to_tensor(batch.actions, dtype=LONG)
-        rewards = to_tensor(batch.rewards)
-        terminals = to_tensor(batch.terminals, dtype=INT32)
-        predicted_targets = self._actor(complex_batched).gather(1,actions)
-        labels_next = self._actor_target(next_complex_batched).detach().max(1)[0].unsqueeze(1)
-
-        labels = (rewards + (self.GAMMA * labels_next*(1-terminals))).type(FLOAT)
-        
-        loss = criterion(predicted_targets,labels)
-        loss.backward()
-        self._actor_optim.step()
+        losses = []
+        batches = self.memory.sample(self.BATCH_SIZE)
+        for batch in batches:
+            complex_batched = batchify(batch.states)
+            next_complex_batched = batchify(batch.next_states)
+    
+            actions = to_tensor(batch.actions, dtype=LONG)
+            rewards = to_tensor(batch.rewards)
+            terminals = to_tensor(batch.terminals, dtype=INT32)
+            self._actor_optim.zero_grad()
+            predicted_targets = self._actor(complex_batched).gather(1,actions)
+            labels_next = self._actor_target(next_complex_batched).detach().max(1)[0].unsqueeze(1)
+    
+            labels = (rewards + (self.GAMMA * labels_next*(1-terminals))).type(FLOAT)
+            
+            loss = criterion(predicted_targets,labels)
+            loss.backward()
+            self._actor_optim.step()
+            losses.append(loss)
 
         if sync:
             soft_update(self._actor_target, self._actor, self.TAU)
-
-        return loss
+            
+        return torch.tensor(losses).mean()
 
     def play(self, num_train_episodes):
         returns = []

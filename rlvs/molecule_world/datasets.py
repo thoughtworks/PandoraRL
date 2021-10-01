@@ -54,7 +54,7 @@ class PafnucyData(Data):
 
 
 class SARSVarients(Data):
-    DATA_PATH = f'{ROOT_PATH}/SARS_variants/'
+    DATA_PATH = f'{ROOT_PATH}/dqn_spike/'
 
     def __init__(self):
         super(SARSVarients, self).__init__()

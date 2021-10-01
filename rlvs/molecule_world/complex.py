@@ -133,8 +133,8 @@ class Complex:
                 edge.update_bond_type(BondType.CATION_PI)
                 edge_count[BondType.CATION_PI] = edge_count.get(BondType.CATION_PI, 0) + 1
 
-        print("Total updated intermolecular edges: ", edge_count)
-        logging.debug(f"Total updated intermolecular edges: {edge_count}")
+        # print("Total updated intermolecular edges: ", edge_count)
+        # logging.debug(f"Total updated intermolecular edges: {edge_count}")
         return inter_molecular_edges
         
 
@@ -164,7 +164,7 @@ class Complex:
             raise Exception(f"BAD State: VinaScore: {vina_score}, distance: {complex_saperation}")
 
         # Found that adding weights to rmsd_score was not having much effect, rmsd_score was mostly being used when the first term went to zero.
-        return 0.7**(vina_score) + rmsd_score
+        return 100 if self.perfect_fit else 0#0.7**(vina_score) + rmsd_score
 
     def randomize_ligand(self, action_shape):
         self.ligand.randomize(ComplexConstants.BOUNDS, action_shape)
@@ -189,16 +189,20 @@ class Complex:
             self.inter_molecular_edges
             ])
         
-        batched.x[:, :3] = self.normfactor(batched.x[:, :3])
+        # batched.x[:, :3] = self.normfactor(batched.x[:, :3])
+        batched.x = batched.x[:, :1]
+        pos = batched.x[:,:3]
         
         edge_attr = torch.vstack([
             batched.edge_attr,
             self.inter_molecular_edge_attr
         ])
+
         batch = torch.tensor([0] * batched.x.shape[0])
         batch = batch.cuda() if USE_CUDA else batch
         
         return Data(
+            pos=pos.detach().clone(),
             x=batched.x.detach().clone(),
             edge_index=edge_index.detach().clone(),
             edge_attr=edge_attr.detach().clone(),

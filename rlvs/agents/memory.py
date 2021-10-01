@@ -49,9 +49,11 @@ class Memory:
 
     def sample(self, no_samples):
         if no_samples > len(self._samples):
-            return Samples(random.sample(self._samples, len(self._samples)))
+            samples = random.sample(self._samples, len(self._samples))
         else:
-            return Samples(random.sample(self._samples, no_samples))
+            samples = random.sample(self._samples, no_samples)
+
+        return [Samples([sample]) for sample in samples]
 
     @property
     def num_samples(self):
