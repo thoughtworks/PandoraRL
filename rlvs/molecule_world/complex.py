@@ -190,7 +190,6 @@ class Complex:
             ])
         
         # batched.x[:, :3] = self.normfactor(batched.x[:, :3])
-        batched.x = batched.x[:, :1]
         pos = batched.x[:,:3]
         
         edge_attr = torch.vstack([
@@ -212,5 +211,5 @@ class Complex:
         ligand_filetype = filetype if filetype is not None else self.ligand.filetype
         protein_filetype =  self.protein.filetype
         self.ligand.save(f'{path}.{ligand_filetype}', ligand_filetype)
-        self.protein.save(f'{path}_protein.{protein_filetype}', protein_filetype)
+        # self.protein.save(f'{path}_protein.{protein_filetype}', protein_filetype)
 

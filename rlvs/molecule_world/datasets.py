@@ -54,7 +54,7 @@ class PafnucyData(Data):
 
 
 class SARSVarients(Data):
-    DATA_PATH = f'{ROOT_PATH}/dqn_spike/'
+    DATA_PATH = f'{ROOT_PATH}/SARS_variants/'
 
     def __init__(self):
         super(SARSVarients, self).__init__()
@@ -65,7 +65,8 @@ class SARSVarients(Data):
             Complex(
                 Protein(
                     path=f'{self.DATA_PATH}/{complex}/{complex}_protein.pdb',
-                    filetype="pdb"
+                    filetype="pdb",
+                    name=complex
                 ), Ligand(
                     path=f'{self.DATA_PATH}/{complex}/{complex}_ligand.pdbqt',
                     filetype="pdbqt"

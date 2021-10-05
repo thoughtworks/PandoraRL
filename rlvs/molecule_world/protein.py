@@ -14,6 +14,7 @@ class Protein(Molecule):
         super(Protein, self).__init__(path, filetype)
         obmol = read_to_OB(filename=path, filetype=filetype)
         parser = PDB.PDBParser()
+        self.name=name
         self.pdb_structure = parser.get_structure(name, path)
         self.atoms = Atoms(self.molecule_type, obmol, self.pdb_structure)
         self.atom_features = self.atoms.features
