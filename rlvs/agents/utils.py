@@ -47,27 +47,19 @@ def batchify(molecules, data=True):
     
     X = torch.vstack([data_function(mol).x for mol in molecules])
 
-    X = X.cuda() if USE_CUDA else X
-
     data_count = [data_function(mol).x.shape[0] for mol in molecules]
     edge_index = torch.hstack([
         data_function(mol).edge_index + (0 if index == 0 else data_count[index - 1])
         for index, mol in enumerate(molecules)
     ])
 
-    edge_index = edge_index.cuda() if USE_CUDA else edge_index
-
     edge_attr = torch.vstack([
         data_function(mol).edge_attr for mol in molecules
     ])
 
-    edge_attr = edge_attr.cuda() if USE_CUDA else edge_attr
-
     batch = torch.tensor(np.concatenate(
         [[i] * l for i, l in enumerate(data_count)]
     ))
-
-    batch = batch.cuda() if USE_CUDA else batch
 
     return Data(x=X, edge_index=edge_index, batch=batch, edge_attr=edge_attr)
 

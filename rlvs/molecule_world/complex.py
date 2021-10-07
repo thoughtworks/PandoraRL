@@ -4,7 +4,7 @@ import copy
 import torch
 
 from rlvs.agents.utils import batchify, interacting_edges, \
-    molecule_median_distance, timeit, USE_CUDA
+    molecule_median_distance, timeit
 from torch_geometric.data import Data
 from rlvs.constants import ComplexConstants
 
@@ -35,9 +35,6 @@ class Complex:
         min_coord = torch.vstack([
             self.protein.atoms.coords.min(axis=0).values,
             self.ligand.atoms.coords.min(axis=0).values]).min(axis=0).values
-
-        max_coord = max_coord.cuda() if USE_CUDA else max_coord
-        min_coord = min_coord.cuda() if USE_CUDA else min_coord
         
         self.normfactor = lambda coord: (coord - min_coord) /(max_coord - min_coord)
 
@@ -58,9 +55,6 @@ class Complex:
         self.inter_molecular_edges = torch.vstack([
             bond.edge for bond in self.inter_molecular_interactions
         ]).t().contiguous()
-
-        self.inter_molecular_edges = self.inter_molecular_edges.cuda() if USE_CUDA \
-            else self.inter_molecular_edges
         
         self.inter_molecular_edge_attr = torch.vstack([
             torch.tensor([
@@ -69,9 +63,6 @@ class Complex:
             ], dtype=torch.float32)
             for bond in self.inter_molecular_interactions
         ])
-
-        self.inter_molecular_edge_attr = self.inter_molecular_edge_attr.cuda() if USE_CUDA \
-            else self.inter_molecular_edge_attr
 
     
     def vina_score(self):
@@ -198,7 +189,6 @@ class Complex:
         ])
 
         batch = torch.tensor([0] * batched.x.shape[0])
-        batch = batch.cuda() if USE_CUDA else batch
         
         return Data(
             pos=pos.detach().clone(),

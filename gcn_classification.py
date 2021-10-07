@@ -67,20 +67,48 @@ def get_network(prate=0.00005):
     return actor, actor_optim
 
 
-def train(actor, actor_optim, data_loader, y_actual, epochs, indexs, batch_size=32):
-    actor.train()
+def test(actor, data_loader, indexs, y_actual):
+    actor.eval()
+    y_hat = []
     losses = []
+    it = 0
+    for i in indexs:
+        if it % 100:
+            print(it)
+
+        data = data_loader.get([i])
+
+        data = data.cuda() if USE_CUDA else data
+        y_pred = actor(data)
+        data.cpu()
+
+        y_hat.append(to_numpy(y_pred))
+
+        y = to_tensor(y_actual[i:i+1])
+
+        loss = criterion(y_pred, y)
+        losses.append(to_numpy(loss.data))
+        it += 1
+    return losses
+
+
+def train(actor, actor_optim, data_loader, y_actual, epochs, indexs, test_indexs, batch_size=32):
+    losses = []
+    test_losses = []
     e = j = 0
     while e < epochs:
         j = 0
         e_losses = []
+        actor.train()
         for beg_i in range(0, len(indexs), batch_size):
             batch = data_loader.get(indexs[beg_i:beg_i+batch_size])
             y = to_tensor(y_actual[indexs[beg_i:beg_i+batch_size]])
-
             actor_optim.zero_grad()
+            
+            batch = batch.cuda() if USE_CUDA else batch
             y_hat = actor(batch)
-            print(y_hat, y)
+            batch.cpu()
+
             loss = criterion(y_hat, y)
             loss.backward()
             actor_optim.step()
@@ -90,27 +118,11 @@ def train(actor, actor_optim, data_loader, y_actual, epochs, indexs, batch_size=
             print(f'E: {e}, Iter: {j}, Loss: {loss}')
             logging.info(f'E: {e}, Iter: {j}, Loss: {loss}')
             j += 1
+        test_losses += test(actor, data_loader, test_indexs, y_actual)
         print("episode loss: ",np.mean(e_losses))
         e += 1
         
-    return losses
-
-def test(actor, data_loader, indexs, y_actual):
-    actor.eval()
-    y_hat = []
-    losses = []
-    for i in indexs:
-        print(i)
-        data = data_loader.get([i])
-        y_pred = actor(data)
-        y_hat.append(y_pred)
-        y = to_tensor(y_actual[i:i+1])
-        loss = criterion(y_pred, y)
-        losses.append(to_numpy(loss.data))
-
-    import pdb;pdb.set_trace()
-    return losses
-
+    return {'losses': losses, 'test_losses':test_losses}
 
 def generate_data(output_path, num_of_records=10000):
     env = GraphEnv(single_step=np.array([1]))
@@ -162,18 +174,13 @@ if __name__ == '__main__':
     actor, optim = get_network()
     test_, train_, y_actual, rmsd, prot = read_data(path)
     data_loader = Loader(path, prot)
-    losses = train(actor, optim, data_loader, y_actual, 10, train_, 1)
+    losses = train(actor, optim, data_loader, y_actual, 10, train_, test_, 1)
     
     torch.save(actor.state_dict(), f'{path}_actor')
     with open(f'{path}/losses.npy', 'wb') as f:
         np.save(f, losses)
-    with open(f'{path}/test.npy', 'wb') as f:
-        np.save(f, test_)
 
-    with open(f'{path}/test.npy', 'rb') as f:
-        test_ = np.load(f, allow_pickle=True)
-
-    actor.load_state_dict(torch.load(f'{path}_actor'))
+    # actor.load_state_dict(torch.load(f'{path}_actor'))
     test_losses = test(actor, data_loader, test_, y_actual)
     with open(f'{path}/test_losses.npy', 'wb') as f:
          np.save(f, test_losses)

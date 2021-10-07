@@ -22,7 +22,7 @@ class ActorGNN(nn.Module):
         self._learning_rate = learning_rate
         self._tau = tau
         hidden_channels = 16
-        num_layers = 28
+        num_layers = 4
 
         self.node_encoder = nn.Linear(input_shape, hidden_channels)
         self.edge_encoder = nn.Linear(edge_shape, hidden_channels)
