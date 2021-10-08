@@ -100,5 +100,5 @@ class ActorDQN(ActorGNN):
         molecule_data = torch.cat([gmp(complex_data, complex_batch), gap(complex_data, complex_batch)], dim=1)
         action = F.relu(self.action_layer_in(molecule_data))
         action = self.action_layer_out(action)
-        # # return action
-        return F.softmax(action)
+        return action
+        # return F.softmax(action)

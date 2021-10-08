@@ -101,20 +101,22 @@ class DQNAgentGNN:
             rewards = to_tensor(batch.rewards)
             terminals = to_tensor(batch.terminals, dtype=INT32)
             self._actor_optim.zero_grad()
+            complex_batched = complex_batched.cuda() if USE_CUDA else complex_batched
+            next_complex_batched = next_complex_batched.cuda() if USE_CUDA else next_complex_batched
             predicted_targets = self._actor(complex_batched).gather(1,actions)
             labels_next = self._actor_target(next_complex_batched).detach().max(1)[0].unsqueeze(1)
-    
+            complex_batched.cpu()
+            next_complex_batched.cpu()
             labels = (rewards + (self.GAMMA * labels_next*(1-terminals))).type(FLOAT)
             
             loss = criterion(predicted_targets,labels)
             loss.backward()
             self._actor_optim.step()
-            losses.append(loss)
+            losses.append(to_numpy(loss.data))
 
         if sync:
             soft_update(self._actor_target, self._actor, self.TAU)
-            
-        return torch.tensor(losses).mean()
+        return np.array(losses).mean()
 
     def play(self, num_train_episodes):
         returns = []
@@ -132,7 +134,9 @@ class DQNAgentGNN:
             losses = []
             while not (terminal or (episode_length == max_episode_length)):
                 data = m_complex_t.data
+                data = data.cuda() if USE_CUDA else data
                 action = self.act(data)
+                data.cpu()
                 molecule_action = self.env.action_space.get_action(action)
                 reward, terminal = self.env.step(molecule_action)
                 d_store = False if episode_length == max_episode_length else terminal
@@ -140,10 +144,11 @@ class DQNAgentGNN:
                 self.memorize(data, [action], reward, m_complex_t.data, d_store)
                 
                 if (num_steps := num_steps % self.LEARN_INTERVAL) == 0:
+                    # import pdb;pdb.set_trace()
                     if self.memory.has_samples(self.BATCH_SIZE):
                         sync_counter = (sync_counter + 1) % 5
                         loss = self.learn(sync_counter == 0)
-                        losses.append(to_numpy(loss))
+                        losses.append(loss)
 
                 self.log(action, reward, episode_length, i_episode, loss)               
                 if m_complex_t.perfect_fit:

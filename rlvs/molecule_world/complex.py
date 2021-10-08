@@ -155,7 +155,7 @@ class Complex:
             raise Exception(f"BAD State: VinaScore: {vina_score}, distance: {complex_saperation}")
 
         # Found that adding weights to rmsd_score was not having much effect, rmsd_score was mostly being used when the first term went to zero.
-        return 100 if self.perfect_fit else 0#0.7**(vina_score) + rmsd_score
+        return rmsd_score #0.7**(vina_score) + rmsd_score
 
     def randomize_ligand(self, action_shape):
         self.ligand.randomize(ComplexConstants.BOUNDS, action_shape)
@@ -180,7 +180,7 @@ class Complex:
             self.inter_molecular_edges
             ])
         
-        # batched.x[:, :3] = self.normfactor(batched.x[:, :3])
+        #batched.x[:, :3] = self.normfactor(batched.x[:, :3])
         pos = batched.x[:,:3]
         
         edge_attr = torch.vstack([
