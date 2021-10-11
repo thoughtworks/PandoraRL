@@ -1,57 +1,30 @@
-import ast
-import sys
+from rlvs.constants import ComplexConstants  # , AgentConstants
+from rlvs.molecule_world.env import GraphEnv
+from rlvs.agents.dqn_agent import DQNAgentGNN
 
-import joblib
 import os
+import logging
+import numpy as np
 
-from src.main.Path import Path
+run_id = os.getenv('RUNID', 0)
+folder = "./model_test/"
+path_prefix = f"{folder}run{run_id}_"
+log_filename=path_prefix+"training_log.log"
 
-print("**** Setting up RL Agent..\n")
+logging.basicConfig(
+            filename=log_filename,
+            filemode='w',
+            format='%(message)s',
+            datefmt='%I:%M:%S %p',
+            level=logging.DEBUG
+        )
 
-param = ast.literal_eval(sys.argv[1])
-
-protein_input = param["protein_file_path"]
-protein_filetype = os.path.splitext(protein_input)[1][1:]
-
-ligand_filetype = param['ligand_input_type']
-
-
-if ligand_filetype != "smiles_string":
-    ligand_input = param['ligand_file_path']
-    ligand_filetype = os.path.splitext(ligand_input)[1][1:]
-else:
-    ligand_input = param['ligand_input']
-
-# specify model path
-actor_weights = "./model/run0_weights_intermediate_actor.h5"
-critic_weights = "./model/run0_weights_intermediate_critic.h5"
-scaler_filename = "./model/run0_scaler.save"
-
-print("**** Loading trained model..\n")
-
-from rlvs.molecule_world.env import TestGraphEnv
-from rlvs.agents.ddpg_agent import DDPGAgentGNN
-
-###
-from rlvs.molecule_world.datasets import DataStore
-DataStore.init(crop=False)
-joblib.dump(DataStore.scaler, scaler_filename) 
-###
-
-scaler = joblib.load(scaler_filename)
-print(ligand_filetype, ligand_input, protein_filetype, protein_input)
-env = TestGraphEnv(
-    scaler=scaler,
-    protein_path=protein_input,
-    ligand_path=ligand_input,
-    protein_filetype=protein_filetype,
-    ligand_filetype=ligand_filetype,
+env = GraphEnv(single_step=np.array([1]))
+agent = DQNAgentGNN(
+    env,
+    weights_path=path_prefix+"weights_intermediate",
+    complex_path=path_prefix+"ligand_intermediate"
 )
-agent = DDPGAgentGNN(env, weights_path="", log_filename="./testing_script_log.log")
-print("***** Running RL Agent..\n")
-agent.test(max_steps=Path.MAX_STEPS, path_actor_weights=actor_weights, path_critic_weights=critic_weights)
 
-# convert complex to pdbqt
-print("***** Creating output file..\n")
-env.save_complex_files(path=param["output_path"])
-print("***** Output file generated.\n")
+agent.load_weights(f'{agent.weights_path}_actor', f'{agent.weights_path}_critic')
+actions = agent.test(10)

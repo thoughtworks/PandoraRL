@@ -79,8 +79,8 @@ class DQNAgentGNN:
             'done': done
         })
 
-    def act(self, data):
-        if random.random() > self.eps:
+    def act(self, data, test=False):
+        if random.random() > self.eps or test:
             with torch.no_grad():
                 predicted_action = self._actor(data)
 
@@ -183,7 +183,31 @@ class DQNAgentGNN:
 
             
 
+    def test(self, number_of_tests):
+        i = 0
+        max_episode_length = 200
+        while i < number_of_tests:
+            m_complex_t, state_t = self.env.reset()
+            episode_return, episode_length, terminal = 0, 0, False
+            
+            losses = []
+            while not (terminal or (episode_length == max_episode_length)):
+                data = m_complex_t.data
+                data = data.cuda() if USE_CUDA else data
+                action = self.act(data, test=True)
+                data.cpu()
+                molecule_action = self.env.action_space.get_action(action)
+                reward, terminal = self.env.step(molecule_action)
 
+                self.log(action, reward, episode_length, i, 0)               
+                # if m_complex_t.perfect_fit:
+                #     m_complex_t, state_t = self.env.reset()
+                episode_return += reward
+                episode_length += 1
+
+                self.env.save_complex_files(f'{self.complex_path}_{i}_{episode_length}')
+                
+            i += 1
 
 
     def log(self, action, reward, episode_length, i_episode, loss):

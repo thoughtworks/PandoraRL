@@ -6,3 +6,5 @@ model/*.pdb
 model/*_actor
 model/*_critic
 model/*.log
+/model_test/
+/test_data/

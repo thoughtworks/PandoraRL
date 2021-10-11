@@ -200,6 +200,7 @@ class Complex:
     def save(self, path, filetype=None):
         ligand_filetype = filetype if filetype is not None else self.ligand.filetype
         protein_filetype =  self.protein.filetype
-        self.ligand.save(f'{path}.{ligand_filetype}', ligand_filetype)
+        ligand_name = self.ligand.path.split('/')[-1].split('.')[0]
+        self.ligand.save(f'{path}_{ligand_name}.{ligand_filetype}', ligand_filetype)
         # self.protein.save(f'{path}_protein.{protein_filetype}', protein_filetype)
 
