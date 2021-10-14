@@ -1,13 +1,13 @@
 import os
 from os import path
-from .helper_functions import read_to_OB
+from ..helper_functions import read_to_OB
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
-from .molecule.protein import Protein
-from .molecule.ligand import Ligand
-from .molecule.complex import Complex
+from ..molecule.protein import Protein
+from ..molecule.ligand import Ligand
+from ..molecule.complex import Complex
 
-ROOT_PATH = f'{path.dirname(path.abspath(__file__))}/../../data'
+ROOT_PATH = f'{path.dirname(path.abspath(__file__))}/../../../data'
 
 
 class Data:
