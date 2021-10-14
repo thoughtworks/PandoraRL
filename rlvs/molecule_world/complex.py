@@ -25,17 +25,6 @@ class Complex:
         self.vina = VinaScore(protein, ligand)
         
         self.update_edges()
-        
-
-        max_coord = torch.vstack([
-            self.protein.atoms.coords.max(axis=0).values,
-            self.ligand.atoms.coords.max(axis=0).values]).max(axis=0).values
-
-        min_coord = torch.vstack([
-            self.protein.atoms.coords.min(axis=0).values,
-            self.ligand.atoms.coords.min(axis=0).values]).min(axis=0).values
-        
-        self.normfactor = lambda coord: (coord - min_coord) /(max_coord - min_coord)
 
         logging.debug(
             f"""complex Stats: InterMolecularBond: {self.inter_molecular_edges.shape},
@@ -178,7 +167,7 @@ class Complex:
             self.inter_molecular_edges
             ])
         
-        #batched.x[:, :3] = self.normfactor(batched.x[:, :3])
+        batched.x = (batched.x - torch.mean(batched.x))/torch.std(batched.x)
         pos = batched.x[:,:3]
         
         edge_attr = torch.vstack([
@@ -186,6 +175,7 @@ class Complex:
             self.inter_molecular_edge_attr
         ])
 
+        edge_attr = (edge_attr - torch.mean(edge_attr))/torch.std(edge_attr)
         batch = torch.tensor([0] * batched.x.shape[0])
         
         return Data(
