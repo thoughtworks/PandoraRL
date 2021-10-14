@@ -1,4 +1,4 @@
-from rlvs.molecule_world.named_atom import NamedAtom
+from rlvs.molecule_world.molecule import NamedAtom
 
 class ComplexConstants:
     GOOD_FIT = 0.1

@@ -6,7 +6,7 @@ from openbabel import openbabel as ob
 
 import numpy as np
 
-from .helper_functions import read_to_OB
+from ..helper_functions import read_to_OB
 
 class Protein(Molecule):
     molecule_type = MoleculeType.PROTEIN

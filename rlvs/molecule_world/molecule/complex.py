@@ -7,9 +7,9 @@ from rlvs.agents.utils import batchify, interacting_edges, \
     molecule_median_distance, timeit
 from torch_geometric.data import Data
 from rlvs.constants import ComplexConstants
+from rlvs.molecule_world.scoring import VinaScore
 
 from .named_atom import H
-from .scoring import VinaScore
 from .bond import InterMolecularBond
 from .types import BondType
 

@@ -1,6 +1,6 @@
 import numpy as np
-from .complex import Complex
-from .molecule import Molecule
+from .molecule.complex import Complex
+from .molecule.molecule import Molecule
 from .datasets import DataStore
 from deepchem.feat.mol_graphs import MultiConvMol, ConvMol
 import tensorflow as tf

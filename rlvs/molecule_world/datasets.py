@@ -3,9 +3,9 @@ from os import path
 from .helper_functions import read_to_OB
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
-from .protein import Protein
-from .ligand import Ligand
-from .complex import Complex
+from .molecule.protein import Protein
+from .molecule.ligand import Ligand
+from .molecule.complex import Complex
 
 ROOT_PATH = f'{path.dirname(path.abspath(__file__))}/../../data'
 

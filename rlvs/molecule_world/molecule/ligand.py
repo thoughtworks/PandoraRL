@@ -2,7 +2,7 @@ from .atom import Atoms
 from .molecule import Molecule, MoleculeType
 import numpy as np
 
-from .helper_functions import read_to_OB, randomizer
+from ..helper_functions import read_to_OB, randomizer
 import logging
 
 class Ligand(Molecule):

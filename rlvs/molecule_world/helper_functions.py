@@ -2,7 +2,7 @@ from openbabel import pybel
 from openbabel import openbabel as ob
 from os import path
 import numpy as np
-from .complex import Complex
+from .molecule.complex import Complex
 from rlvs.constants import ComplexConstants
 
 ob.obErrorLog.SetOutputLevel(0)

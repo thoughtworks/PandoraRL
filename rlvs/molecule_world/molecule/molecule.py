@@ -5,9 +5,9 @@ from openbabel import pybel
 from openbabel import openbabel as ob
 
 from scipy.spatial.transform import Rotation
-from .scoring import RMSD
+from ..scoring import RMSD
 
-from .helper_functions import read_to_OB
+from ..helper_functions import read_to_OB
 from .types import MoleculeType
 
 
