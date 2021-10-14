@@ -9,7 +9,7 @@ from torch_geometric.data import Data
 from rlvs.constants import ComplexConstants
 
 from .named_atom import H
-from .scoring.vina_score import VinaScore
+from .scoring import VinaScore
 from .bond import InterMolecularBond
 from .types import BondType
 
