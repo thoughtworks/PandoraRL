@@ -3,7 +3,7 @@ import torch
 
 from openbabel import openbabel as ob
 from .types import MoleculeType, BondType
-from ..featurizer import Featurizer
+from .featurizer import Featurizer
 from .bond import Bond
 from .named_atom import H
 
