@@ -130,8 +130,7 @@ class DQNAgentGNN:
         while i_episode < num_train_episodes:
             m_complex_t, state_t = self.env.reset()
             episode_return, episode_length, terminal = 0, 0, False
-            
-            losses = []
+            episode_loss = []
             while not (terminal or (episode_length == max_episode_length)):
                 data = m_complex_t.data
                 data = data.cuda() if USE_CUDA else data
@@ -144,11 +143,11 @@ class DQNAgentGNN:
                 self.memorize(data, [action], reward, m_complex_t.data, d_store)
                 
                 if (num_steps := num_steps % self.LEARN_INTERVAL) == 0:
-                    # import pdb;pdb.set_trace()
                     if self.memory.has_samples(self.BATCH_SIZE):
                         sync_counter = (sync_counter + 1) % 5
                         loss = self.learn(sync_counter == 0)
                         losses.append(loss)
+                        episode_loss.append(loss)
 
                 self.log(action, reward, episode_length, i_episode, loss)               
                 if m_complex_t.perfect_fit:
@@ -165,7 +164,7 @@ class DQNAgentGNN:
                 Return: {episode_return} \
                 episode_length: {episode_length} \
                 Max Reward; {max_reward} \
-                Actor loss: {np.mean(losses)}"
+                Actor loss: {np.mean(episode_loss)}"
             )
 
             logging.info(
@@ -173,11 +172,13 @@ class DQNAgentGNN:
                 Return: {episode_return} \
                 episode_length: {episode_length} \
                 Max Reward; {max_reward} \
-                Actor loss: {np.mean(losses)}"
+                Actor loss: {np.mean(episode_loss)}"
             )
             if i_episode%10 == 0:
                 self.save_weights(self.weights_path)
                 self.env.save_complex_files(f'{self.complex_path}_{i_episode}')
+                with open(f'{self.weights_path}_losses.npy', 'wb') as f:
+                    np.save(f, losses)
 
             i_episode += 1
 
