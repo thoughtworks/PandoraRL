@@ -10,3 +10,4 @@ model/*.log
 /test_data*
 *.npy
 /model_test_2/
+*.txt
