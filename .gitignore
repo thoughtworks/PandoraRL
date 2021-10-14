@@ -7,4 +7,6 @@ model/*_actor
 model/*_critic
 model/*.log
 /model_test/
-/test_data/
+/test_data*
+*.npy
+/model_test_2/
