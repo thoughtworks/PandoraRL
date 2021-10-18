@@ -11,7 +11,7 @@ from rlvs.network import ActorGNN, CriticGNN
 from rlvs.constants import AgentConstants
 
 from .memory import Memory
-from .utils import soft_update, hard_update, to_tensor, to_numpy, batchify
+from .utils import soft_update, hard_update, to_tensor, to_numpy, batchify, USE_CUDA
 from .noise import OrnsteinUhlenbeckActionNoise
 
 criterion = nn.MSELoss()
@@ -76,6 +76,12 @@ class DDPGAgentGNN:
             self.TAU
         )        
         self._critiq_optim = Adam(self._critiq.parameters(), lr=prate)
+
+        if USE_CUDA:
+            self._actor.cuda()
+            self._actor_target.cuda()
+            self._critiq.cuda()
+            self._critiq_target.cuda()
 
         hard_update(self._actor_target, self._actor) # Make sure target is with the same weight
         hard_update(self._critiq_target, self._critiq)

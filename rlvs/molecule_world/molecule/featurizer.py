@@ -8,7 +8,7 @@ import torch
 from torch_geometric.data import Data
 from .types import MoleculeType
 
-from rlvs.constants import RESIDUES
+from rlvs.constants import RESIDUES, Z_SCORES
 
 ob.obErrorLog.SetOutputLevel(0)
 
@@ -107,6 +107,7 @@ class Featurizer():
         ]
 
         residue = np.zeros(len(self.residues), dtype=int)
+        z_scores = Z_SCORES.get(atom.residue.upper(), [0, 0, 0, 0, 0])
 
         if atom.molecule_type == MoleculeType.PROTEIN:
             residue[self.residues.get(atom.residue.upper(), 20)] = 1
@@ -117,6 +118,7 @@ class Featurizer():
         features.extend([atom.molecule_type])
         features.extend(self.smarts_patterns[atom.idx])
         features.extend(residue)
+        features.extend(z_scores)
             
         return features
 

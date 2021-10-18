@@ -41,15 +41,12 @@ class ActorGNN(nn.Module):
         self.action_layer_in = nn.Linear(32, 128)
         self.action_layer_out = nn.Linear(128, action_shape)
 
-        # self.init_weights(init_w)
-
     def init_weights(self, init_w):
         self.node_encoder.weight.data = fanin_init(self.node_encoder.weight.data.size())
         self.edge_encoder.weight.data = fanin_init(self.edge_encoder.weight.data.size())
         
         self.action_layer_in.weight.data = fanin_init(self.action_layer_in.weight.data.size())
         self.action_layer_out.weight.data.uniform_(-init_w, init_w)
-
 
     @timeit("actor_forward")
     def forward(self, complex_):
