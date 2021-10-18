@@ -1,8 +1,8 @@
-from rlvs.network.actor import ActorDQN
+from rlvs.network.actor import ActorGCN
 from rlvs.molecule_world.env import GraphEnv
-from rlvs.molecule_world.protein import Protein
-from rlvs.molecule_world.ligand import Ligand
-from rlvs.molecule_world.complex import Complex
+from rlvs.molecule_world.molecule.protein import Protein
+from rlvs.molecule_world.molecule.ligand import Ligand
+from rlvs.molecule_world.molecule.complex import Complex
 from rlvs.agents.utils import batchify, to_tensor, to_numpy, USE_CUDA
 
 from rlvs.constants import AgentConstants
@@ -52,7 +52,7 @@ class Loader:
 criterion = nn.BCELoss()
 def get_network(prate=0.00005):
     env = GraphEnv(single_step=np.array([1]))
-    actor = ActorDQN(
+    actor = ActorGCN(
         env.input_shape,
         env.edge_shape,
         env.action_space.degree_of_freedom,

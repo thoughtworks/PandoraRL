@@ -101,4 +101,15 @@ class ActorDQN(ActorGNN):
         action = F.relu(self.action_layer_in(molecule_data))
         action = self.action_layer_out(action)
         return action
-        # return F.softmax(action)
+
+class ActorGCN(ActorDQN):
+    def __init__(self, input_shape, edge_shape, action_shape, learning_rate, tau=0.001, init_w=3e-3):
+        super(
+            ActorDQN, self
+        ).__init__(
+            input_shape, edge_shape, action_shape, learning_rate, tau, init_w
+        )
+    
+    def forward(self, complex_):
+        action = super().forward(complex_)
+        return F.softmax(action)
