@@ -74,15 +74,15 @@ class Atoms:
 
     @property
     def coords(self):
-        return self.features[:,:3]
+        return self._coords
 
     @property
     def centroid(self):
-        return self.features[:, :3].mean(axis=0)
+        return self._coords.mean(axis=0)
 
     @coords.setter
     def coords(self, coords):
-        self.features[:, :3] = torch.from_numpy(coords)
+        self._coords = coords
         
         for idx, coord in enumerate(coords):
             self._atoms[idx].coord = coord
@@ -113,6 +113,7 @@ class Atoms:
         self._update_edges()
 
     def _update_features(self):
+        self._coords = np.array([atom.coord for atom in self._atoms])
         self.features = torch.tensor([
             atom.features(self.featurizer) for atom in self._atoms
         ], dtype=torch.float)

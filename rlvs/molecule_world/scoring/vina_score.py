@@ -130,11 +130,12 @@ class VinaScore:
             for x, y in valid_pairs
         ])
 
-        distances = np.linalg.norm(feature_lists[
-            :, 0, Features.COORD
-        ] - feature_lists[
-            :, 1, Features.COORD
-        ], axis=1)
+        coords =  np.array([
+            [self.protein.atoms.coords[y], self.ligand.atoms.coords[x]]
+            for x, y in valid_pairs
+        ])
+
+        distances = np.linalg.norm(coords[:, 0] - coords[:, 1], axis=1)
 
         surface_dist = distances - (feature_lists[
             :, 0, Features.VDWr

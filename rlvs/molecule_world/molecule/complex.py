@@ -148,7 +148,7 @@ class Complex:
         self.ligand.randomize(ComplexConstants.BOUNDS, action_shape)
 
     def reset_ligand(self):
-        self.ligand.set_coords(self.original_ligand.get_coords().data.numpy())
+        self.ligand.set_coords(self.original_ligand.get_coords())
         
     @property
     def rmsd(self):

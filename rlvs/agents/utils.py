@@ -64,10 +64,10 @@ def batchify(molecules, data=True):
     return Data(x=X, edge_index=edge_index, batch=batch, edge_attr=edge_attr)
 
 def filter_by_distance(protein, ligand, distance_threshold=4):
-    ligand_data = ligand.data.x
+    ligand_coords = ligand.atoms.coords
     if distance_threshold is not None:
         distances = np.array([
-            protein.distance(feature[:3]) for feature in ligand_data
+            protein.distance(coord) for coord in ligand_coords
         ])
 
     _interacting_edges = np.argwhere(distances <= distance_threshold)

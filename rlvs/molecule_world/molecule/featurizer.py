@@ -93,7 +93,7 @@ class Featurizer():
             ]
         '''
         features = []
-        features.extend(atom.coord)
+        # features.extend(atom.coord)
 
         # one hot encode atomic number
         encoding = np.zeros(self.num_classes, dtype=int)

@@ -48,8 +48,7 @@ class Molecule:
         return self.atoms.coords
 
     def distance(self, coordinates):
-        func = lambda features: np.linalg.norm(coordinates - features[:, :3], axis=1)
-        return func(self.data.x)
+        return np.linalg.norm(coordinates - self.atoms.coords, axis=1)
     
     def set_coords(self, new_coords):
         assert new_coords.shape == (self.n_atoms, 3)
