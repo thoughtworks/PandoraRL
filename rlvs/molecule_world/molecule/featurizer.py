@@ -107,10 +107,12 @@ class Featurizer():
         ]
 
         residue = np.zeros(len(self.residues), dtype=int)
-        z_scores = Z_SCORES.get(atom.residue.upper(), [0, 0, 0, 0, 0])
+        z_scores = [0] * 5
 
         if atom.molecule_type == MoleculeType.PROTEIN:
             residue[self.residues.get(atom.residue.upper(), 20)] = 1
+            z_scores = Z_SCORES.get(atom.residue.upper(), [0, 0, 0, 0, 0])
+
 
         features.extend(named_features)
         features.extend([int(atom.is_heavy_atom)])
