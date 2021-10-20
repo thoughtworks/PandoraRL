@@ -35,7 +35,6 @@ def read_to_OB(filename, filetype, prepare=False):
 def randomizer(action_shape):
     global box_size, RANDOM_POS_SIGN
     pose = RANDOM_POS_SIGN * np.random.uniform(0, box_size, (action_shape,))
-    ComplexConstants.RMSD_THRESHOLD = min(box_size + 0.1, 4)
     RANDOM_POS_SIGN *= -1
     box_size = min(box_size + 0.005, 4)
 
