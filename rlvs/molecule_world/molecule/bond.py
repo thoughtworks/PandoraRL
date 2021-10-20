@@ -10,7 +10,7 @@ class Bond:
         self.idx = idx
         self.atom_a = atom_a
         self.atom_b = atom_b
-        self.distance = np.linalg.norm(atom_a.coord - atom_b.coord)
+        self._distance = np.linalg.norm(atom_a.coord - atom_b.coord)
         self.lenght = bond_length
         self.bond_type = bond_type
 
@@ -29,6 +29,11 @@ class Bond:
             atom_a.update_hydrogens(atom_b, self)
             atom_b.update_hydrogens(atom_a, self)
 
+    @property
+    def distance(self):
+        self._distance = np.linalg.norm(self.atom_a.coord - self.atom_b.coord)
+        return self._distance
+    
     @property
     def edge(self):
         return torch.tensor([
