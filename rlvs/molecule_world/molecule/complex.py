@@ -23,7 +23,7 @@ class Complex:
         self.previous_rmsd = 0
 
         self.vina = VinaScore(protein, ligand)
-        
+        self.inter_molecular_interactions = self.inter_molecular_bonds()
         self.update_edges()
 
         logging.debug(
@@ -35,10 +35,10 @@ class Complex:
 
     def crop(self, x, y, z):
         self.protein.crop(self.ligand.get_centroid(), x, y, z)
+        self.inter_molecular_interactions = self.inter_molecular_bonds()
         self.update_edges()
 
     def update_edges(self):
-        self.inter_molecular_interactions = self.inter_molecular_bonds()
         self.inter_molecular_edges = torch.vstack([
             bond.edge for bond in self.inter_molecular_interactions
         ]).t().contiguous()
