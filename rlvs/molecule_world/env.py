@@ -114,7 +114,7 @@ class GraphEnv:
     def step(self, action):
         terminal = False
         try:
-            delta_change = self._complex.ligand.update_pose(*action)
+            delta_change = self._complex.update_pose(*action)
             reward = self._complex.score()
             # terminal = self._complex.perfect_fit
         except Exception as e:

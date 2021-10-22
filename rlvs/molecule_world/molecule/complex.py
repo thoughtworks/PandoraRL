@@ -55,6 +55,10 @@ class Complex:
     def vina_score(self):
         return self.vina.total_energy()
 
+    def update_pose(self, x=0, y=0, z=0, roll=0, pitch=0, yaw=0):
+        self.ligand.update_pose(x, y, z, roll, pitch, yaw)
+        self.update_edges()
+
     def inter_molecular_bonds(self):
         n_p_atoms = len(self.protein.atoms)
         p_atoms = [atom.idx for atom in self.protein.atoms.where(lambda x: x.is_heavy_atom)]
