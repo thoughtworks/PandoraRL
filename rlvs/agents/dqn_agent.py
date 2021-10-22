@@ -175,7 +175,7 @@ class DQNAgentGNN:
                 Actor loss: {np.mean(episode_loss)}"
             )
             if i_episode%10 == 0:
-                self.save_weights(self.weights_path)
+                self.save_weights(self.weights_path, i_episode)
                 self.env.save_complex_files(f'{self.complex_path}_{i_episode}')
                 with open(f'{self.weights_path}_losses.npy', 'wb') as f:
                     np.save(f, losses)
@@ -222,8 +222,8 @@ class DQNAgentGNN:
         )
         logging.info(f"Action: {np.round(np.array(action), 4)}, Reward: {np.round(reward, 4)}, E_i: {episode_length}, E: {i_episode}, RMSD: {np.round(self.env._complex.rmsd, 4)}, LOSS: {loss}")
 
-    def save_weights(self, path):
-        torch.save(self._actor.state_dict(), f'{path}_actor')
+    def save_weights(self, path, episode):
+        torch.save(self._actor.state_dict(), f'{path}_{episode}_actor')
         
 
     def load_weights(self, path_actor, path_critic):
