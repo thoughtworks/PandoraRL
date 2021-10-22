@@ -12,6 +12,7 @@ class BondType(IntEnum):
     HALOGEN_BOND = 128
     MULTI_POLAR_HALOGEN = 256
     CATION_PI = 512
+    REPULSIVE = 1024
 
     @classmethod
     def encoding(cls, bond_type):
@@ -24,6 +25,10 @@ class BondType(IntEnum):
 
         return atom1.has_hydrogen and atom2.acceptor and \
             is_H_bond_functional_group(atom1, atom2)
+
+    @staticmethod
+    def is_repulsive_bond(bond):
+        return bond.surface_distance < 0
 
     @staticmethod
     def is_hydrophobic(p_atom, l_atom):

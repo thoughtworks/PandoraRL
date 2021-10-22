@@ -1,6 +1,6 @@
 import numpy as np
 from rlvs.constants import Features, Vina
-from ..molecule.bond import HydrogenBond, HydrophobicBond
+from ..molecule.inter_molecular_bond import HydrogenBond, HydrophobicBond
 from ..molecule.types import BondType
 from rlvs.agents.utils import filter_by_distance, to_numpy
 from ..molecule.named_atom import H

@@ -89,6 +89,7 @@ class GraphEnv:
 
     def reset(self):
         self._complex.reset_ligand()
+        self._complex.update_edges()
         print("RESET RMSD", self._complex.rmsd)
         while True:
             self._complex = DataStore.next(False)

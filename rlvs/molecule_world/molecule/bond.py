@@ -17,6 +17,7 @@ class Bond:
         self.is_amide = None
         self.is_aromatic = None
         self.is_carbonyl = None
+        self.update_edge = update_edge
 
         if ob_bond is not None:
             self.is_amide = ob_bond.IsAmide()
@@ -33,6 +34,10 @@ class Bond:
     def distance(self):
         self._distance = np.linalg.norm(self.atom_a.coord - self.atom_b.coord)
         return self._distance
+
+    @property
+    def surface_distance(self):
+        return self._distance - (self.atom_a.VDWr + self.atom_b.VDWr)
     
     @property
     def edge(self):
@@ -88,48 +93,3 @@ class Bond:
             self.bond_type = bond_type
         else:
             self.bond_type = self.bond_type | bond_type
-
-
-class InterMolecularBond(Bond):
-    def __init__(self, atom_a, atom_b, bond_length, update_edge=True, bond_type=None, ligand_offset=0):
-        super(
-            InterMolecularBond, self
-        ).__init__(-1, atom_a, atom_b, bond_length, update_edge, bond_type)
-
-        self.p_atom = atom_a if atom_a.molecule_type == MoleculeType.PROTEIN else atom_b
-        self.l_atom = atom_a if atom_a.molecule_type == MoleculeType.LIGAND else atom_b
-        self.ligand_offset = ligand_offset
-
-    @property
-    def edge(self):
-        return torch.tensor([
-            [self.p_atom.idx, self.l_atom.idx + self.ligand_offset],
-            [self.l_atom.idx + self.ligand_offset, self.p_atom.idx]
-        ], dtype=torch.long)
-
-
-class HydrogenBond(InterMolecularBond):
-    def __init__(self, idx, donor, acceptor, ligand_offset=0):
-        super(
-            HydrogenBond, self
-        ).__init__(donor, acceptor, None,
-                   update_edge=False, bond_type=BondType.HYDROGEN, ligand_offset=ligand_offset)
-        self.idx = idx
-
-    @property
-    def donor(self):
-        return self.atom_a
-
-    @property
-    def acceptor(self):
-        return self.atom_b
-
-    
-class HydrophobicBond(InterMolecularBond):
-    def __init__(self, idx, p_atom, l_atom, ligand_offset=0):
-        super(
-            HydrophobicBond, self
-        ).__init__(p_atom, l_atom, None,
-                   update_edge=False, bond_type=BondType.HYDROPHOBIC, ligand_offset=ligand_offset)
-        self.idx = idx
-
