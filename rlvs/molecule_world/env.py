@@ -73,12 +73,12 @@ class Env:
     
 
 class GraphEnv:
-    def __init__(self, complex=None, single_step=np.array([1, 1, 1])):
+    def __init__(self, complex=None, single_step=np.array([1, 1, 1]), test=False):
         action_bounds = np.array([-1*single_step, single_step])
         self.action_space = ActionSpace(action_bounds)
         
         if complex is None:
-            DataStore.init(crop=True)
+            DataStore.init(crop=True, test=test)
             self._complex = DataStore.next(False)            
             self._complex.randomize_ligand(self.action_space.n_outputs)
         else:

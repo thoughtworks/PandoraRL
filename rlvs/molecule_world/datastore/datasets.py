@@ -152,14 +152,41 @@ class DudeProteaseData(Data):
             ) for complex in self.complexes_path
         ]
 
+class TestData(Data):
+    DATA_PATH = f'{ROOT_PATH}/test_data/'
+
+    def __init__(self):
+        super(TestData, self).__init__()
+        if '.DS_Store' in self.complexes_path:
+            self.complexes_path.remove('.DS_Store')
+
+        self._complexes = [
+            Complex(
+                Protein(
+                    path=f'{self.DATA_PATH}/{complex}/{complex}_protein.pdb',
+                    filetype="pdb",
+                    name=complex
+                ), Ligand(
+                    path=f'{self.DATA_PATH}/{complex}/{complex}_ligand.pdbqt',
+                    filetype="pdbqt"
+                ), Ligand(
+                    path=f'{self.DATA_PATH}/{complex}/{complex}_ligand.pdbqt',
+                    filetype="pdbqt"
+                )
+            ) for complex in self.complexes_path
+        ]
+        
 
 class DataStore:
     DATA_STORES = []
     DATA = []
 
     @classmethod
-    def init(cls, crop=True):
+    def init(cls, crop=True, test=False):
         cls.DATA_STORES = [SARSVarients()]
+
+        if test:
+            cls.DATA_STORES = [TestData()]
         cls.load(crop)
         # cls.scaler = cls.normalize()
 
