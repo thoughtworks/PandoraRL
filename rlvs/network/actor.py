@@ -84,8 +84,8 @@ class ActorDQN(ActorGNN):
         complex_data, complex_edge_index, \
             complex_edge_attr, complex_batch = complex_.x, complex_.edge_index,\
                 complex_.edge_attr, complex_.batch
-        complex_data = F.relu(self.node_encoder(complex_data))
-        complex_edge_attr = F.relu(self.edge_encoder(complex_edge_attr))
+        complex_data = self.node_encoder(complex_data)
+        complex_edge_attr = self.edge_encoder(complex_edge_attr)
 
         complex_data = self.layers[0].conv(complex_data, complex_edge_index, complex_edge_attr)
 
