@@ -44,6 +44,11 @@ class Complex:
             for edge in self.all_inter_molecular_interactions
             if edge.distance <= ComplexConstants.DISTANCE_THRESHOLD
         ]
+
+        inter_molecular_interactions = [
+            edge for edge in inter_molecular_interactions
+            if edge.bond_type is not None or edge.bond_type != 0
+        ]
         
         self.inter_molecular_edges = torch.vstack([
             bond.edge for bond in inter_molecular_interactions
