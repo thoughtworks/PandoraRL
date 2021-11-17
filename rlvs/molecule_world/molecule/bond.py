@@ -49,6 +49,7 @@ class Bond:
     @property
     def feature(self):
         encoding = BondType.encoding(self.bond_type)
+        encoding.extend([self.distance])
         return encoding
 
 
