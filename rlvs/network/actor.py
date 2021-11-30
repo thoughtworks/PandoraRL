@@ -90,7 +90,7 @@ class ActorDQN(ActorGNN):
         complex_data = self.layers[0].conv(complex_data, complex_edge_index, complex_edge_attr)
 
         for layer in self.layers[1:]:
-            comlpex_data = layer(complex_data, complex_edge_index, complex_edge_attr)
+            complex_data = layer(complex_data, complex_edge_index, complex_edge_attr)
 
         complex_data = self.layers[0].act(self.layers[0].norm(complex_data))
         complex_data = F.dropout(complex_data, p=0.1, training=self.training)
