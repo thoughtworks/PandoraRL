@@ -8,7 +8,7 @@ import torch
 from torch_geometric.data import Data
 from .types import MoleculeType
 
-from rlvs.constants import RESIDUES, Z_SCORES
+from rlvs.constants import RESIDUES, Z_SCORES, KD_HYDROPHOBICITYA, CONFORMATION_SIMILARITY
 
 ob.obErrorLog.SetOutputLevel(0)
 
@@ -38,6 +38,10 @@ class Featurizer():
 
 
         self.residues = RESIDUES
+        self.hydrophobicity = KD_HYDROPHOBICITYA
+        self.conf_sim = CONFORMATION_SIMILARITY
+        self.hydophobicity_max_grps = max(np.unique(list(self.hydrophobicity.values())))
+        self.conf_sim_max_grps = max(np.unique(list(self.conf_sim.values())))
 
         for code, (atom, name) in enumerate(atom_classes):
             if type(atom) is list:
@@ -107,10 +111,14 @@ class Featurizer():
         ]
 
         residue = np.zeros(len(self.residues), dtype=int)
+        kd_hydophobocitya = np.zeros(len(np.unique(list(self.hydrophobicity.values()))))
+        # conformational_similarity = np.zeros(len(np.unique(list(self.conf_sim.values()))))
         z_scores = [0] * 5
 
         if atom.molecule_type == MoleculeType.PROTEIN:
             residue[self.residues.get(atom.residue.upper(), 20)] = 1
+            kd_hydophobocitya[self.hydrophobicity.get(atom.residue.upper(), self.hydophobicity_max_grps)] = 1
+            # conformational_similarity[self.conf_sim.get(atom.residue.upper(), self.conf_sim_max_grps)] = 1
             z_scores = Z_SCORES.get(atom.residue.upper(), [0, 0, 0, 0, 0])
 
 
@@ -121,6 +129,8 @@ class Featurizer():
         features.extend(self.smarts_patterns[atom.idx])
         features.extend(residue)
         features.extend(z_scores)
+        features.extend(kd_hydophobocitya)
+        # features.extend(conformational_similarity)
             
         return features
 

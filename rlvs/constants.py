@@ -73,6 +73,54 @@ RESIDUES = {
     "XXX": 20
 }
 
+KD_HYDROPHOBICITYA = {
+    'ALA': 2,
+    'CYS': 3,
+    'ASP': 0,
+    'GLU': 0,
+    'PHE': 3,
+    'GLY': 1,
+    'HIS': 0,
+    'ILE': 3,
+    'LYS': 0,
+    'LEU': 3,
+    'MET': 2,
+    'ASN': 0,
+    'PRO': 1,
+    'GLN': 0,
+    'ARG': 0,
+    'SER': 1,
+    'THR': 1,
+    'VAL': 3,
+    'TRP': 1,
+    'XXX': 4,
+    'TYR': 1
+}
+
+CONFORMATION_SIMILARITY = {
+    'ALA': 0,
+    'CYS': 0,
+    'ASP': 2,
+    'GLU': 0,
+    'PHE': 4,
+    'GLY': 3,
+    'HIS': 4,
+    'ILE': 6,
+    'LYS': 0,
+    'LEU': 0,
+    'MET': 0,
+    'ASN': 2,
+    'PRO': 1,
+    'GLN': 0,
+    'ARG': 0,
+    'SER': 5,
+    'THR': 6,
+    'VAL': 6,
+    'TRP': 4,
+    'XXX': 7,
+    'TYR': 4
+}
+
 Z_SCORES = {
     "ALA": [ 0.24, -2.32,  0.60, -0.14,  1.3],
     "ARG": [ 3.52,  2.50, -3.50,  1.99, -0.17],
