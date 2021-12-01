@@ -17,6 +17,6 @@ conda env create -f environment-gpu.yml
 echo "*********** ${CONDA_DEVELOPMENT_ENV_NAME} environment created **************"
 echo "*********** Installing ${CONDA_DEVELOPMENT_ENV_NAME} dependencies **************"
 source activate ${CONDA_DEVELOPMENT_ENV_NAME}
-conda install -c pytorch pytorch=1.9.1
+conda install -y -c pytorch pytorch=1.9.1
 echo "*********** Finished setup **************"
 
