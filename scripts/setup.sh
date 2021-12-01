@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 export PATH="${PATH}:/root/miniconda3/bin"
-CONDA_DEVELOPMENT_ENV_NAME=rl-virtual-screening
+CONDA_DEVELOPMENT_ENV_NAME=rl-virtual-screening-gpu
 
 echo "*********** ${CONDA_DEVELOPMENT_ENV_NAME} environment cleanup **************"
 environment_lists=($(conda env list | cut -d ' ' -f1))
@@ -13,10 +13,10 @@ fi
 echo "*********** ${CONDA_DEVELOPMENT_ENV_NAME} environment cleanup completed **************"
 
 echo "*********** creating ${CONDA_DEVELOPMENT_ENV_NAME} environment **************"
-conda env create -f environment.yml
+conda env create -f environment-gpu.yml
 echo "*********** ${CONDA_DEVELOPMENT_ENV_NAME} environment created **************"
 echo "*********** Installing ${CONDA_DEVELOPMENT_ENV_NAME} dependencies **************"
 source activate ${CONDA_DEVELOPMENT_ENV_NAME}
-pip install -r requirements.txt
+conda install -c pytorch pytorch=1.9.1
 echo "*********** Finished setup **************"
 
