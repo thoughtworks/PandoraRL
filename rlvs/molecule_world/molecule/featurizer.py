@@ -9,6 +9,7 @@ from torch_geometric.data import Data
 from .types import MoleculeType
 
 from rlvs.constants import RESIDUES, Z_SCORES, KD_HYDROPHOBICITYA, CONFORMATION_SIMILARITY
+from rlvs.config import Config
 
 ob.obErrorLog.SetOutputLevel(0)
 
@@ -36,7 +37,7 @@ class Featurizer():
             (metals, 'metal')
         ]
 
-
+        self.config = Config.get_instance()
         self.residues = RESIDUES
         self.hydrophobicity = KD_HYDROPHOBICITYA
         self.conf_sim = CONFORMATION_SIMILARITY
@@ -71,6 +72,61 @@ class Featurizer():
             mol_py = pybel.Molecule(obmol)
             self.smarts_patterns = self.find_smarts(mol_py)
 
+
+    def atom_type_encoding(self, atom):
+        encoding = np.zeros(self.num_classes, dtype=int)
+        encoding[self.atom_codes[atom.atomic_num]] = 1
+
+        return encoding
+
+    def atom_named_features(self, atom):
+        return [
+            atom.hyb, atom.hvy_degree,
+            atom.hetro_degree, atom.partial_charge
+        ]
+
+    def is_heavy_atom(self, atom):
+        return [int(atom.is_heavy_atom)]
+
+    def VDWr(self, atom):
+        return [atom.VDWr]
+
+    def molecule_type(self, atom):
+        return [atom.molecule_type]
+
+    def smarts_pattern_encoding(self, atom):
+        return self.smarts_patterns[atom.idx]
+    
+    def residue_labels(self, atom):
+        residue = np.zeros(len(self.residues), dtype=int)
+        if atom.molecule_type == MoleculeType.PROTEIN:
+            residue[self.residues.get(atom.residue.upper(), 20)] = 1
+
+        return residue
+
+    def kd_hydophobocitya(self, atom):
+        kd_hydophobocitya = np.zeros(len(np.unique(list(self.hydrophobicity.values()))))
+        
+        if atom.molecule_type == MoleculeType.PROTEIN:
+            kd_hydophobocitya[self.hydrophobicity.get(atom.residue.upper(), self.hydophobicity_max_grps)] = 1
+
+        return kd_hydophobocitya
+
+    def conformational_similarity(self, atom):
+        conformational_similarity = np.zeros(len(np.unique(list(self.conf_sim.values()))))
+
+        if atom.molecule_type == MoleculeType.PROTEIN:
+            conformational_similarity[self.conf_sim.get(atom.residue.upper(), self.conf_sim_max_grps)] = 1
+
+        return conformational_similarity
+
+
+    def z_scores(self, atom):
+        if atom.molecule_type == MoleculeType.PROTEIN:
+            return Z_SCORES.get(atom.residue.upper(), [0, 0, 0, 0, 0])
+
+        return [0] * 5
+            
     def featurize(self, atom):
         '''
         INPUT
@@ -96,41 +152,10 @@ class Featurizer():
                 encoding residue type for protein atoms
             ]
         '''
+        
         features = []
-        # features.extend(atom.coord)
-
-        # one hot encode atomic number
-        encoding = np.zeros(self.num_classes, dtype=int)
-        encoding[self.atom_codes[atom.atomic_num]] = 1
-        features.extend(encoding)
-
-        # hybridization, heavy valence, hetero valence, partial charge
-        named_features = [
-            atom.hyb, atom.hvy_degree,
-            atom.hetro_degree, atom.partial_charge
-        ]
-
-        residue = np.zeros(len(self.residues), dtype=int)
-        kd_hydophobocitya = np.zeros(len(np.unique(list(self.hydrophobicity.values()))))
-        # conformational_similarity = np.zeros(len(np.unique(list(self.conf_sim.values()))))
-        z_scores = [0] * 5
-
-        if atom.molecule_type == MoleculeType.PROTEIN:
-            residue[self.residues.get(atom.residue.upper(), 20)] = 1
-            kd_hydophobocitya[self.hydrophobicity.get(atom.residue.upper(), self.hydophobicity_max_grps)] = 1
-            # conformational_similarity[self.conf_sim.get(atom.residue.upper(), self.conf_sim_max_grps)] = 1
-            z_scores = Z_SCORES.get(atom.residue.upper(), [0, 0, 0, 0, 0])
-
-
-        features.extend(named_features)
-        features.extend([int(atom.is_heavy_atom)])
-        features.extend([atom.VDWr])
-        features.extend([atom.molecule_type])
-        features.extend(self.smarts_patterns[atom.idx])
-        features.extend(residue)
-        features.extend(z_scores)
-        features.extend(kd_hydophobocitya)
-        # features.extend(conformational_similarity)
+        for method in self.config.node_features:
+            features.extend(getattr(self, method)(atom))
             
         return features
 

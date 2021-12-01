@@ -1,0 +1,15 @@
+{
+  "single_step": [1],
+  "node_features":[
+            "atom_type_encoding",
+            "atom_named_features",
+            "is_heavy_atom",
+            "VDWr",
+            "molecule_type",
+            "smarts_pattern_encoding",
+            "residue_labels",
+            "z_scores",
+            "kd_hydophobocitya",
+            "conformational_similarity"
+  ]
+}
