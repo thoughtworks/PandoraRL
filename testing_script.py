@@ -14,7 +14,7 @@ config_path = os.getenv('CONFIG', './config.json')
 Config.init(config_path)
 config = Config.get_instance()
 
-path_prefix = f"{folder}run{run_id}_"
+path_prefix = f"{folder}/run{run_id}_"
 log_filename=path_prefix+"training_log.log"
 
 logging.basicConfig(
