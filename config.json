@@ -11,5 +11,9 @@
             "z_scores",
             "kd_hydophobocitya",
             "conformational_similarity"
+  ],
+  "edge_features": [
+    "encoding",
+    "bond_distance"
   ]
 }

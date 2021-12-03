@@ -3,7 +3,7 @@ import numpy as np
 import torch
 
 from .types import MoleculeType, BondType
-
+from rlvs.config import Config
 
 class Bond:
     def __init__(self, idx, atom_a, atom_b, bond_length, update_edge=True, bond_type=0, ob_bond = None):
@@ -46,11 +46,20 @@ class Bond:
             [self.atom_b.idx, self.atom_a.idx]
         ], dtype=torch.long)
 
+    def encoding(self):
+        return BondType.encoding(self.bond_type)
+
+    def bond_distance(self):
+        return [self.distance]
+    
     @property
     def feature(self):
-        encoding = BondType.encoding(self.bond_type)
-        encoding.extend([self.distance])
-        return encoding
+        config = Config.get_instance()
+        features = []
+        for prop in config.edge_features:
+            features.extend(getattr(self, prop)())
+
+        return features
 
 
     def saperation(self, dest, named_atom):

@@ -19,6 +19,11 @@ class Config:
             'kd_hydophobocitya',
             'conformational_similarity'
         ]
+
+        self.edge_features = [
+            "encoding",
+            "bond_distance"
+        ]
         
         config = {}
         with open(config_path, 'r') as config_f:
