@@ -156,7 +156,7 @@ class MERSVariants(Data):
     DATA_PATH = f'{ROOT_PATH}/MERS_variants'
 
     def __init__(self):
-        super(DudeProteaseData, self).__init__()
+        super(MERSVariants, self).__init__()
         if '.DS_Store' in self.complexes_path:
             self.complexes_path.remove('.DS_Store')
 
@@ -181,7 +181,7 @@ class BATVariants(Data):
     DATA_PATH = f'{ROOT_PATH}/BAT_variants'
 
     def __init__(self):
-        super(DudeProteaseData, self).__init__()
+        super(BATVariants, self).__init__()
         if '.DS_Store' in self.complexes_path:
             self.complexes_path.remove('.DS_Store')
 
