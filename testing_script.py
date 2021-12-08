@@ -25,7 +25,7 @@ logging.basicConfig(
             level=logging.DEBUG
         )
 
-env = GraphEnv(single_step=np.array(config.single_step))
+env = GraphEnv(single_step=np.array(config.single_step), test=True)
 agent = DQNAgentGNN(
     env,
     weights_path=path_prefix+"weights_intermediate",
