@@ -1,0 +1,113 @@
+REMARK  20 active torsions:
+REMARK  status: ('A' for Active; 'I' for Inactive)
+REMARK    1  A    between atoms: C_4747  and  O2_4748 
+REMARK       I    between atoms: C_4747  and  N_4753 
+REMARK    2  A    between atoms: CT_4749  and  O2_4748 
+REMARK    3  A    between atoms: N_4753  and  CA_4754 
+REMARK    4  A    between atoms: CA_4754  and  CB_4757 
+REMARK    5  A    between atoms: CA_4754  and  C_4755 
+REMARK       I    between atoms: C_4755  and  N_4759 
+REMARK    6  A    between atoms: N_4759  and  CA_4760 
+REMARK    7  A    between atoms: CA_4760  and  CB_4763 
+REMARK    8  A    between atoms: CA_4760  and  C_4761 
+REMARK       I    between atoms: C_4761  and  N_4766 
+REMARK    9  A    between atoms: N_4766  and  CA_4767 
+REMARK   10  A    between atoms: C_4768  and  CA_4767 
+REMARK   11  A    between atoms: CA_4767  and  CB_4770 
+REMARK       I    between atoms: C_4768  and  N49_4777 
+REMARK   12  A    between atoms: CB_4770  and  CG_4771 
+REMARK   13  A    between atoms: C3_4775  and  O1_4774 
+REMARK   14  A    between atoms: C84_4788  and  O1_4774 
+REMARK   15  A    between atoms: C57_4778  and  N49_4777 
+REMARK   16  A    between atoms: C57_4778  and  C59_4779 
+REMARK   17  A    between atoms: C57_4778  and  C63_4781 
+REMARK   18  A    between atoms: C59_4779  and  C61_4780 
+REMARK   19  A    between atoms: C63_4781  and  C82_4787 
+REMARK   20  A    between atoms: C82_4787  and  C84_4788 
+ROOT
+ATOM      1  CA  LEU B   4     -22.251  -2.410   1.911  1.00  9.86     0.186 C 
+ENDROOT
+BRANCH   1   2
+ATOM      2  C   LEU B   4     -22.636  -1.909   3.312  1.00 11.85     0.274 C 
+ATOM      3  O   LEU B   4     -23.786  -1.898   3.695  1.00 12.71    -0.268 OA
+HETATM    4  N49 CEV B   5     -21.606  -1.439   4.208  1.00 11.35    -0.238 NA
+BRANCH   4   5
+HETATM    5  C57 CEV B   5     -21.977  -0.988   5.528  1.00 10.13     0.107 C 
+BRANCH   5   6
+HETATM    6  C59 CEV B   5     -21.232  -1.807   6.582  1.00  8.30     0.034 C 
+BRANCH   6   7
+HETATM    7  C61 CEV B   5     -21.724  -3.249   6.651  1.00  9.14     0.085 C 
+HETATM    8  C65 CEV B   5     -21.008  -4.017   7.674  1.00 14.02     0.251 C 
+HETATM    9  O66 CEV B   5     -19.796  -4.058   7.866  1.00 12.21    -0.271 OA
+HETATM   10  N69 CEV B   5     -21.994  -4.808   8.423  1.00 13.74    -0.238 NA
+HETATM   11  C71 CEV B   5     -23.292  -4.559   7.925  1.00 12.06     0.129 C 
+HETATM   12  C73 CEV B   5     -23.150  -3.236   7.150  1.00  9.92     0.036 C 
+ENDBRANCH   6   7
+ENDBRANCH   5   6
+BRANCH   5  13
+HETATM   13  C63 CEV B   5     -21.668   0.485   5.612  1.00  7.61     0.035 C 
+BRANCH  13  14
+HETATM   14  C82 CEV B   5     -22.586   1.325   4.682  1.00 14.25     0.098 C 
+BRANCH  14  15
+HETATM   15  C84 CEV B   5     -24.099   1.350   5.143  1.00 24.01     0.272 C 
+HETATM   16  O88 CEV B   5     -24.492   0.942   6.237  1.00 20.12    -0.264 OA
+BRANCH  15  17
+HETATM   17  O1  CEV B   5     -25.090   1.445   4.119  1.00 24.48    -0.302 OA
+BRANCH  17  18
+HETATM   18  C3  CEV B   5     -26.438   1.392   4.634  1.00 23.32     0.152 C 
+HETATM   19  C5  CEV B   5     -27.266   0.523   3.701  1.00 46.02     0.035 C 
+ENDBRANCH  17  18
+ENDBRANCH  15  17
+ENDBRANCH  14  15
+ENDBRANCH  13  14
+ENDBRANCH   5  13
+ENDBRANCH   4   5
+ENDBRANCH   1   2
+BRANCH   1  20
+ATOM     20  N   LEU B   4     -23.005  -3.600   1.712  1.00 12.57    -0.229 NA
+ATOM     21  C   VAL B   3     -22.580  -4.803   2.373  1.00 14.78     0.274 C 
+ATOM     22  O   VAL B   3     -21.609  -4.782   3.089  1.00 15.29    -0.268 OA
+BRANCH  21  23
+ATOM     23  CA  VAL B   3     -23.352  -6.096   2.206  1.00 12.24     0.186 C 
+BRANCH  23  24
+ATOM     24  N   VAL B   3     -22.451  -7.100   1.806  1.00 12.24    -0.229 NA
+ATOM     25  C   SER B   2     -22.633  -7.787   0.542  1.00 15.71     0.277 C 
+ATOM     26  O   SER B   2     -23.583  -7.497  -0.178  1.00 17.49    -0.268 OA
+BRANCH  25  27
+ATOM     27  CA  SER B   2     -21.637  -8.880   0.183  1.00 15.19     0.221 C 
+BRANCH  27  28
+ATOM     28  N   SER B   2     -22.265  -9.715  -0.783  1.00 16.98    -0.202 NA
+HETATM   29  C   BOC B   1     -23.374 -10.551  -0.394  1.00 18.88     0.384 C 
+HETATM   30  O1  BOC B   1     -23.900 -10.419   0.695  1.00 20.75    -0.236 OA
+BRANCH  29  31
+HETATM   31  O2  BOC B   1     -24.144 -10.859  -1.560  1.00 17.62    -0.289 OA
+BRANCH  31  32
+HETATM   32  CT  BOC B   1     -25.355 -11.634  -1.454  1.00 14.16     0.103 C 
+HETATM   33  C1  BOC B   1     -25.072 -12.904  -0.698  1.00 17.77     0.030 C 
+HETATM   34  C2  BOC B   1     -25.690 -11.925  -2.931  1.00 17.13     0.030 C 
+HETATM   35  C3  BOC B   1     -26.449 -10.805  -0.821  1.00 20.26     0.030 C 
+ENDBRANCH  31  32
+ENDBRANCH  29  31
+ENDBRANCH  27  28
+BRANCH  27  36
+ATOM     36  CB  SER B   2     -20.366  -8.329  -0.407  1.00 16.52     0.216 C 
+ATOM     37  OG  SER B   2     -20.673  -7.811  -1.674  1.00 22.60    -0.218 OA
+ENDBRANCH  27  36
+ENDBRANCH  25  27
+ENDBRANCH  23  24
+BRANCH  23  38
+ATOM     38  CB  VAL B   3     -23.853  -6.482   3.604  1.00 15.77     0.032 C 
+ATOM     39  CG2 VAL B   3     -24.548  -7.861   3.593  1.00 17.19     0.003 C 
+ATOM     40  CG1 VAL B   3     -24.792  -5.392   4.205  1.00 14.79     0.003 C 
+ENDBRANCH  23  38
+ENDBRANCH  21  23
+ENDBRANCH   1  20
+BRANCH   1  41
+ATOM     41  CB  LEU B   4     -22.621  -1.366   0.861  1.00 13.46     0.034 C 
+BRANCH  41  42
+ATOM     42  CG  LEU B   4     -22.157  -1.847  -0.547  1.00 15.52     0.002 C 
+ATOM     43  CD2 LEU B   4     -20.645  -1.996  -0.573  1.00 19.51     0.000 C 
+ATOM     44  CD1 LEU B   4     -22.650  -0.851  -1.616  1.00 15.17     0.000 C 
+ENDBRANCH  41  42
+ENDBRANCH   1  41
+TORSDOF 20

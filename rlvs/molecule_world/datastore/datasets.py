@@ -152,6 +152,56 @@ class DudeProteaseData(Data):
             ) for complex in self.complexes_path
         ]
 
+class MERSVariants(Data):
+    DATA_PATH = f'{ROOT_PATH}/MERS_variants'
+
+    def __init__(self):
+        super(DudeProteaseData, self).__init__()
+        if '.DS_Store' in self.complexes_path:
+            self.complexes_path.remove('.DS_Store')
+
+        self._complexes = [
+            Complex(
+                Protein(
+                    path=f'{self.DATA_PATH}/{complex}/{complex}-protein.pdb',
+                    filetype="pdb",
+                    name=complex
+                ), Ligand(
+                    path=f'{self.DATA_PATH}/{complex}/{complex}-ligand.pdbqt',
+                    filetype="pdbqt"
+                ), Ligand(
+                    path=f'{self.DATA_PATH}/{complex}/{complex}-ligand.pdbqt',
+                    filetype="pdbqt"
+                )
+                
+            ) for complex in self.complexes_path
+        ]        
+
+class BATVariants(Data):
+    DATA_PATH = f'{ROOT_PATH}/BAT_variants'
+
+    def __init__(self):
+        super(DudeProteaseData, self).__init__()
+        if '.DS_Store' in self.complexes_path:
+            self.complexes_path.remove('.DS_Store')
+
+        self._complexes = [
+            Complex(
+                Protein(
+                    path=f'{self.DATA_PATH}/{complex}/{complex}-protein.pdb',
+                    filetype="pdb",
+                    name=complex
+                ), Ligand(
+                    path=f'{self.DATA_PATH}/{complex}/{complex}-ligand.pdbqt',
+                    filetype="pdbqt"
+                ), Ligand(
+                    path=f'{self.DATA_PATH}/{complex}/{complex}-ligand.pdbqt',
+                    filetype="pdbqt"
+                )
+                
+            ) for complex in self.complexes_path
+        ]        
+        
 class TestData(Data):
     DATA_PATH = f'{ROOT_PATH}/test_data/'
 
