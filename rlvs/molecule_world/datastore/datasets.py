@@ -233,7 +233,7 @@ class DataStore:
 
     @classmethod
     def init(cls, crop=True, test=False):
-        cls.DATA_STORES = [SARSVarients()]
+        cls.DATA_STORES = [SARSVarients(), MERSVariants()]
 
         if test:
             cls.DATA_STORES = [TestData()]
