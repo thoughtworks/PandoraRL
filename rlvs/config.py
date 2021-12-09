@@ -24,6 +24,14 @@ class Config:
             "encoding",
             "bond_distance"
         ]
+
+        self.test_dataset = [
+            'SARSTest', 'SARSCov2'
+        ]
+
+        self.train_dataset = [
+            'SARSVarients', 'MERSVariants'
+        ]
         
         config = {}
         with open(config_path, 'r') as config_f:

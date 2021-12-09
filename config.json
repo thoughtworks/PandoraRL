@@ -15,5 +15,13 @@
   "edge_features": [
     "encoding",
     "bond_distance"
-  ]
+  ],
+  "train_dataset": [
+    "SARSVarients",
+    "MERSVariants"
+  ],
+  "test_dataset": [
+    "SARSTest",
+    "SARSCov2"
+  ],
 }

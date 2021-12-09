@@ -2,6 +2,7 @@ import os
 from os import path
 from ..helper_functions import read_to_OB
 import numpy as np
+from rlvs.config import Config
 from sklearn.preprocessing import MinMaxScaler
 from ..molecule.protein import Protein
 from ..molecule.ligand import Ligand
@@ -52,6 +53,13 @@ class PafnucyData(Data):
             ) for complex in self.complexes_path
         ]
 
+class PafnucyTest(PafnucyData):
+    DATA_PATH = f'{ROOT_PATH}/pafnucy_test/complexes'
+
+    def __init__(self):
+        super(PafnucyTest, self).__init__()
+
+
 
 class SARSVarients(Data):
     DATA_PATH = f'{ROOT_PATH}/SARS_variants/'
@@ -78,7 +86,14 @@ class SARSVarients(Data):
         ]
 
 
-class PDBQTData(Data):
+class SARSTest(SARSVarients):
+    DATA_PATH = f'{ROOT_PATH}/SARS_test/'
+
+    def __init__(self):
+        super(TestData, self).__init__()
+
+
+class SARSCov2(Data):
     DATA_PATH = f'{ROOT_PATH}/pdbqt_data'
 
     def __init__(self):
@@ -152,6 +167,7 @@ class DudeProteaseData(Data):
             ) for complex in self.complexes_path
         ]
 
+
 class MERSVariants(Data):
     DATA_PATH = f'{ROOT_PATH}/MERS_variants'
 
@@ -175,7 +191,15 @@ class MERSVariants(Data):
                 )
                 
             ) for complex in self.complexes_path
-        ]        
+        ]
+
+
+class MERSTest(MERSVariants):
+    DATA_PATH = f'{ROOT_PATH}/MERS_test'
+
+    def __init__(self):
+        super(MERSTest, self).__init__()        
+
 
 class BATVariants(Data):
     DATA_PATH = f'{ROOT_PATH}/BAT_variants'
@@ -200,43 +224,41 @@ class BATVariants(Data):
                 )
                 
             ) for complex in self.complexes_path
-        ]        
-        
-class TestData(Data):
-    DATA_PATH = f'{ROOT_PATH}/test_data/'
+        ]
+
+class BATTest(BATVariants):
+    DATA_PATH = f'{ROOT_PATH}/BAT_test'
 
     def __init__(self):
-        super(TestData, self).__init__()
-        if '.DS_Store' in self.complexes_path:
-            self.complexes_path.remove('.DS_Store')
+        super(BATTest, self).__init__()
 
-        self._complexes = [
-            Complex(
-                Protein(
-                    path=f'{self.DATA_PATH}/{complex}/{complex}_protein.pdb',
-                    filetype="pdb",
-                    name=complex
-                ), Ligand(
-                    path=f'{self.DATA_PATH}/{complex}/{complex}_ligand.pdbqt',
-                    filetype="pdbqt"
-                ), Ligand(
-                    path=f'{self.DATA_PATH}/{complex}/{complex}_ligand.pdbqt',
-                    filetype="pdbqt"
-                )
-            ) for complex in self.complexes_path
-        ]
         
 
 class DataStore:
+    REGISTRY = {
+      'PafnucyData': PafnucyData,
+      'PafnucyTest': PafnucyTest,
+      'SARSVarients': SARSVarients,
+      'SARSTest': SARSTest,
+      'SARSCov2': SARSCov2,
+      'PDBQTData_2': PDBQTData_2,
+      'DudeProteaseData': DudeProteaseData,
+      'MERSVariants': MERSVariants,
+      'MERSTest': MERSTest,
+      'BATVariants': BATVariants,
+      'BATTest': BATTest        
+    }
     DATA_STORES = []
     DATA = []
+    
 
     @classmethod
     def init(cls, crop=True, test=False):
-        cls.DATA_STORES = [SARSVarients(), MERSVariants()]
+        config = Config.get_instance()
+        cls.DATA_STORES = [cls.REGISTRY[data_store]() for data_store in config.train_dataset]
 
         if test:
-            cls.DATA_STORES = [TestData()]
+            cls.DATA_STORES = [cls.REGISTRY[data_store]() for data_store in config.test_dataset]
         cls.load(crop)
         # cls.scaler = cls.normalize()
 
