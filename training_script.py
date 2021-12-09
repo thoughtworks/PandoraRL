@@ -32,4 +32,4 @@ agent = DQNAgentGNN(
     complex_path=path_prefix+"ligand_intermediate"
 )
 actions = agent.play(1500)
-agent.save_weights(path_prefix+"weights_final")
+agent.save_weights(path_prefix+"weights", "final")
