@@ -1,0 +1,38 @@
+REMARK  3 active torsions:
+REMARK  status: ('A' for Active; 'I' for Inactive)
+REMARK       I    between atoms: C1_2509  and  N2_2526 
+REMARK    1  A    between atoms: C1_2509  and  C3_2510 
+REMARK    2  A    between atoms: C6_2527  and  N2_2526 
+REMARK    3  A    between atoms: C5_2529  and  C6_2527 
+ROOT
+HETATM    1  C6  TTT B 401       6.055  27.371   1.002  1.00 26.49     0.129 C 
+HETATM    2  C01 TTT B 401       5.969  27.770   2.471  1.00 22.09     0.031 C 
+ENDROOT
+BRANCH   1   3
+HETATM    3  C5  TTT B 401       4.843  27.809   0.197  1.00 28.08    -0.000 A 
+HETATM    4  C4  TTT B 401       3.575  27.536   0.641  1.00 25.63    -0.002 A 
+HETATM    5  C9  TTT B 401       2.437  27.925  -0.087  1.00 20.73    -0.000 A 
+HETATM    6  C12 TTT B 401       2.578  28.585  -1.263  1.00 23.14    -0.000 A 
+HETATM    7  C11 TTT B 401       3.860  28.893  -1.775  1.00 21.53    -0.000 A 
+HETATM    8  C18 TTT B 401       4.018  29.581  -3.001  1.00 20.38    -0.000 A 
+HETATM    9  C8  TTT B 401       5.015  28.500  -1.041  1.00 24.98    -0.002 A 
+HETATM   10  C22 TTT B 401       5.254  29.871  -3.484  1.00 21.42    -0.000 A 
+HETATM   11  C20 TTT B 401       6.399  29.492  -2.770  1.00 24.84    -0.000 A 
+HETATM   12  C14 TTT B 401       6.285  28.828  -1.585  1.00 27.30    -0.000 A 
+ENDBRANCH   1   3
+BRANCH   1  13
+HETATM   13  N2  TTT B 401       6.277  25.924   0.892  1.00 29.39    -0.232 NA
+HETATM   14  C1  TTT B 401       7.365  25.401   0.309  1.00 27.45     0.275 C 
+HETATM   15  O7  TTT B 401       8.228  26.105  -0.213  1.00 22.52    -0.266 OA
+BRANCH  14  16
+HETATM   16  C3  TTT B 401       7.445  23.905   0.267  1.00 26.57     0.055 A 
+HETATM   17  C10 TTT B 401       8.601  23.236   0.690  1.00 21.70    -0.017 A 
+HETATM   18  C17 TTT B 401       8.613  21.845   0.643  1.00 21.96    -0.003 A 
+HETATM   19  C16 TTT B 401       9.830  23.959   1.181  1.00 22.86     0.031 C 
+HETATM   20  C21 TTT B 401       7.514  21.131   0.205  1.00 19.93     0.014 A 
+HETATM   21  C19 TTT B 401       6.359  21.795  -0.205  1.00 20.16     0.070 A 
+HETATM   22  C13 TTT B 401       6.330  23.187  -0.156  1.00 25.74     0.019 A 
+HETATM   23  N01 TTT B 401       5.254  21.083  -0.646  1.00 20.12    -0.101 NA
+ENDBRANCH  14  16
+ENDBRANCH   1  13
+TORSDOF 3

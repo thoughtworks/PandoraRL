@@ -233,6 +233,39 @@ class BATTest(BATVariants):
         super(BATTest, self).__init__()
 
 
+class PLProVariants(Data):
+    DATA_PATH = f'{ROOT_PATH}/PL-Pro_variants'
+
+    def __init__(self):
+        super(PLProVariants, self).__init__()
+        if '.DS_Store' in self.complexes_path:
+            self.complexes_path.remove('.DS_Store')
+
+        self._complexes = [
+            Complex(
+                Protein(
+                    path=f'{self.DATA_PATH}/{complex}/{complex}-protein.pdb',
+                    filetype="pdb",
+                    name=complex
+                ), Ligand(
+                    path=f'{self.DATA_PATH}/{complex}/{complex}-ligand.pdbqt',
+                    filetype="pdbqt"
+                ), Ligand(
+                    path=f'{self.DATA_PATH}/{complex}/{complex}-ligand.pdbqt',
+                    filetype="pdbqt"
+                )
+
+            ) for complex in self.complexes_path
+        ]
+
+
+class PLProTest(PLProVariants):
+    DATA_PATH = f'{ROOT_PATH}/PL-Pro_test'
+
+    def __init__(self):
+        super(PLProTest, self).__init__()
+
+
 class DataStore:
     REGISTRY = {
       'PafnucyData': PafnucyData,
@@ -244,6 +277,8 @@ class DataStore:
       'DudeProteaseData': DudeProteaseData,
       'MERSVariants': MERSVariants,
       'MERSTest': MERSTest,
+      'PLProVariants': PLProVariants,
+      'PLProTest': PLProTest,
       'BATVariants': BATVariants,
       'BATTest': BATTest
     }
