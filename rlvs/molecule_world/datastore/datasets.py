@@ -1,6 +1,5 @@
 import os
 from os import path
-from ..helper_functions import read_to_OB
 import numpy as np
 from rlvs.config import Config
 from sklearn.preprocessing import MinMaxScaler
@@ -13,6 +12,7 @@ ROOT_PATH = f'{path.dirname(path.abspath(__file__))}/../../../data'
 
 class Data:
     DATA_PATH = None
+
     def __init__(self):
         self._complexes = []
         self.complexes_path = os.listdir(self.DATA_PATH)
@@ -20,7 +20,7 @@ class Data:
     def get_molecules(self, complex, crop=True):
         if crop:
             complex.crop(10, 10, 10)
-            
+
         return complex
 
     @property
@@ -53,12 +53,12 @@ class PafnucyData(Data):
             ) for complex in self.complexes_path
         ]
 
+
 class PafnucyTest(PafnucyData):
     DATA_PATH = f'{ROOT_PATH}/pafnucy_test/complexes'
 
     def __init__(self):
         super(PafnucyTest, self).__init__()
-
 
 
 class SARSVarients(Data):
@@ -90,7 +90,7 @@ class SARSTest(SARSVarients):
     DATA_PATH = f'{ROOT_PATH}/SARS_test/'
 
     def __init__(self):
-        super(TestData, self).__init__()
+        super(SARSTest, self).__init__()
 
 
 class SARSCov2(Data):
@@ -125,7 +125,6 @@ class PDBQTData_2(Data):
         super(PDBQTData_2, self).__init__()
         if '.DS_Store' in self.complexes_path:
             self.complexes_path.remove('.DS_Store')
-        
 
         self._complexes = [
             Complex(
@@ -163,7 +162,7 @@ class DudeProteaseData(Data):
                     filetype="mol2",
                     path=f'{self.DATA_PATH}/{complex}/crystal_ligand.mol2'
                 )
-                
+
             ) for complex in self.complexes_path
         ]
 
@@ -189,7 +188,7 @@ class MERSVariants(Data):
                     path=f'{self.DATA_PATH}/{complex}/{complex}-ligand.pdbqt',
                     filetype="pdbqt"
                 )
-                
+
             ) for complex in self.complexes_path
         ]
 
@@ -198,7 +197,7 @@ class MERSTest(MERSVariants):
     DATA_PATH = f'{ROOT_PATH}/MERS_test'
 
     def __init__(self):
-        super(MERSTest, self).__init__()        
+        super(MERSTest, self).__init__()
 
 
 class BATVariants(Data):
@@ -222,9 +221,10 @@ class BATVariants(Data):
                     path=f'{self.DATA_PATH}/{complex}/{complex}-ligand.pdbqt',
                     filetype="pdbqt"
                 )
-                
+
             ) for complex in self.complexes_path
         ]
+
 
 class BATTest(BATVariants):
     DATA_PATH = f'{ROOT_PATH}/BAT_test'
@@ -232,7 +232,6 @@ class BATTest(BATVariants):
     def __init__(self):
         super(BATTest, self).__init__()
 
-        
 
 class DataStore:
     REGISTRY = {
@@ -246,11 +245,10 @@ class DataStore:
       'MERSVariants': MERSVariants,
       'MERSTest': MERSTest,
       'BATVariants': BATVariants,
-      'BATTest': BATTest        
+      'BATTest': BATTest
     }
     DATA_STORES = []
     DATA = []
-    
 
     @classmethod
     def init(cls, crop=True, test=False):
