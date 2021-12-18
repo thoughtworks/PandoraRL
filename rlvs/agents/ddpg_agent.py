@@ -10,6 +10,7 @@ from torch.optim import Adam
 from rlvs.network import ActorGNN, CriticGNN
 from rlvs.constants import AgentConstants
 
+from .metrices import Metric
 from .memory import Memory
 from .utils import soft_update, hard_update, to_tensor, to_numpy, batchify, USE_CUDA
 from .noise import OrnsteinUhlenbeckActionNoise
@@ -33,6 +34,7 @@ class DDPGAgentGNN:
             self, env, weights_path, complex_path=None,
             warmup=32, prate=0.00005, is_training=1
     ):
+        self.metrices = Metric.get_instance()
         self.input_shape = env.input_shape
         self.edge_shape = env.edge_shape
         self.action_shape = env.action_space.n_outputs
@@ -184,6 +186,7 @@ class DDPGAgentGNN:
             critic_losses = []
             actor_losses = []
             m_complex_t, state_t = self.env.reset()
+            self.metrices.init_rmsd(i_episode, self.env._complex.rmsd)
             episode_return, episode_length, terminal = 0, 0, False
 
             self.exploration_noise = OrnsteinUhlenbeckActionNoise(
@@ -204,6 +207,10 @@ class DDPGAgentGNN:
 
                 reward, terminal = self.env.step(action)
                 d_store = False if episode_length == max_episode_length else terminal
+
+                self.metrices.cache_rmsd(i_episode, self.env._complex.rmsd)
+                self.metrices.cache_divergence(i_episode, terminal)
+
                 reward = 0 if episode_length == max_episode_length else reward
                 self.memorize(data, [predicted_action], reward, m_complex_t.data, d_store)
 
@@ -214,11 +221,18 @@ class DDPGAgentGNN:
 
                 if num_steps > self.warm_up_steps:
                     critic_loss, actor_loss = self.update_network()
+                    self.metrices.cache_loss(
+                        i_episode, {
+                            "critic": critic_loss,
+                            "actor": actor_loss
+                        })
+
                     critic_losses.append(critic_loss)
                     actor_losses.append(actor_loss)
 
                 if (num_steps + 1) % 10 == 0 and i_episode > 100:
                     self.env.save_complex_files(f'{self.complex_path}_{i_episode}_{num_steps}')
+                    Metric.save(self.metrices, self.complex_path)
 
                 num_steps += 1
 
