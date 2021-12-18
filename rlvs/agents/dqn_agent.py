@@ -194,16 +194,13 @@ class DQNAgentGNN:
 
             i_episode += 1
 
-            
-
     def test(self, number_of_tests):
         i = 0
         max_episode_length = 200
         while i < number_of_tests:
             m_complex_t, state_t = self.env.reset()
             episode_return, episode_length, terminal = 0, 0, False
-            
-            losses = []
+
             while not (terminal or (episode_length == max_episode_length)):
                 data = m_complex_t.data
                 data = data.cuda() if USE_CUDA else data
@@ -212,16 +209,15 @@ class DQNAgentGNN:
                 molecule_action = self.env.action_space.get_action(action)
                 reward, terminal = self.env.step(molecule_action)
 
-                self.log(action, reward, episode_length, i, 0)               
+                self.log(action, reward, episode_length, i, 0)
                 # if m_complex_t.perfect_fit:
                 #     m_complex_t, state_t = self.env.reset()
                 episode_return += reward
                 episode_length += 1
 
                 self.env.save_complex_files(f'{self.complex_path}_{i}_{episode_length}')
-                
-            i += 1
 
+            i += 1
 
     def log(self, action, reward, episode_length, i_episode, loss):
         print(
@@ -232,13 +228,15 @@ class DQNAgentGNN:
             "E:", i_episode,
             "loss", loss
         )
-        logging.info(f"Action: {np.round(np.array(action), 4)}, Reward: {np.round(reward, 4)}, E_i: {episode_length}, E: {i_episode}, RMSD: {np.round(self.env._complex.rmsd, 4)}, LOSS: {loss}")
+        logging.info(
+            f"Action: {np.round(np.array(action), 4)}, \
+            Reward: {np.round(reward, 4)}, \
+            E_i: {episode_length}, E: {i_episode},\
+            RMSD: {np.round(self.env._complex.rmsd, 4)}, LOSS: {loss}"
+        )
 
     def save_weights(self, path, episode):
         torch.save(self._actor.state_dict(), f'{path}_{episode}_actor')
-        
 
     def load_weights(self, path_actor, path_critic):
         self._actor.load_state_dict(torch.load(path_actor))
-
-

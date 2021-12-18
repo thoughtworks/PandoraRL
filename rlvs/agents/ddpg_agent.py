@@ -13,25 +13,26 @@ from rlvs.constants import AgentConstants
 from .memory import Memory
 from .utils import soft_update, hard_update, to_tensor, to_numpy, batchify, USE_CUDA
 from .noise import OrnsteinUhlenbeckActionNoise
+import logging
 
 criterion = nn.MSELoss()
 
-import logging
-            
 
 class DDPGAgentGNN:
-    ACTOR_LEARNING_RATE = AgentConstants.ACTOR_LEARNING_RATE 
+    ACTOR_LEARNING_RATE = AgentConstants.ACTOR_LEARNING_RATE
     CRITIQ_LEARNING_RATE = AgentConstants.CRITIQ_LEARNING_RATE
-    TAU  = AgentConstants.TAU                 
-                                               
-    GAMMA = AgentConstants.GAMMA               
-                                               
-    BATCH_SIZE = AgentConstants.BATCH_SIZE          
-    BUFFER_SIZE = AgentConstants.BUFFER_SIZE         
+    TAU = AgentConstants.TAU
+
+    GAMMA = AgentConstants.GAMMA
+
+    BATCH_SIZE = AgentConstants.BATCH_SIZE
+    BUFFER_SIZE = AgentConstants.BUFFER_SIZE
     EXPLORATION_EPISODES = AgentConstants.EXPLORATION_EPISODES
 
-
-    def __init__(self, env, weights_path, complex_path=None, warmup=32, prate=0.00005, is_training=1):
+    def __init__(
+            self, env, weights_path, complex_path=None,
+            warmup=32, prate=0.00005, is_training=1
+    ):
         self.input_shape = env.input_shape
         self.edge_shape = env.edge_shape
         self.action_shape = env.action_space.n_outputs
@@ -60,21 +61,20 @@ class DDPGAgentGNN:
         )
         self._actor_optim = Adam(self._actor.parameters(), lr=prate)
 
-
         self._critiq = CriticGNN(
             self.input_shape,
             self.edge_shape,
             self.action_shape,
             self.CRITIQ_LEARNING_RATE,
             self.TAU
-        )        
+        )
         self._critiq_target = CriticGNN(
             self.input_shape,
             self.edge_shape,
             self.action_shape,
             self.CRITIQ_LEARNING_RATE,
             self.TAU
-        )        
+        )
         self._critiq_optim = Adam(self._critiq.parameters(), lr=prate)
 
         if USE_CUDA:
@@ -83,7 +83,7 @@ class DDPGAgentGNN:
             self._critiq.cuda()
             self._critiq_target.cuda()
 
-        hard_update(self._actor_target, self._actor) # Make sure target is with the same weight
+        hard_update(self._actor_target, self._actor)  # Make sure target is with the same weight
         hard_update(self._critiq_target, self._critiq)
 
         self.weights_path = weights_path
@@ -123,7 +123,7 @@ class DDPGAgentGNN:
             ) * next_q_values
 
             self._critiq.zero_grad()
-            
+
         q_batch = self._critiq([complex_batched, to_tensor(actions)])
 
         value_loss = criterion(q_batch, target_q_batch)
@@ -162,7 +162,7 @@ class DDPGAgentGNN:
             ) * self.exploration_noise.generate(step)
 
         if decay_epsilon:
-            self.eps -= self.decay_epsilon 
+            self.eps -= self.decay_epsilon
 
         return action
 
@@ -206,7 +206,7 @@ class DDPGAgentGNN:
                 d_store = False if episode_length == max_episode_length else terminal
                 reward = 0 if episode_length == max_episode_length else reward
                 self.memorize(data, [predicted_action], reward, m_complex_t.data, d_store)
-                
+
                 episode_return += reward
                 episode_length += 1
 
@@ -217,11 +217,11 @@ class DDPGAgentGNN:
                     critic_losses.append(critic_loss)
                     actor_losses.append(actor_loss)
 
-                if (num_steps + 1) % 10  == 0 and i_episode > 100:
+                if (num_steps + 1) % 10 == 0 and i_episode > 100:
                     self.env.save_complex_files(f'{self.complex_path}_{i_episode}_{num_steps}')
 
                 num_steps += 1
-                
+
             returns.append([
                 i_episode + 1,
                 episode_length,
@@ -229,7 +229,7 @@ class DDPGAgentGNN:
                 np.mean(critic_losses),
                 np.mean(actor_losses)
             ])
-            
+
             max_reward = max_reward if max_reward > episode_return else episode_return
 
             print(
@@ -250,7 +250,7 @@ class DDPGAgentGNN:
                 Actor loss: {np.mean(actor_losses)}"
             )
 
-            if i_episode%10 == 0:
+            if i_episode % 10 == 0:
                 self.save_weights(self.weights_path)
                 self.env.save_complex_files(f'{self.complex_path}_{i_episode}')
 
@@ -266,15 +266,17 @@ class DDPGAgentGNN:
             "RMSD: ", self.env._complex.rmsd,
             "E:", i_episode
         )
-        logging.info(f"Action: {np.round(np.array(action), 4)}, Reward: {np.round(reward, 4)}, E_i: {episode_length}, E: {i_episode}, RMSD: {np.round(self.env._complex.rmsd, 4)}")
+        logging.info(
+            f"Action: {np.round(np.array(action), 4)},\
+              Reward: {np.round(reward, 4)}, \
+              E_i: {episode_length}, E: {i_episode}, \
+              RMSD: {np.round(self.env._complex.rmsd, 4)}"
+        )
 
     def save_weights(self, path):
         torch.save(self._actor.state_dict(), f'{path}_actor')
         torch.save(self._critiq.state_dict(), f'{path}_critic')
-        
 
     def load_weights(self, path_actor, path_critic):
         self._critiq.load_state_dict(torch.load(path_critic))
         self._actor.load_state_dict(torch.load(path_actor))
-
-
