@@ -15,6 +15,10 @@ LONG = torch.cuda.LongTensor if USE_CUDA else torch.LongTensor
 INT32 = torch.cuda.IntTensor if USE_CUDA else torch.IntTensor
 
 
+def use_device(var):
+    return var.cuda() if USE_CUDA else var
+
+
 def soft_update(target, source, tau):
     for target_param, param in zip(target.parameters(), source.parameters()):
         target_param.data.copy_(

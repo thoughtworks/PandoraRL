@@ -12,27 +12,30 @@ from rlvs.network import ActorDQN
 from rlvs.constants import AgentConstants
 
 from .memory import Memory
-from .utils import soft_update, hard_update, to_tensor, to_numpy, batchify, FLOAT, LONG, INT32, USE_CUDA
-from .noise import OrnsteinUhlenbeckActionNoise
+from .metrices import Metric
+from .utils import soft_update, hard_update, to_tensor, to_numpy, batchify, \
+    FLOAT, LONG, INT32, USE_CUDA, use_device
+import logging
 
 criterion = nn.SmoothL1Loss()
 
-import logging
-            
 
 class DQNAgentGNN:
-    ACTOR_LEARNING_RATE = AgentConstants.ACTOR_LEARNING_RATE 
-    TAU  = AgentConstants.TAU                 
-                                               
-    GAMMA = AgentConstants.GAMMA               
-                                               
-    BATCH_SIZE = AgentConstants.BATCH_SIZE          
-    BUFFER_SIZE = AgentConstants.BUFFER_SIZE         
+    ACTOR_LEARNING_RATE = AgentConstants.ACTOR_LEARNING_RATE
+    TAU = AgentConstants.TAU
+
+    GAMMA = AgentConstants.GAMMA
+
+    BATCH_SIZE = AgentConstants.BATCH_SIZE
+    BUFFER_SIZE = AgentConstants.BUFFER_SIZE
     EXPLORATION_EPISODES = AgentConstants.EXPLORATION_EPISODES
     LEARN_INTERVAL = 4
 
-
-    def __init__(self, env, weights_path, complex_path=None, warmup=32, prate=0.00005, is_training=1):
+    def __init__(
+            self, env, weights_path,
+            complex_path=None, warmup=32, prate=0.00005, is_training=1
+    ):
+        self.metrices = Metric.get_instance()
         self.input_shape = env.input_shape
         self.edge_shape = env.edge_shape
         self.action_shape = env.action_space.degree_of_freedom
@@ -49,7 +52,7 @@ class DQNAgentGNN:
             self.ACTOR_LEARNING_RATE,
             self.TAU
         )
-        
+
         self._actor_target = ActorDQN(
             self.input_shape,
             self.edge_shape,
@@ -64,8 +67,7 @@ class DQNAgentGNN:
 
         self._actor_optim = Adam(self._actor.parameters(), lr=prate)
 
-
-        hard_update(self._actor_target, self._actor) # Make sure target is with the same weight
+        hard_update(self._actor_target, self._actor)  # Make sure target is with the same weight
 
         self.weights_path = weights_path
         self.complex_path = complex_path
@@ -93,33 +95,33 @@ class DQNAgentGNN:
     def learn(self, sync=False):
         losses = []
         batches = self.memory.sample(self.BATCH_SIZE)
-        for batch in batches:
+        for batch in batches:  # TODO: implement batching for graphs
             complex_batched = batchify(batch.states)
             next_complex_batched = batchify(batch.next_states)
-    
+
             actions = to_tensor(batch.actions, dtype=LONG)
             rewards = to_tensor(batch.rewards)
             terminals = to_tensor(batch.terminals, dtype=INT32)
             self._actor_optim.zero_grad()
-            complex_batched = complex_batched.cuda() if USE_CUDA else complex_batched
-            next_complex_batched = next_complex_batched.cuda() if USE_CUDA else next_complex_batched
-            predicted_targets = self._actor(complex_batched).gather(1,actions)
+            complex_batched = use_device(complex_batched)
+            next_complex_batched = use_device(next_complex_batched)
+            predicted_targets = self._actor(complex_batched).gather(1, actions)
             labels_next = self._actor_target(next_complex_batched).detach().max(1)[0].unsqueeze(1)
             complex_batched.cpu()
             next_complex_batched.cpu()
             labels = (rewards + (self.GAMMA * labels_next*(1-terminals))).type(FLOAT)
-            
-            loss = criterion(predicted_targets,labels)
+
+            loss = criterion(predicted_targets, labels)
             loss.backward()
             self._actor_optim.step()
             losses.append(to_numpy(loss.data))
 
         if sync:
             soft_update(self._actor_target, self._actor, self.TAU)
+
         return np.array(losses).mean()
 
     def play(self, num_train_episodes):
-        returns = []
         num_steps = 0
         max_episode_length = 100
         max_reward = 0
@@ -129,33 +131,41 @@ class DQNAgentGNN:
         sync_counter = 0
         while i_episode < num_train_episodes:
             m_complex_t, state_t = self.env.reset()
+            self.metrices.init_rmsd(i_episode, self.env._complex.rmsd)
             episode_return, episode_length, terminal = 0, 0, False
             episode_loss = []
             while not (terminal or (episode_length == max_episode_length)):
                 data = m_complex_t.data
-                data = data.cuda() if USE_CUDA else data
+                data = use_device(data)
                 action = self.act(data)
                 data.cpu()
                 molecule_action = self.env.action_space.get_action(action)
                 reward, terminal = self.env.step(molecule_action)
+
+                self.metrices.cache_rmsd(i_episode, self.env._complex.rmsd)
+                self.metrices.cache_divergence(i_episode, terminal)
+
                 d_store = False if episode_length == max_episode_length else terminal
                 reward = 0 if episode_length == max_episode_length else reward
                 self.memorize(data, [action], reward, m_complex_t.data, d_store)
-                
+
                 if (num_steps := num_steps % self.LEARN_INTERVAL) == 0:
                     if self.memory.has_samples(self.BATCH_SIZE):
                         sync_counter = (sync_counter + 1) % 5
                         loss = self.learn(sync_counter == 0)
+
+                        self.metrices.cache_loss(i_episode, loss)
+
                         losses.append(loss)
                         episode_loss.append(loss)
 
-                self.log(action, reward, episode_length, i_episode, loss)               
+                self.log(action, reward, episode_length, i_episode, loss)
                 if m_complex_t.perfect_fit:
                     m_complex_t, state_t = self.env.reset()
                 num_steps += 1
                 episode_return += reward
                 episode_length += 1
-            
+
             self.eps = max(self.eps * self.eps, 0.01)
             max_reward = max_reward if max_reward > episode_return else episode_return
 
@@ -174,9 +184,11 @@ class DQNAgentGNN:
                 Max Reward; {max_reward} \
                 Actor loss: {np.mean(episode_loss)}"
             )
-            if i_episode%10 == 0:
+
+            if i_episode % 10 == 0:
                 self.save_weights(self.weights_path, i_episode)
                 self.env.save_complex_files(f'{self.complex_path}_{i_episode}')
+                Metric.save(self.metrices, self.weights_path)
                 with open(f'{self.weights_path}_losses.npy', 'wb') as f:
                     np.save(f, losses)
 
