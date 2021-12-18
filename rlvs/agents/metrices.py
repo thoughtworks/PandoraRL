@@ -64,7 +64,7 @@ class Metric:
         if episode not in self.rmsd_metrices:
             raise Exception(f"RMSD metric for {episode} not initialised")
 
-        self.rmsd_metrices[episode].dinverged(divergence)
+        self.rmsd_metrices[episode].diverged(divergence)
 
     def get_loss(self, episode=None):
         if episode is None:
