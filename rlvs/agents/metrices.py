@@ -93,4 +93,4 @@ class Metric:
         with open(f'{root_path}_{cls.__SAVE_PATH}', 'rb') as f:
             metrices = np.load(f, allow_pickle=True)
 
-        return metrices
+        return metrices.item()
