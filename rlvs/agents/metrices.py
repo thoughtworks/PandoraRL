@@ -47,8 +47,10 @@ class Metric:
         return cls.__instance
 
     def init_rmsd(self, episode, molecule, initial_rmsd):
-        self.rmsd_metrices[episode] = {}
-        self.rmsd_metrices[episode][molecule] = RMSDMetric(episode, molecule, initial_rmsd)
+        if episode not in self.rmsd_metrices:
+            self.rmsd_metrices[episode] = []
+
+        self.rmsd_metrices[episode].append(RMSDMetric(episode, molecule, initial_rmsd))
 
     def cache_loss(self, episode, loss):
         self.losses.append(loss)
@@ -56,20 +58,23 @@ class Metric:
         episode_loss.append(loss)
         self.episode_loss[episode] = episode_loss
 
-    def cache_rmsd(self, episode, molecule, rmsd):
+    def cache_rmsd(self, episode, rmsd, molecule_index):
         if episode not in self.rmsd_metrices:
             raise Exception(f"RMSD metric for {episode} not initialised")
 
-        if molecule not in self.rmsd_metrices[episode]:
-            raise Exception(f"RMSD metric for {molecule} not initialised")
+        if molecule_index >= len(self.rmsd_metrices[episode]):
+            raise Exception(f"RMSD metric for {molecule_index} not initialised")
 
-        self.rmsd_metrices[episode][molecule].update_rmsd(rmsd)
+        self.rmsd_metrices[episode][molecule_index].update_rmsd(rmsd)
 
-    def cache_divergence(self, episode, divergence):
+    def cache_divergence(self, episode, divergence, molecule_index):
         if episode not in self.rmsd_metrices:
             raise Exception(f"RMSD metric for {episode} not initialised")
 
-        self.rmsd_metrices[episode].diverged(divergence)
+        if molecule_index >= len(self.rmsd_metrices[episode]):
+            raise Exception(f"RMSD metric for {molecule_index} not initialised")
+
+        self.rmsd_metrices[episode][molecule_index].diverged(divergence)
 
     def get_loss(self, episode=None):
         if episode is None:
