@@ -23,6 +23,7 @@ class RMSDMetric:
     def dict(self):
         return {
             "episode": self.episode,
+            "molecule": self.molecule,
             "initial_rmsd": self.initial_rmsd,
             "min_rmsd": self.min_rmsd,
             "max_rmsd": self.max_rmsd,
