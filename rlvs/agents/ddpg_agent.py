@@ -237,6 +237,11 @@ class DDPGAgentGNN:
                     self.env.save_complex_files(f'{self.complex_path}_{i_episode}_{num_steps}')
                     Metric.save(self.metrices, self.complex_path)
 
+                if m_complex_t.perfect_fit:
+                    m_complex_t, state_t = self.env.reset()
+                    protein_name = self._complex.protein.path.split('/')[-1]
+                    self.metrices.init_rmsd(i_episode, protein_name, self.env._complex.rmsd)
+
                 num_steps += 1
 
             returns.append([
