@@ -131,7 +131,10 @@ class DQNAgentGNN:
         sync_counter = 0
         while i_episode < num_train_episodes:
             m_complex_t, state_t = self.env.reset()
-            self.metrices.init_rmsd(i_episode, self.env._complex.rmsd)
+
+            protein_name = self._complex.protein.path.split('/')[-1]
+            self.metrices.init_rmsd(i_episode, protein_name, self.env._complex.rmsd)
+
             episode_return, episode_length, terminal = 0, 0, False
             episode_loss = []
             while not (terminal or (episode_length == max_episode_length)):
@@ -142,7 +145,7 @@ class DQNAgentGNN:
                 molecule_action = self.env.action_space.get_action(action)
                 reward, terminal = self.env.step(molecule_action)
 
-                self.metrices.cache_rmsd(i_episode, self.env._complex.rmsd)
+                self.metrices.cache_rmsd(i_episode, protein_name, self.env._complex.rmsd)
                 self.metrices.cache_divergence(i_episode, terminal)
 
                 d_store = False if episode_length == max_episode_length else terminal
@@ -160,8 +163,12 @@ class DQNAgentGNN:
                         episode_loss.append(loss)
 
                 self.log(action, reward, episode_length, i_episode, loss)
+
                 if m_complex_t.perfect_fit:
                     m_complex_t, state_t = self.env.reset()
+                    protein_name = self._complex.protein.path.split('/')[-1]
+                    self.metrices.init_rmsd(i_episode, protein_name, self.env._complex.rmsd)
+
                 num_steps += 1
                 episode_return += reward
                 episode_length += 1

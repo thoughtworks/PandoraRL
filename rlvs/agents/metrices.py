@@ -2,8 +2,9 @@ import numpy as np
 
 
 class RMSDMetric:
-    def __init__(self, episode, initial_rmsd):
+    def __init__(self, episode, molecule, initial_rmsd):
         self.episode = episode
+        self.molecule = molecule
         self.initial_rmsd = initial_rmsd
         self.min_rmsd = initial_rmsd
         self.max_rmsd = initial_rmsd
@@ -45,8 +46,9 @@ class Metric:
 
         return cls.__instance
 
-    def init_rmsd(self, episode, initial_rmsd):
-        self.rmsd_metrices[episode] = RMSDMetric(episode, initial_rmsd)
+    def init_rmsd(self, episode, molecule, initial_rmsd):
+        self.rmsd_metrices[episode] = {}
+        self.rmsd_metrices[episode][molecule] = RMSDMetric(episode, molecule, initial_rmsd)
 
     def cache_loss(self, episode, loss):
         self.losses.append(loss)
@@ -54,11 +56,14 @@ class Metric:
         episode_loss.append(loss)
         self.episode_loss[episode] = episode_loss
 
-    def cache_rmsd(self, episode, rmsd):
+    def cache_rmsd(self, episode, molecule, rmsd):
         if episode not in self.rmsd_metrices:
             raise Exception(f"RMSD metric for {episode} not initialised")
 
-        self.rmsd_metrices[episode].update_rmsd(rmsd)
+        if molecule not in self.rmsd_metrices[episode]:
+            raise Exception(f"RMSD metric for {molecule} not initialised")
+
+        self.rmsd_metrices[episode][molecule].update_rmsd(rmsd)
 
     def cache_divergence(self, episode, divergence):
         if episode not in self.rmsd_metrices:

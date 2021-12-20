@@ -186,7 +186,10 @@ class DDPGAgentGNN:
             critic_losses = []
             actor_losses = []
             m_complex_t, state_t = self.env.reset()
-            self.metrices.init_rmsd(i_episode, self.env._complex.rmsd)
+
+            protein_name = self._complex.protein.path.split('/')[-1]
+            self.metrices.init_rmsd(i_episode, protein_name, self.env._complex.rmsd)
+
             episode_return, episode_length, terminal = 0, 0, False
 
             self.exploration_noise = OrnsteinUhlenbeckActionNoise(
@@ -208,7 +211,7 @@ class DDPGAgentGNN:
                 reward, terminal = self.env.step(action)
                 d_store = False if episode_length == max_episode_length else terminal
 
-                self.metrices.cache_rmsd(i_episode, self.env._complex.rmsd)
+                self.metrices.cache_rmsd(i_episode, protein_name, self.env._complex.rmsd)
                 self.metrices.cache_divergence(i_episode, terminal)
 
                 reward = 0 if episode_length == max_episode_length else reward
