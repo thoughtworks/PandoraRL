@@ -132,7 +132,7 @@ class DQNAgentGNN:
         while i_episode < num_train_episodes:
             m_complex_t, state_t = self.env.reset()
 
-            protein_name = self._complex.protein.path.split('/')[-1]
+            protein_name = self.env._complex.protein.path.split('/')[-1]
             self.metrices.init_rmsd(i_episode, protein_name, self.env._complex.rmsd)
 
             episode_return, episode_length, terminal = 0, 0, False
@@ -166,7 +166,7 @@ class DQNAgentGNN:
 
                 if m_complex_t.perfect_fit:
                     m_complex_t, state_t = self.env.reset()
-                    protein_name = self._complex.protein.path.split('/')[-1]
+                    protein_name = self.env._complex.protein.path.split('/')[-1]
                     self.metrices.init_rmsd(i_episode, protein_name, self.env._complex.rmsd)
 
                 num_steps += 1
