@@ -134,7 +134,11 @@ class DQNAgentGNN:
             m_complex_t, state_t = self.env.reset()
             molecule_index = 0
             protein_name = self.env._complex.protein.path.split('/')[-1]
-            self.metrices.init_rmsd(i_episode, protein_name, self.env._complex.rmsd)
+            self.metrices.init_rmsd(
+                i_episode, protein_name,
+                self.env._complex.rmsd,
+                self.env._complex.ligand.get_centroid()
+            )
 
             episode_return, episode_length, terminal = 0, 0, False
             episode_loss = []
@@ -147,6 +151,9 @@ class DQNAgentGNN:
                 reward, terminal = self.env.step(molecule_action)
 
                 self.metrices.cache_rmsd(i_episode, self.env._complex.rmsd, molecule_index)
+                self.metrices.cache_action_reward(
+                    i_episode, molecule_action, reward, molecule_index
+                )
                 self.metrices.cache_divergence(i_episode, terminal, molecule_index)
 
                 d_store = False if episode_length == max_episode_length else terminal
@@ -170,7 +177,12 @@ class DQNAgentGNN:
                     m_complex_t, state_t = self.env.reset()
                     protein_name = self.env._complex.protein.path.split('/')[-1]
 
-                    self.metrices.init_rmsd(i_episode, protein_name, self.env._complex.rmsd)
+                    self.metrices.init_rmsd(
+                        i_episode,
+                        protein_name,
+                        self.env._complex.rmsd,
+                        self.env._complex.ligand.get_centroid()
+                    )
 
                 num_steps += 1
                 episode_return += reward
@@ -199,6 +211,7 @@ class DQNAgentGNN:
                 self.save_weights(self.weights_path, i_episode)
                 self.env.save_complex_files(f'{self.complex_path}_{i_episode}')
                 Metric.save(self.metrices, self.weights_path)
+                self.metrices.plot_rmsd_trend(i_episode, self.weights_path)
                 with open(f'{self.weights_path}_losses.npy', 'wb') as f:
                     np.save(f, losses)
 

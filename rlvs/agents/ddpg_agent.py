@@ -189,7 +189,11 @@ class DDPGAgentGNN:
 
             molecule_index = 0
             protein_name = self.env._complex.protein.path.split('/')[-1]
-            self.metrices.init_rmsd(i_episode, protein_name, self.env._complex.rmsd)
+            self.metrices.init_rmsd(
+                i_episode, protein_name,
+                self.env._complex.rmsd,
+                self.env._complex.ligand.get_centroid()
+            )
 
             episode_return, episode_length, terminal = 0, 0, False
 
@@ -213,6 +217,9 @@ class DDPGAgentGNN:
                 d_store = False if episode_length == max_episode_length else terminal
 
                 self.metrices.cache_rmsd(i_episode, self.env._complex.rmsd, molecule_index)
+                self.metrices.cache_action_reward(
+                    i_episode, action, reward, molecule_index
+                )
                 self.metrices.cache_divergence(i_episode, terminal, molecule_index)
 
                 reward = 0 if episode_length == max_episode_length else reward
@@ -236,13 +243,19 @@ class DDPGAgentGNN:
 
                 if (num_steps + 1) % 10 == 0 and i_episode > 100:
                     self.env.save_complex_files(f'{self.complex_path}_{i_episode}_{num_steps}')
+                    self.metrices.plot_rmsd_trend(i_episode, self.complex_path)
                     Metric.save(self.metrices, self.complex_path)
 
                 if m_complex_t.perfect_fit:
                     molecule_index += 1
                     m_complex_t, state_t = self.env.reset()
                     protein_name = self.env._complex.protein.path.split('/')[-1]
-                    self.metrices.init_rmsd(i_episode, protein_name, self.env._complex.rmsd)
+                    self.metrices.init_rmsd(
+                        i_episode,
+                        protein_name,
+                        self.env._complex.rmsd,
+                        self.env._complex.ligand.get_centroid()
+                    )
 
                 num_steps += 1
 
