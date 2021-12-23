@@ -207,7 +207,7 @@ class DQNAgentGNN:
                 Actor loss: {np.mean(episode_loss)}"
             )
 
-            if i_episode % 10 == 0:
+            if not self.metrices.has_diverged(i_episode):  # not terminal
                 self.save_weights(self.weights_path, i_episode)
                 self.env.save_complex_files(f'{self.complex_path}_{i_episode}')
                 Metric.save(self.metrices, self.weights_path)

@@ -122,6 +122,10 @@ class Metric:
         plt.savefig(f'{root_path}_loss_trend.png', bbox_inches='tight')
         plt.close()
 
+    def has_diverged(self, episode):
+        molecule_metric = self.molecule_metrices[episode]
+        return any(metric.divergence for metric in molecule_metric)
+
     @classmethod
     def save(cls, metrices, root_path):
         with open(f'{root_path}_{cls.__SAVE_PATH}', 'wb') as f:
