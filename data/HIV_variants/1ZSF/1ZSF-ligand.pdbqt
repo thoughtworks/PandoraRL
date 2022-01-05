@@ -1,0 +1,147 @@
+REMARK WARNING: 32 MAX_TORS EXCEEDED!!!
+REMARK  42 active torsions:
+REMARK  status: ('A' for Active; 'I' for Inactive)
+REMARK    1  A    between atoms: C@A_1637  and  O2@A_1639 
+REMARK       I    between atoms: C@A_1637  and  N1@A_1649 
+REMARK    2  A    between atoms: C@B_1638  and  O2@B_1640 
+REMARK       I    between atoms: C@B_1638  and  N1@B_1650 
+REMARK    3  A    between atoms: CT@A_1641  and  O2@A_1639 
+REMARK    4  A    between atoms: CT@B_1642  and  O2@B_1640 
+REMARK    5  A    between atoms: CA1@A_1651  and  N1@A_1649 
+REMARK    6  A    between atoms: CA1@B_1652  and  N1@B_1650 
+REMARK    7  A    between atoms: C5@A_1653  and  CA1@A_1651 
+REMARK    8  A    between atoms: CA1@A_1651  and  CB1@A_1657 
+REMARK    9  A    between atoms: C5@B_1654  and  CA1@B_1652 
+REMARK   10  A    between atoms: CA1@B_1652  and  CB1@B_1658 
+REMARK   11  A    between atoms: C5@A_1653  and  CM@A_1671 
+REMARK   12  A    between atoms: C5@B_1654  and  CM@B_1672 
+REMARK   13  A    between atoms: CB1@A_1657  and  CG1@A_1659 
+REMARK   14  A    between atoms: CB1@B_1658  and  CG1@B_1660 
+REMARK   15  A    between atoms: CM@A_1671  and  N@A_1673 
+REMARK   16  A    between atoms: CM@B_1672  and  N@B_1674 
+REMARK   17  A    between atoms: CA@A_1675  and  N@A_1673 
+REMARK   18  A    between atoms: CA@B_1676  and  N@B_1674 
+REMARK   19  A    between atoms: C4@A_1677  and  CA@A_1675 
+REMARK   20  A    between atoms: CA@A_1675  and  CB@A_1681 
+REMARK   21  A    between atoms: C4@B_1678  and  CA@B_1676 
+REMARK   22  A    between atoms: CA@B_1676  and  CB@B_1682 
+REMARK       I    between atoms: C4@A_1677  and  N2@A_1695 
+REMARK       I    between atoms: C4@B_1678  and  N2@B_1696 
+REMARK   23  A    between atoms: CB@A_1681  and  CG@A_1683 
+REMARK   24  A    between atoms: CB@B_1682  and  CG@B_1684 
+REMARK   25  A    between atoms: CA2@A_1697  and  N2@A_1695 
+REMARK   26  A    between atoms: CA2@B_1698  and  N2@B_1696 
+REMARK   27  A    between atoms: C6@A_1699  and  CA2@A_1697 
+REMARK   28  A    between atoms: CA2@A_1697  and  CB2@A_1703 
+REMARK   29  A    between atoms: C6@B_1700  and  CA2@B_1698 
+REMARK   30  A    between atoms: CA2@B_1698  and  CB2@B_1704 
+REMARK       I    between atoms: C6@A_1699  and  N3@A_1713 
+REMARK       I    between atoms: C6@B_1700  and  N3@B_1714 
+REMARK   31  A    between atoms: CB2@A_1703  and  CG2@A_1705 
+REMARK   32  A    between atoms: CB2@B_1704  and  CG2@B_1706 
+REMARK   33  A    between atoms: CD@A_1707  and  CG2@A_1705 
+REMARK   34  A    between atoms: CD@B_1708  and  CG2@B_1706 
+REMARK   35  A    between atoms: CA3@A_1715  and  N3@A_1713 
+REMARK   36  A    between atoms: CA3@B_1716  and  N3@B_1714 
+REMARK   37  A    between atoms: C7@A_1717  and  CA3@A_1715 
+REMARK   38  A    between atoms: CA3@A_1715  and  CB3@A_1721 
+REMARK   39  A    between atoms: C7@B_1718  and  CA3@B_1716 
+REMARK   40  A    between atoms: CA3@B_1716  and  CB3@B_1722 
+REMARK   41  A    between atoms: CB3@A_1721  and  CG3@A_1723 
+REMARK   42  A    between atoms: CB3@B_1722  and  CG3@B_1724 
+ROOT
+HETATM    1  CA A0ZS B 201     -23.294  36.200  26.877  0.50 15.11     0.182 C 
+ENDROOT
+BRANCH   1   2
+HETATM    2  C4 A0ZS B 201     -23.624  37.152  25.725  0.50 15.58     0.274 C 
+HETATM    3  O  A0ZS B 201     -23.978  38.313  25.935  0.50 18.30    -0.268 OA
+HETATM    4  N2 A0ZS B 201     -23.627  36.624  24.505  0.50 12.21    -0.229 NA
+BRANCH   4   5
+HETATM    5  CA2A0ZS B 201     -23.860  37.479  23.345  0.50 14.37     0.187 C 
+BRANCH   5   6
+HETATM    6  C6 A0ZS B 201     -24.749  36.814  22.312  0.50  9.26     0.274 C 
+HETATM    7  O3 A0ZS B 201     -24.548  35.674  21.924  0.50  6.98    -0.268 OA
+HETATM    8  N3 A0ZS B 201     -25.754  37.542  21.836  0.50 21.74    -0.228 NA
+BRANCH   8   9
+HETATM    9  CA3A0ZS B 201     -26.592  36.960  20.779  0.50 19.64     0.192 C 
+BRANCH   9  10
+HETATM   10  C7 A0ZS B 201     -26.845  38.000  19.692  0.50 22.27     0.296 C 
+HETATM   11  O4 A0ZS B 201     -27.201  39.141  19.974  0.50 20.13    -0.267 OA
+HETATM   12  N4 A0ZS B 201     -26.632  37.598  18.432  0.50 31.37    -0.105 N 
+ENDBRANCH   9  10
+BRANCH   9  13
+HETATM   13  CB3A0ZS B 201     -27.901  36.421  21.339  0.50 20.48     0.060 C 
+BRANCH  13  14
+HETATM   14  CG3A0ZS B 201     -28.894  37.459  21.835  0.50 24.55    -0.020 A 
+HETATM   15  CD1A0ZS B 201     -29.695  38.176  20.968  0.50 24.72    -0.004 A 
+HETATM   16  CE1A0ZS B 201     -30.581  39.120  21.431  0.50 22.55    -0.000 A 
+HETATM   17  CZ2A0ZS B 201     -30.702  39.364  22.790  0.50 19.05    -0.000 A 
+HETATM   18  CE2A0ZS B 201     -29.906  38.655  23.667  0.50 23.06    -0.000 A 
+HETATM   19  CD2A0ZS B 201     -29.010  37.711  23.195  0.50 23.30    -0.004 A 
+ENDBRANCH  13  14
+ENDBRANCH   9  13
+ENDBRANCH   8   9
+ENDBRANCH   5   6
+BRANCH   5  20
+HETATM   20  CB2A0ZS B 201     -22.517  37.915  22.761  0.50 15.12     0.045 C 
+BRANCH  20  21
+HETATM   21  CG2A0ZS B 201     -22.621  38.980  21.681  0.50 15.96     0.100 C 
+BRANCH  21  22
+HETATM   22  CD A0ZS B 201     -22.894  38.337  20.330  0.50 17.01     0.185 C 
+HETATM   23  OE1A0ZS B 201     -22.839  39.031  19.294  0.50 21.70    -0.647 OA
+HETATM   24  OE2A0ZS B 201     -23.046  37.097  20.292  0.50 14.79    -0.647 OA
+ENDBRANCH  21  22
+ENDBRANCH  20  21
+ENDBRANCH   5  20
+ENDBRANCH   4   5
+ENDBRANCH   1   2
+BRANCH   1  25
+HETATM   25  N  A0ZS B 201     -21.888  36.229  27.225  0.50 14.37    -0.285 NA
+BRANCH  25  26
+HETATM   26  CM A0ZS B 201     -21.490  37.286  28.159  0.50 19.53     0.155 C 
+BRANCH  26  27
+HETATM   27  C5 A0ZS B 201     -20.144  37.928  27.775  0.50 16.56     0.199 C 
+HETATM   28  OXTA0ZS B 201     -20.214  38.423  26.440  0.50 18.86    -0.219 OA
+BRANCH  27  29
+HETATM   29  CA1A0ZS B 201     -19.807  39.106  28.709  0.50 16.64     0.145 C 
+BRANCH  29  30
+HETATM   30  N1 A0ZS B 201     -20.065  38.796  30.108  0.50 13.09    -0.211 NA
+HETATM   31  C  A0ZS B 201     -21.087  39.332  30.821  0.50 11.54     0.383 C 
+HETATM   32  O1 A0ZS B 201     -21.902  40.152  30.445  0.50  9.28    -0.236 OA
+BRANCH  31  33
+HETATM   33  O2 A0ZS B 201     -20.995  38.892  32.102  0.50 13.23    -0.289 OA
+BRANCH  33  34
+HETATM   34  CT A0ZS B 201     -22.180  39.016  32.965  0.50 14.52     0.103 C 
+HETATM   35  C1 A0ZS B 201     -21.843  38.373  34.298  0.50 17.95     0.030 C 
+HETATM   36  C2 A0ZS B 201     -23.320  38.287  32.265  0.50 12.71     0.030 C 
+HETATM   37  C3 A0ZS B 201     -22.451  40.507  33.100  0.50 12.93     0.030 C 
+ENDBRANCH  33  34
+ENDBRANCH  31  33
+ENDBRANCH  29  30
+BRANCH  29  38
+HETATM   38  CB1A0ZS B 201     -18.341  39.520  28.537  0.50 19.83     0.053 C 
+BRANCH  38  39
+HETATM   39  CG1A0ZS B 201     -18.085  40.985  28.832  0.50 25.47    -0.020 A 
+HETATM   40  CD1A0ZS B 201     -19.097  41.920  28.719  0.50 23.95    -0.004 A 
+HETATM   41  CE1A0ZS B 201     -18.856  43.257  28.976  0.50 24.68    -0.000 A 
+HETATM   42  CZ1A0ZS B 201     -17.592  43.671  29.351  0.50 25.77    -0.000 A 
+HETATM   43  CE2A0ZS B 201     -16.568  42.746  29.467  0.50 25.57    -0.000 A 
+HETATM   44  CD2A0ZS B 201     -16.821  41.409  29.215  0.50 25.63    -0.004 A 
+ENDBRANCH  38  39
+ENDBRANCH  29  38
+ENDBRANCH  27  29
+ENDBRANCH  26  27
+ENDBRANCH  25  26
+ENDBRANCH   1  25
+BRANCH   1  45
+HETATM   45  CB A0ZS B 201     -24.197  36.566  28.064  0.50 19.14     0.060 C 
+BRANCH  45  46
+HETATM   46  CG A0ZS B 201     -25.662  36.550  27.634  0.50 21.95    -0.020 A 
+HETATM   47  CD1A0ZS B 201     -26.147  35.476  26.904  0.50 23.57    -0.004 A 
+HETATM   48  CE1A0ZS B 201     -27.464  35.435  26.488  0.50 26.50    -0.000 A 
+HETATM   49  CZ A0ZS B 201     -28.304  36.488  26.804  0.50 27.87    -0.000 A 
+HETATM   50  CE2A0ZS B 201     -27.833  37.561  27.541  0.50 23.36    -0.000 A 
+HETATM   51  CD2A0ZS B 201     -26.514  37.593  27.941  0.50 22.23    -0.004 A 
+ENDBRANCH  45  46
+ENDBRANCH   1  45
+TORSDOF 42
