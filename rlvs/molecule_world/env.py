@@ -5,7 +5,8 @@ from .datastore.datasets import DataStore
 from deepchem.feat.mol_graphs import MultiConvMol, ConvMol
 import tensorflow as tf
 from .helper_functions import *
-from rlvs.constants import ComplexConstants, Rewards    
+from rlvs.constants import ComplexConstants, Rewards
+
 
 class ActionSpace:
     def __init__(self, action_bounds):
@@ -25,16 +26,17 @@ class ActionSpace:
             [0, 0, 0, 0, -ComplexConstants.ROTATION_DELTA, 0],
             [0, 0, 0, 0, ComplexConstants.ROTATION_DELTA, 0],
             [0, 0, 0, 0, 0, -ComplexConstants.ROTATION_DELTA],
-            [0, 0, 0, 0, 0, ComplexConstants.ROTATION_DELTA],            
+            [0, 0, 0, 0, 0, ComplexConstants.ROTATION_DELTA]
         ]
-        
+
     def get_action(self, predicted_action_index):
         return self._action_vectors[predicted_action_index]
-    
+
     def sample(self):
         return np.diff(
-            self.action_bounds, axis = 0
-        ).flatten() * np.random.random_sample(self.action_bounds[0].shape
+            self.action_bounds, axis=0
+        ).flatten() * np.random.random_sample(
+            self.action_bounds[0].shape
         ) + self.action_bounds[0]
 
 
@@ -53,12 +55,12 @@ class Env:
         self._complex = Complex(self.protein, self.ligand)
         self.input_shape = self._complex.tensor4D.shape
         state = np.expand_dims(self._complex.tensor4D.reshape(self.input_shape), axis=0)
-        
+
         return state
 
     def step(self, action):
         terminal = False
-       
+
         try:
             self.ligand.update_pose(*action)
             self._complex.update_tensor()
@@ -70,20 +72,20 @@ class Env:
 
         state = np.expand_dims(self._complex.tensor4D.reshape(self.input_shape), axis=0)
         return state.astype(dtype='float32'), reward, terminal
-    
+
 
 class GraphEnv:
     def __init__(self, complex=None, single_step=np.array([1, 1, 1]), test=False):
         action_bounds = np.array([-1*single_step, single_step])
         self.action_space = ActionSpace(action_bounds)
-        
+
         if complex is None:
             DataStore.init(crop=True, test=test)
-            self._complex = DataStore.next(False)            
+            self._complex = DataStore.next(False)
             self._complex.randomize_ligand(self.action_space.n_outputs)
         else:
             self._complex = complex
-        
+
         self.input_shape = self._complex.protein.get_atom_features().shape[1]
         self.edge_shape = self._complex.inter_molecular_edge_attr.shape[1]
 
@@ -98,7 +100,7 @@ class GraphEnv:
             print(
                 "Complex: ", self._complex.protein.path,
                 "Original VinaScore:", original_vina_score,
-                "Randomized RMSD:", (rmsd:=np.round(self._complex.rmsd, 4)),
+                "Randomized RMSD:", (rmsd := np.round(self._complex.rmsd, 4)),
                 "Randomized Vina Score:", self._complex.vina.total_energy()
             )
             self._complex.previous_rmsd = rmsd
@@ -106,7 +108,7 @@ class GraphEnv:
                 break
 
             self._complex.reset_ligand()
-        
+
         self.input_shape = self._complex.protein.get_atom_features().shape[1]
 
         state = None
@@ -115,7 +117,7 @@ class GraphEnv:
     def step(self, action):
         terminal = False
         try:
-            delta_change = self._complex.update_pose(*action)
+            self._complex.update_pose(*action)
             reward = self._complex.score()
             # terminal = self._complex.perfect_fit
         except Exception as e:
@@ -127,7 +129,8 @@ class GraphEnv:
 
     def save_complex_files(self, path, filetype="pdb"):
         self._complex.save(path, filetype)
-        
+
+
 class TestGraphEnv(GraphEnv):
     def __init__(self, scaler, protein_path, ligand_path, protein_filetype, ligand_filetype):
         self.protein_filetype = protein_filetype
