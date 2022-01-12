@@ -152,7 +152,7 @@ class DQNAgentGNN:
 
                 self.metrices.cache_rmsd(i_episode, self.env._complex.rmsd, molecule_index)
                 self.metrices.cache_action_reward(
-                    i_episode, molecule_action, reward, molecule_index
+                    i_episode, action, reward, molecule_index
                 )
                 self.metrices.cache_divergence(i_episode, terminal, molecule_index)
 
@@ -244,7 +244,7 @@ class DQNAgentGNN:
                 )
 
                 self.metrices.cache_action_reward(
-                    train_episode, molecule_action, reward, i, test=True
+                    train_episode, action, reward, i, test=True
                 )
 
                 self.metrices.cache_divergence(train_episode, terminal, i, test=True)

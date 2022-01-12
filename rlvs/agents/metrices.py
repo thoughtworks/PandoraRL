@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from functools import reduce
 
 
 class MoleculeMetric:
@@ -11,7 +12,6 @@ class MoleculeMetric:
         self.rewards = []
         self.divergence = False
         self.rmsds = [initial_rmsd]
-        self.rewards = []
 
     @property
     def initial_rmsd(self):
@@ -109,20 +109,47 @@ class Metric:
         return self.episode_loss.get(episode, [])
 
     def plot_rmsd_trend(self, episode, root_path, test=False):
+        marker = ',' if test else '.'
+        plt.figure(figsize=(10, 7))
         file_name = f'{root_path}_{episode}_rmsd_trend.png' if not test \
             else f'{root_path}_{episode}_test_rmsd_trend.png'
         metric = self.molecule_metrices if not test else self.test_metrices
         molecule_metrics = metric[episode]
         for idx, metric in enumerate(molecule_metrics):
-            plt.plot(metric.rmsds, marker='.', label=f'{idx}_{metric.molecule}')
+            plt.plot(
+                metric.rmsds, marker=marker, linewidth=1,
+                label=f'{idx}_{metric.molecule}', zorder=1
+            )
+
+            if test:
+                self.__plot_rmsd_actions(
+                    plt, metric.rmsds, metric.actions
+                )
 
         plt.legend(
-            loc='upper right', bbox_to_anchor=(1.5, 1.05), shadow=True
+            loc='upper right', bbox_to_anchor=(1.3, 1.05), shadow=True
         )
         plt.xlabel('iterations')
         plt.ylabel('rmsd')
-        plt.savefig(file_name, bbox_inches='tight')
+        plt.savefig(file_name, bbox_inches='tight', dpi=600)
         plt.close()
+
+    def __plot_rmsd_actions(self, plt, rmsds, actions):
+        action_markers = [
+            "p", "*", "v", "^", "<", ">", "d", "X", "s", "P", "+", "x"
+        ]
+
+        def agg(acc, val):
+            idx, x = val
+            sym = acc.get(actions[idx], [])
+            sym.append((idx+1, x))
+            acc[actions[idx]] = sym
+            return acc
+
+        plot_points = reduce(agg, enumerate(rmsds[1:]), {})
+        for act in plot_points:
+            x, y = zip(*plot_points[act])
+            plt.scatter(x, y, marker=action_markers[act], zorder=2, s=2)
 
     def plot_loss_trend(self, root_path):
         average_losses = [np.mean(loss) for loss in self.episode_loss.values()]
