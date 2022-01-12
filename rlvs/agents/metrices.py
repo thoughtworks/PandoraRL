@@ -48,6 +48,7 @@ class Metric:
         self.losses = []
         self.episode_loss = {}
         self.molecule_metrices = {}
+        self.test_metrices = {}
 
     @classmethod
     def get_instance(cls):
@@ -56,11 +57,12 @@ class Metric:
 
         return cls.__instance
 
-    def init_rmsd(self, episode, molecule, initial_rmsd, initial_coord):
-        if episode not in self.molecule_metrices:
-            self.molecule_metrices[episode] = []
+    def init_rmsd(self, episode, molecule, initial_rmsd, initial_coord, test=False):
+        metric = self.molecule_metrices if not test else self.test_metrices
+        if episode not in metric:
+            metric[episode] = []
 
-        self.molecule_metrices[episode].append(
+        metric[episode].append(
             MoleculeMetric(episode, molecule, initial_rmsd, initial_coord)
         )
 
@@ -70,32 +72,35 @@ class Metric:
         episode_loss.append(loss)
         self.episode_loss[episode] = episode_loss
 
-    def cache_rmsd(self, episode, rmsd, molecule_index):
-        if episode not in self.molecule_metrices:
+    def cache_rmsd(self, episode, rmsd, molecule_index, test=False):
+        metric = self.molecule_metrices if not test else self.test_metrices
+        if episode not in metric:
             raise Exception(f"RMSD metric for {episode} not initialised")
 
-        if molecule_index >= len(self.molecule_metrices[episode]):
+        if molecule_index >= len(metric[episode]):
             raise Exception(f"RMSD metric for {molecule_index} not initialised")
 
-        self.molecule_metrices[episode][molecule_index].update_rmsd(rmsd)
+        metric[episode][molecule_index].update_rmsd(rmsd)
 
-    def cache_action_reward(self, episode, action, reward, molecule_index):
-        if episode not in self.molecule_metrices:
+    def cache_action_reward(self, episode, action, reward, molecule_index, test=False):
+        metric = self.molecule_metrices if not test else self.test_metrices
+        if episode not in metric:
             raise Exception(f"RMSD metric for {episode} not initialised")
 
-        if molecule_index >= len(self.molecule_metrices[episode]):
+        if molecule_index >= len(metric[episode]):
             raise Exception(f"RMSD metric for {molecule_index} not initialised")
 
-        self.molecule_metrices[episode][molecule_index].update_action_reward(action, reward)
+        metric[episode][molecule_index].update_action_reward(action, reward)
 
-    def cache_divergence(self, episode, divergence, molecule_index):
-        if episode not in self.molecule_metrices:
+    def cache_divergence(self, episode, divergence, molecule_index, test=False):
+        metric = self.molecule_metrices if not test else self.test_metrices
+        if episode not in metric:
             raise Exception(f"RMSD metric for {episode} not initialised")
 
-        if molecule_index >= len(self.molecule_metrices[episode]):
+        if molecule_index >= len(metric[episode]):
             raise Exception(f"RMSD metric for {molecule_index} not initialised")
 
-        self.molecule_metrices[episode][molecule_index].diverged(divergence)
+        metric[episode][molecule_index].diverged(divergence)
 
     def get_loss(self, episode=None):
         if episode is None:
@@ -103,15 +108,20 @@ class Metric:
 
         return self.episode_loss.get(episode, [])
 
-    def plot_rmsd_trend(self, episode, root_path):
-        molecule_metrics = self.molecule_metrices[episode]
+    def plot_rmsd_trend(self, episode, root_path, test=False):
+        file_name = f'{root_path}_{episode}_rmsd_trend.png' if not test \
+            else f'{root_path}_{episode}_test_rmsd_trend.png'
+        metric = self.molecule_metrices if not test else self.test_metrices
+        molecule_metrics = metric[episode]
         for idx, metric in enumerate(molecule_metrics):
             plt.plot(metric.rmsds, marker='.', label=f'{idx}_{metric.molecule}')
 
-        plt.legend()
+        plt.legend(
+            loc='upper right', bbox_to_anchor=(1.5, 1.05), shadow=True
+        )
         plt.xlabel('iterations')
         plt.ylabel('rmsd')
-        plt.savefig(f'{root_path}_{episode}_rmsd_trend.png', bbox_inches='tight')
+        plt.savefig(file_name, bbox_inches='tight')
         plt.close()
 
     def plot_loss_trend(self, root_path):

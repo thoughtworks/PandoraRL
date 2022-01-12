@@ -32,10 +32,17 @@ def read_to_OB(filename, filetype, prepare=False):
 
     return obmol
 
-def randomizer(action_shape):
-    global box_size, RANDOM_POS_SIGN
-    pose = RANDOM_POS_SIGN * np.random.uniform(0, box_size, (action_shape,))
-    RANDOM_POS_SIGN *= -1
-    box_size = min(box_size + 0.005, 4)
 
+def randomizer(action_shape, test=False):
+    global box_size, RANDOM_POS_SIGN
+
+    if not test:
+        pose = RANDOM_POS_SIGN * np.random.uniform(0, box_size, (action_shape,))
+        box_size = min(box_size + 0.005, ComplexConstants.RMSD_THRESHOLD)
+    else:
+        pose = RANDOM_POS_SIGN * np.random.uniform(
+            0,  ComplexConstants.RMSD_THRESHOLD, (action_shape,)
+        )
+
+    RANDOM_POS_SIGN *= -1
     return pose

@@ -96,8 +96,8 @@ class Complex:
         # Found that adding weights to rmsd_score was not having much effect, rmsd_score was mostly being used when the first term went to zero.
         return 200 if self.perfect_fit else rmsd_score
 
-    def randomize_ligand(self, action_shape):
-        self.ligand.randomize(ComplexConstants.BOUNDS, action_shape)
+    def randomize_ligand(self, action_shape, test=False):
+        self.ligand.randomize(ComplexConstants.BOUNDS, action_shape, test=test)
 
     def reset_ligand(self):
         self.ligand.set_coords(self.original_ligand.get_coords())

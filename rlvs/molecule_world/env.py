@@ -89,14 +89,14 @@ class GraphEnv:
         self.input_shape = self._complex.protein.get_atom_features().shape[1]
         self.edge_shape = self._complex.inter_molecular_edge_attr.shape[1]
 
-    def reset(self):
+    def reset(self, test=False):
         self._complex.reset_ligand()
         self._complex.update_edges()
         print("RESET RMSD", self._complex.rmsd)
         while True:
             self._complex = DataStore.next(False)
             original_vina_score = self._complex.vina.total_energy()
-            self._complex.randomize_ligand(self.action_space.n_outputs)
+            self._complex.randomize_ligand(self.action_space.n_outputs, test=test)
             print(
                 "Complex: ", self._complex.protein.path,
                 "Original VinaScore:", original_vina_score,

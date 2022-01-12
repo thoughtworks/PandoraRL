@@ -14,8 +14,8 @@ class Ligand(Molecule):
         self.atoms = Atoms(self.molecule_type, obmol)
         self.atom_features = self.atoms.features
 
-    def randomize(self, box_size, action_shape):
-        random_pose = randomizer(action_shape)
+    def randomize(self, box_size, action_shape, test=False):
+        random_pose = randomizer(action_shape, test)
         print("Randomized", random_pose)
         logging.info(f'Randomized Pose: {random_pose}')
         self.update_pose(*random_pose)

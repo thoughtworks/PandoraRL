@@ -210,18 +210,26 @@ class DQNAgentGNN:
             if not self.metrices.has_diverged(i_episode):  # not terminal
                 self.save_weights(self.weights_path, i_episode)
                 self.env.save_complex_files(f'{self.complex_path}_{i_episode}')
-                Metric.save(self.metrices, self.weights_path)
+                self.test(10, train_episode=i_episode, save=False)
                 self.metrices.plot_rmsd_trend(i_episode, self.weights_path)
-                with open(f'{self.weights_path}_losses.npy', 'wb') as f:
-                    np.save(f, losses)
+                self.metrices.plot_rmsd_trend(i_episode, self.weights_path, test=True)
+                Metric.save(self.metrices, self.weights_path)
 
             i_episode += 1
 
-    def test(self, number_of_tests):
+    def test(self, number_of_tests, train_episode=0, save=True):
         i = 0
         max_episode_length = 200
         while i < number_of_tests:
-            m_complex_t, state_t = self.env.reset()
+            m_complex_t, state_t = self.env.reset(test=True)
+            protein_name = self.env._complex.protein.path.split('/')[-1]
+            self.metrices.init_rmsd(
+                train_episode, protein_name,
+                self.env._complex.rmsd,
+                self.env._complex.ligand.get_centroid(),
+                test=True
+            )
+
             episode_return, episode_length, terminal = 0, 0, False
 
             while not (terminal or (episode_length == max_episode_length)):
@@ -231,19 +239,27 @@ class DQNAgentGNN:
                 data.cpu()
                 molecule_action = self.env.action_space.get_action(action)
                 reward, terminal = self.env.step(molecule_action)
+                self.metrices.cache_rmsd(
+                    train_episode, self.env._complex.rmsd, i, test=True
+                )
 
-                self.log(action, reward, episode_length, i, 0)
-                # if m_complex_t.perfect_fit:
-                #     m_complex_t, state_t = self.env.reset()
+                self.metrices.cache_action_reward(
+                    train_episode, molecule_action, reward, i, test=True
+                )
+
+                self.metrices.cache_divergence(train_episode, terminal, i, test=True)
+
+                self.log(action, reward, episode_length, i, 0, test=True)
                 episode_return += reward
                 episode_length += 1
-
-                self.env.save_complex_files(f'{self.complex_path}_{i}_{episode_length}')
-
+                if save:
+                    self.env.save_complex_files(f'{self.complex_path}_{i}_test_{episode_length}')
             i += 1
 
-    def log(self, action, reward, episode_length, i_episode, loss):
+    def log(self, action, reward, episode_length, i_episode, loss, test=False):
+        test_log = "Test" if test else ""
         print(
+            test_log,
             "Action:", np.round(np.array(action), 4),
             "Reward:", np.round(reward, 10),
             "E_i:", episode_length,
@@ -252,7 +268,7 @@ class DQNAgentGNN:
             "loss", loss
         )
         logging.info(
-            f"Action: {np.round(np.array(action), 4)}, \
+            f"{test_log} Action: {np.round(np.array(action), 4)}, \
             Reward: {np.round(reward, 4)}, \
             E_i: {episode_length}, E: {i_episode},\
             RMSD: {np.round(self.env._complex.rmsd, 4)}, LOSS: {loss}"
