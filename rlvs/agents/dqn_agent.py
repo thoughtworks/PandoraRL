@@ -41,6 +41,7 @@ class DQNAgentGNN:
         self.edge_shape = env.edge_shape
         self.action_shape = env.action_space.degree_of_freedom
         self.eps = 0.99
+        self.decay = 0.99
         self.memory = Memory(self.BUFFER_SIZE)
         self.env = env
         self.warm_up_steps = warmup
@@ -190,7 +191,7 @@ class DQNAgentGNN:
                 episode_return += reward
                 episode_length += 1
 
-            self.eps = max(self.eps * self.eps, 0.01)
+            self.eps = max(self.eps * self.decay, 0.01)
             max_reward = max_reward if max_reward > episode_return else episode_return
 
             print(
