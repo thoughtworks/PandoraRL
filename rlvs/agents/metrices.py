@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from functools import reduce
+from rlvs.config import Config
 
 
 class MoleculeMetric:
@@ -160,8 +161,20 @@ class Metric:
         plt.close()
 
     def has_diverged(self, episode):
+        config = Config.get_instance()
         molecule_metric = self.molecule_metrices[episode]
-        return any(metric.divergence for metric in molecule_metric)
+
+        if len(molecule_metric) > 1:
+            return any(metric.divergence for metric in molecule_metric)
+
+        rmsds = molecule_metric[0].rmsds
+        x = np.array(range(len(rmsds)))
+        y = np.array(rmsds)
+        xmean = np.mean(x)
+        ymean = np.mean(y)
+        slope = np.sum((x - xmean)*(y - ymean))/np.sum((x - xmean)**2)
+        print("RMSD Slope:", slope)
+        return slope > config.divergence_slope
 
     @classmethod
     def save(cls, metrices, root_path):

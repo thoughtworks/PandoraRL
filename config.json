@@ -24,6 +24,8 @@
     "SARSTest",
     "SARSCov2"
   ],
-  "run_tests": true
+  "run_tests": true,
+  "divergence_slope": 0.005,
+  "test_from_episode": 70
   
 }

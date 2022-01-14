@@ -210,7 +210,8 @@ class DQNAgentGNN:
                 Actor loss: {np.mean(episode_loss)}"
             )
 
-            if not self.metrices.has_diverged(i_episode):  # not terminal
+            if i_episode >= config.test_from_episode and \
+               not self.metrices.has_diverged(i_episode):
                 self.save_weights(self.weights_path, i_episode)
                 self.env.save_complex_files(f'{self.complex_path}_{i_episode}')
                 self.metrices.plot_rmsd_trend(i_episode, self.weights_path)
