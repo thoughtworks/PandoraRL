@@ -32,6 +32,7 @@ class Config:
         self.train_dataset = [
             'SARSVarients', 'MERSVariants'
         ]
+        self.run_tests = True
         
         config = {}
         with open(config_path, 'r') as config_f:

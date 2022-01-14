@@ -10,6 +10,7 @@ from torch.optim import Adam
 
 from rlvs.network import ActorDQN
 from rlvs.constants import AgentConstants
+from rlvs.config import Config
 
 from .memory import Memory
 from .metrices import Metric
@@ -129,6 +130,7 @@ class DQNAgentGNN:
         losses = []
         loss = 0
         sync_counter = 0
+        config = Config.get_instance()
 
         while i_episode < num_train_episodes:
             m_complex_t, state_t = self.env.reset()
@@ -210,9 +212,12 @@ class DQNAgentGNN:
             if not self.metrices.has_diverged(i_episode):  # not terminal
                 self.save_weights(self.weights_path, i_episode)
                 self.env.save_complex_files(f'{self.complex_path}_{i_episode}')
-                self.test(10, train_episode=i_episode, save=False)
                 self.metrices.plot_rmsd_trend(i_episode, self.weights_path)
-                self.metrices.plot_rmsd_trend(i_episode, self.weights_path, test=True)
+
+                if config.run_tests:
+                    self.test(10, train_episode=i_episode, save=False)
+                    self.metrices.plot_rmsd_trend(i_episode, self.weights_path, test=True)
+
                 Metric.save(self.metrices, self.weights_path)
 
             i_episode += 1

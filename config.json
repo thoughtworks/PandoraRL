@@ -1,5 +1,5 @@
 {
-  "single_step": [1],
+  "single_step": [1, 1, 1, 1, 1, 1],
   "node_features":[
             "atom_type_encoding",
             "atom_named_features",
@@ -23,5 +23,7 @@
   "test_dataset": [
     "SARSTest",
     "SARSCov2"
-  ]
+  ],
+  "run_tests": true
+  
 }
