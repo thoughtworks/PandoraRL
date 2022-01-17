@@ -195,8 +195,7 @@ class Metric:
         metrices = self.molecule_metrices if not test else self.test_metrices
 
         return pd.concat(
-            (pd.concat(metric.get_data_frame() for metric in runs) for runs in metrices.values()),
-            ignore_index=True
+            (pd.concat(metric.get_data_frame() for metric in runs) for runs in metrices.values())
         )
 
     @classmethod
@@ -207,7 +206,7 @@ class Metric:
     @classmethod
     def save_csv(cls, metrices, root_path, test=False):
         df = metrices.generate_data_frame(test)
-        df.to_csv(f'{root_path}_trend.csv')
+        df.to_csv(f'{root_path}_trend.csv', index=False)
 
     @classmethod
     def load(cls, path, root=True):
