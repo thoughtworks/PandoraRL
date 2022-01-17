@@ -193,8 +193,9 @@ class Metric:
 
     def generate_data_frame(self, test=False):
         metrices = self.molecule_metrices if not test else self.test_metrices
+
         return pd.concat(
-            (metric.get_data_frame() for metric in metrices.values()),
+            (pd.concat(metric.get_data_frame() for metric in runs) for runs in metrices.values()),
             ignore_index=True
         )
 
