@@ -114,14 +114,16 @@ class DQNAgentGNN:
             labels = (rewards + (self.GAMMA * labels_next*(1-terminals))).type(FLOAT)
 
             loss = criterion(predicted_targets, labels)
-            loss.backward()
-            self._actor_optim.step()
-            losses.append(to_numpy(loss.data))
+            losses.append(loss)
+
+        average_loss = torch.mean(torch.tensor(losses, requires_grad=True))
+        average_loss.backward()
+        self._actor_optim.step()
 
         if sync:
             soft_update(self._actor_target, self._actor, self.TAU)
 
-        return np.array(losses).mean()
+        return to_numpy(average_loss.data)
 
     def play(self, num_train_episodes):
         num_steps = 0
