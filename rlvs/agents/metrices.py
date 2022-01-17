@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from functools import reduce
 from rlvs.config import Config
@@ -39,6 +40,20 @@ class MoleculeMetric:
 
     def diverged(self, divergence=True):
         self.divergence = divergence
+
+    def get_data_frame(self):
+        '''
+        episode, molecule, action, rmsd
+        '''
+
+        df = pd.DataFrame({
+            'episode': self.episode,
+            'molecule': self.molecule,
+            'action': [-1]+self.actions,
+            'rmsd': self.rmsds
+        })
+
+        return df
 
 
 class Metric:
@@ -176,10 +191,22 @@ class Metric:
         print("RMSD Slope:", slope)
         return slope > config.divergence_slope
 
+    def generate_data_frame(self, test=False):
+        metrices = self.molecule_metrices if not test else self.test_metrices
+        return pd.concat(
+            (metric.get_data_frame() for metric in metrices.values()),
+            ignore_index=True
+        )
+
     @classmethod
     def save(cls, metrices, root_path):
         with open(f'{root_path}_{cls.__SAVE_PATH}', 'wb') as f:
             np.save(f, metrices)
+
+    @classmethod
+    def save_csv(cls, metrices, root_path, test=False):
+        df = metrices.generate_data_frame(test)
+        df.to_csv(f'{root_path}_trend.csv')
 
     @classmethod
     def load(cls, path, root=True):
