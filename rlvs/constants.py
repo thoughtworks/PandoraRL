@@ -7,7 +7,7 @@ class ComplexConstants:
     DISTANCE_THRESHOLD = 8 #4
     VINA_SCORE_THRESHOLD = 200
     BOUNDS = 4
-    TRANSLATION_DELTA = 0.5#0.1
+    TRANSLATION_DELTA = 0.1
     ROTATION_DELTA = 5 #0.1
 
 
