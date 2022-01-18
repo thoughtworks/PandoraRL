@@ -14,15 +14,25 @@ class Config:
             'VDWr',
             'molecule_type',
             'smarts_patterns',
-            'residue',
-            'z_scores',
+           # 'residue',
+           # 'z_scores',
             'kd_hydophobocitya',
             'conformational_similarity'
         ]
 
         self.edge_features = [
-            "encoding",
-            "bond_distance"
+           # "encoding",
+           # "bond_distance",
+# If using anything below this line,
+# comment out the "encoding" and "bond distance" features (since double information)
+# Use either: "binding affinity (sum over all affinities using Vinascore weights)
+# or: individual bond information for e.g. "hydrogenbond", "repulsion"
+            "binding_affinity",
+           # "gauss1",
+           # "gauss2",
+           # "repulsion",
+           # "hydrophobic",
+           # "hydrogenbond"
         ]
 
         self.test_dataset = [
@@ -32,7 +42,7 @@ class Config:
         self.train_dataset = [
             'SARSVarients', 'MERSVariants'
         ]
-        self.run_tests = True
+        self.run_tests = False #True
         self.test_from_episode = 70
         self.divergence_slope = 0.005
 

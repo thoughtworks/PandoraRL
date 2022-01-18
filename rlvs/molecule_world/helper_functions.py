@@ -4,7 +4,7 @@ import numpy as np
 from rlvs.constants import ComplexConstants
 
 ob.obErrorLog.SetOutputLevel(0)
-box_size = 0.1
+box_size = 8 #0.1
 RANDOM_POS_SIGN = 1
 
 

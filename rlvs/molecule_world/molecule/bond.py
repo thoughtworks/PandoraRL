@@ -38,6 +38,86 @@ class Bond:
     @property
     def surface_distance(self):
         return self._distance - (self.atom_a.VDWr + self.atom_b.VDWr)
+
+    @property
+    def gauss1(self):
+        surface_dist = self.surface_distance
+        o1 = 0
+        s1 = 0.5
+        return np.exp(-((surface_dist - o1)/s1)**2)
+
+    @property
+    def gauss2(self):
+        surface_dist = self.surface_distance
+        o1 = 3
+        s1 = 2      
+        return np.exp(-((surface_dist - o1)/s1)**2)
+    
+    @property
+    def repulsion(self):
+        surface_dist = self.surface_distance
+        rep = np.zeros(surface_dist.shape)
+        rep = np.where(surface_dist < 0, surface_dist ** 2, 0)
+        return rep
+
+    @property
+    def hydrophobic(self):
+        hyph = 0
+        surface_dist = self.surface_distance
+        if BondType.is_hydrophobic(self.atom_a, self.atom_b):
+            p1 = 0.5
+            p2 = 1.5
+            hyph = np.where(
+                surface_dist < p1, 1,
+                np.where(
+                    (surface_dist >= p1) & (surface_dist < p2), p2 - surface_dist/(p2 -p1),
+                    0
+                )
+            )
+        return hyph
+
+    @property
+    def hydrogenbond(self):
+        surface_dist = self.surface_distance
+        donor_dist = 100
+        acceptor_dist = 100
+        ang = 0
+        hybnd = 0
+        if ((BondType.is_hydrogen_bond(self.atom_a, self.atom_b)) or (BondType.is_hydrogen_bond(self.atom_b, self.atom_a))):
+            if BondType.is_hydrogen_bond(self.atom_a, self.atom_b):
+                donor = self.atom_a
+                acceptor = self.atom_b
+            if BondType.is_hydrogen_bond(self.atom_b, self.atom_a):
+                donor = self.atom_b
+                acceptor = self.atom_a
+            for hydr in donor.hydrogens:
+                donor_dist = hydr.distance
+                acceptor_dist = hydr.saperation(acceptor, H)
+                ang = hydr.angle(atom1=acceptor, named_atom2=H, atom3=donor)
+                if (hydr.distance < 1.1 \
+                    and hydr.saperation(acceptor, H) < 2.5 \
+                    and hydr.angle(atom1=acceptor, named_atom2=H, atom3=donor) >= 120):
+                    h1 = -0.7 
+                    hybnd = np.where(
+                        surface_dist <= h1, 1,
+                        np.where(
+                            (surface_dist > h1) & (surface_dist <= 0), -surface_dist/h1,
+                            0
+                        )
+                    )
+        return hybnd
+    
+    @property
+    def binding_affinity(self):
+        W1 = -0.0356
+        W2 = -0.00516
+        W3 = 0.840
+        W4 = -0.0351
+        W5 = -0.587
+        bind_aff = W1 * self.gauss1 + W2 * self.gauss2 + W3 * self.repulsion \
+                    + W4 * self.hydrophobic + W5 * self.hydrogenbond
+        
+        return bind_aff
     
     @property
     def edge(self):
