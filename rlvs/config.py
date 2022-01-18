@@ -6,7 +6,7 @@ class Config:
     def __init__(self, config_path):
 
         # pre initialize to avoid errors
-        self.single_step = [1]
+        self.single_step = [1,1,1,1,1,1]
         self.node_features = [
             'atom_type_encoding',
             'atom_named_features',
@@ -27,12 +27,12 @@ class Config:
 # comment out the "encoding" and "bond distance" features (since double information)
 # Use either: "binding affinity (sum over all affinities using Vinascore weights)
 # or: individual bond information for e.g. "hydrogenbond", "repulsion"
-            "binding_affinity",
-           # "gauss1",
-           # "gauss2",
-           # "repulsion",
-           # "hydrophobic",
-           # "hydrogenbond"
+           # "bind_aff",
+            "g1",
+            "g2",
+            "rep",
+            "hyph",
+            "hydr"
         ]
 
         self.test_dataset = [

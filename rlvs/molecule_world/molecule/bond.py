@@ -4,6 +4,8 @@ import torch
 
 from .types import MoleculeType, BondType
 from rlvs.config import Config
+from .named_atom import H
+from rlvs.agents.utils import filter_by_distance, to_numpy
 
 class Bond:
     def __init__(self, idx, atom_a, atom_b, bond_length, update_edge=True, bond_type=0, ob_bond = None):
@@ -118,6 +120,24 @@ class Bond:
                     + W4 * self.hydrophobic + W5 * self.hydrogenbond
         
         return bind_aff
+
+    def g1(self):
+        return [self.gauss1]
+
+    def g2(self):
+        return [self.gauss2]
+
+    def rep(self):
+        return [self.repulsion]
+
+    def hyph(self):
+        return [self.hydrophobic]
+
+    def hydr(self):
+        return [self.hydrogenbond]
+
+    def bind_aff(self):
+        return [self.binding_affinity]
     
     @property
     def edge(self):

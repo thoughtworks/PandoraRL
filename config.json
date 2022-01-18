@@ -14,7 +14,13 @@
   ],
   "edge_features": [
     "encoding",
-    "bond_distance"
+    "bond_distance",
+    "g1",
+    "g2",
+    "rep",
+    "hyph",
+    "hydr",
+    "bind_aff"  
   ],
   "train_dataset": [
     "SARSVarients",
