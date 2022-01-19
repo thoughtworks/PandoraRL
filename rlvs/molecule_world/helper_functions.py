@@ -4,7 +4,6 @@ import numpy as np
 from rlvs.constants import ComplexConstants
 
 ob.obErrorLog.SetOutputLevel(0)
-box_size = 6 #0.1
 RANDOM_POS_SIGN = 1
 
 
@@ -34,15 +33,10 @@ def read_to_OB(filename, filetype, prepare=False):
 
 
 def randomizer(action_shape, test=False):
-    global box_size, RANDOM_POS_SIGN
-
-    if not test:
-        pose = RANDOM_POS_SIGN * np.random.uniform(0, box_size, (action_shape,))
-        box_size = min(box_size + 0.005, ComplexConstants.RMSD_THRESHOLD)
-    else:
-        pose = RANDOM_POS_SIGN * np.random.uniform(
-            0,  ComplexConstants.RMSD_THRESHOLD, (action_shape,)
-        )
+    global RANDOM_POS_SIGN
+    pose = RANDOM_POS_SIGN * np.random.uniform(
+        0,  ComplexConstants.RMSD_THRESHOLD, (action_shape,)
+    )
 
     RANDOM_POS_SIGN *= -1
     return pose

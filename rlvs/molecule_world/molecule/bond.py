@@ -117,7 +117,7 @@ class Bond:
         W4 = -0.0351
         W5 = -0.587
         bind_aff = W1 * self.gauss1 + W2 * self.gauss2 + W3 * self.repulsion \
-                    + W4 * self.hydrophobic + W5 * self.hydrogenbond
+            + W4 * self.hydrophobic + W5 * self.hydrogenbond
         
         return bind_aff
 
