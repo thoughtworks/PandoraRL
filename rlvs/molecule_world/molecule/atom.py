@@ -6,6 +6,7 @@ from .types import MoleculeType, BondType
 from .featurizer import Featurizer
 from .bond import Bond
 from .named_atom import H
+from .inter_molecular_interactions import InterMolecularInteractions
 
 
 class Atoms:
@@ -177,6 +178,7 @@ class Atom:
         self.residue = residue
         self.bonds = []
         self.hydrogens = np.array([])
+        self.inter_molecular_interactions = InterMolecularInteractions()
 
     @property
     def molecule_type(self):
@@ -208,6 +210,13 @@ class Atom:
         if self.donor and neighbour == H:
             self.hydrogens = np.append(self.hydrogens, bond)
 
+    def update_interaction_strengths(self, bond, reset=True):
+        if reset:
+            self.inter_molecular_interactions.reset_interaction_strengths()
+            return
+
+        self.inter_molecular_interactions.update_interaction_strength(bond)
+
     @property
     def amide(self):
         for bond in self.bonds:
@@ -223,3 +232,5 @@ class Atom:
                 return True
 
         return False
+
+    

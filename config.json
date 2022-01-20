@@ -7,20 +7,12 @@
             "VDWr",
             "molecule_type",
             "smarts_pattern_encoding",
-            "residue_labels",
-            "z_scores",
-            "kd_hydophobocitya",
-            "conformational_similarity"
+    "kd_hydophobocitya",
+    "interaction_strengths",
+    "conformational_similarity"
   ],
   "edge_features": [
-    "encoding",
-    "bond_distance",
-    "g1",
-    "g2",
-    "rep",
-    "hyph",
-    "hydr",
-    "bind_aff"  
+    "encoding"
   ],
   "train_dataset": [
     "SARSVarients",

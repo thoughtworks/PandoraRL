@@ -37,6 +37,14 @@ class InterMolecularBond(Bond):
             [self.l_atom.idx + self.ligand_offset, self.p_atom.idx]
         ], dtype=torch.long)
 
+    def reset_interaction_strengths(self):
+        self.atom_a.update_interaction_strengths(self, reset=True)
+        self.atom_b.update_interaction_strengths(self, reset=True)
+
+    def update_interaction_strengths(self):
+        self.atom_a.update_interaction_strengths(self)
+        self.atom_b.update_interaction_strengths(self)
+
 
 class HydrogenBond(InterMolecularBond):
     def __init__(self, idx, donor, acceptor, ligand_offset=0):

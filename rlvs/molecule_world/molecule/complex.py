@@ -42,18 +42,18 @@ class Complex:
         inter_molecular_interactions = [
             BondEncoder.generate_encoded_bond_types(edge)
             for edge in self.all_inter_molecular_interactions
-            if edge.distance <= ComplexConstants.DISTANCE_THRESHOLD
         ]
 
-        inter_molecular_interactions = [
-            edge for edge in inter_molecular_interactions
-            if edge.bond_type is not None and edge.bond_type != 0
-        ]
-        
+        for edge in inter_molecular_interactions:
+            edge.reset_interaction_strengths()
+
+        for edge in inter_molecular_interactions:
+            edge.update_interaction_strengths()
+
         self.inter_molecular_edges = torch.vstack([
             bond.edge for bond in inter_molecular_interactions
         ]).t().contiguous()
-        
+
         self.inter_molecular_edge_attr = torch.vstack([
             torch.tensor([
                 bond.feature,
@@ -61,6 +61,8 @@ class Complex:
             ], dtype=torch.float32)
             for bond in inter_molecular_interactions
         ])
+
+        
 
     
     def vina_score(self):
@@ -75,25 +77,25 @@ class Complex:
         p_atoms = [atom.idx for atom in self.protein.atoms.where(lambda x: x.is_heavy_atom)]
         l_atoms = [atom.idx for atom in self.ligand.atoms.where(lambda x: x.is_heavy_atom)]
 
-        adg_mat = np.array(np.meshgrid(l_atoms, p_atoms)).T.reshape(-1,2)
-        edge_count = {}
+        adg_mat = np.array(np.meshgrid(l_atoms, p_atoms)).T.reshape(-1, 2)
 
-        return [InterMolecularBond(
+        return [
+            InterMolecularBond(
                 self.protein.atoms[p_idx],
                 self.ligand.atoms[l_idx],
                 None,
                 update_edge=False,
                 ligand_offset=n_p_atoms,
                 bond_type=0
-            ) for l_idx, p_idx in adg_mat ]
-    
+            ) for l_idx, p_idx in adg_mat
+        ]
+
     def score(self):
         rmsd = self.ligand.rmsd(self.original_ligand)
-        rmsd_score = np.sinh(rmsd + np.arcsinh(0))**-1        
+        rmsd_score = np.sinh(rmsd + np.arcsinh(0))**-1
         if rmsd > ComplexConstants.RMSD_THRESHOLD:
             raise Exception(f"BAD State: VinaScore: {self.vina_score()}, rmsd: {rmsd}")
 
-        # Found that adding weights to rmsd_score was not having much effect, rmsd_score was mostly being used when the first term went to zero.
         return 200 if self.perfect_fit else rmsd_score
 
     def randomize_ligand(self, action_shape, test=False):
@@ -101,7 +103,7 @@ class Complex:
 
     def reset_ligand(self):
         self.ligand.set_coords(self.original_ligand.get_coords())
-        
+
     @property
     def rmsd(self):
         return self.ligand.rmsd(self.original_ligand)
@@ -119,15 +121,15 @@ class Complex:
             self.inter_molecular_edges
             ])
 
-        pos = batched.x[:,:3]
-        
+        pos = batched.x[:, :3]
+
         edge_attr = torch.vstack([
             batched.edge_attr,
             self.inter_molecular_edge_attr
         ])
 
         batch = torch.tensor([0] * batched.x.shape[0])
-        
+
         return Data(
             pos=pos.detach().clone(),
             x=batched.x.detach().clone(),
@@ -137,8 +139,5 @@ class Complex:
 
     def save(self, path, filetype=None):
         ligand_filetype = filetype if filetype is not None else self.ligand.filetype
-        protein_filetype =  self.protein.filetype
         ligand_name = self.ligand.path.split('/')[-1].split('.')[0]
         self.ligand.save(f'{path}_{ligand_name}.{ligand_filetype}', ligand_filetype)
-        # self.protein.save(f'{path}_protein.{protein_filetype}', protein_filetype)
-

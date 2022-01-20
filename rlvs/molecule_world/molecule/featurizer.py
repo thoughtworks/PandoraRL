@@ -72,12 +72,14 @@ class Featurizer():
             mol_py = pybel.Molecule(obmol)
             self.smarts_patterns = self.find_smarts(mol_py)
 
-
     def atom_type_encoding(self, atom):
         encoding = np.zeros(self.num_classes, dtype=int)
         encoding[self.atom_codes[atom.atomic_num]] = 1
 
         return encoding
+
+    def interaction_strengths(self, atom):
+        return atom.inter_molecular_interactions.features
 
     def atom_named_features(self, atom):
         return [
