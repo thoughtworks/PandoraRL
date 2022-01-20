@@ -4,6 +4,7 @@ from rlvs.constants import BondThresholds, Vina
 from .named_atom import H
 import torch
 
+
 class InterMolecularBond(Bond):
     @staticmethod
     def copy(bond):
@@ -16,7 +17,11 @@ class InterMolecularBond(Bond):
             ligand_offset=bond.ligand_offset
         )
 
-    def __init__(self, atom_a, atom_b, bond_length, update_edge=True, bond_type=None, ligand_offset=0):
+    def __init__(
+            self, atom_a, atom_b,
+            bond_length, update_edge=True, bond_type=None,
+            ligand_offset=0
+    ):
         super(
             InterMolecularBond, self
         ).__init__(-1, atom_a, atom_b, bond_length, update_edge, bond_type)
@@ -72,7 +77,6 @@ class HydrogenBond(InterMolecularBond):
         return self.surface_distance <= Vina.HYDROGEN_BOND_SURFACE_THRESHOLD
 
 
-    
 class HydrophobicBond(InterMolecularBond):
     def __init__(self, idx, p_atom, l_atom, ligand_offset=0):
         super(
@@ -96,15 +100,15 @@ class BondEncoder:
 
         if BondType.is_hydrophobic_1(edge.p_atom, edge.l_atom) \
            and edge.distance <= BondThresholds.HYDROPHOBIC:
-                edge.update_bond_type(BondType.HYDROPHOBIC)
+            edge.update_bond_type(BondType.HYDROPHOBIC)
 
         if BondType.is_multi_polar_halogen(edge.p_atom, edge.l_atom) \
            and edge.distance <= BondThresholds.MULTI_POLAR_HALOGEN:
-                edge.update_bond_type(BondType.MULTI_POLAR_HALOGEN)
+            edge.update_bond_type(BondType.MULTI_POLAR_HALOGEN)
 
         if BondType.is_halogen(edge.p_atom, edge.l_atom) \
            and edge.distance <= BondThresholds.HALOGEN:
-                edge.update_bond_type(BondType.HALOGEN_BOND)
+            edge.update_bond_type(BondType.HALOGEN_BOND)
 
         if BondType.is_amide_stacking(edge.p_atom, edge.l_atom) \
            and edge.distance <= BondThresholds.AMIDE_STACKING:
@@ -112,27 +116,27 @@ class BondEncoder:
 
         if BondType.is_pi_stacking(edge.p_atom, edge.l_atom) \
            and edge.distance <= BondThresholds.PI_STACKING:
-                edge.update_bond_type(BondType.PI_STACKING)            
+            edge.update_bond_type(BondType.PI_STACKING)
 
         if BondType.is_salt_bridge(edge.p_atom, edge.l_atom) \
            and edge.distance <= BondThresholds.SALT_BRIDGE:
-                edge.update_bond_type(BondType.SALT_BRIDGE)
+            edge.update_bond_type(BondType.SALT_BRIDGE)
 
         if BondType.is_cation_pi(edge.p_atom, edge.l_atom) \
            and edge.distance <= BondThresholds.CATION_PI:
-                edge.update_bond_type(BondType.CATION_PI)
+            edge.update_bond_type(BondType.CATION_PI)
 
         if BondType.is_repulsive_bond(edge):
-                edge.update_bond_type(BondType.REPULSIVE)
-                
+            edge.update_bond_type(BondType.REPULSIVE)
+
         return edge
 
     @staticmethod
     def is_hydrogen_bond(bond):
         h_bond = None
-        if  BondType.is_hydrogen_bond(bond.atom_a, bond.atom_b):
+        if BondType.is_hydrogen_bond(bond.atom_a, bond.atom_b):
             h_bond = HydrogenBond(bond.idx, bond.atom_a, bond.atom_b)
-            
+
         elif BondType.is_hydrogen_bond(bond.atom_b, bond.atom_a):
             h_bond = HydrogenBond(bond.idx, bond.atom_b, bond.atom_a)
 
@@ -140,4 +144,3 @@ class BondEncoder:
             return False
 
         return h_bond.is_valid
-            

@@ -18,10 +18,10 @@ class Atoms:
             self._atoms = [
                 Atom(
                     index,
-                    (idx:=ob_atom.GetIndex()),
+                    (idx := ob_atom.GetIndex()),
                     molecule_type,
                     pdb_atoms[idx].name,
-                    (atm_no:=ob_atom.GetAtomicNum()),
+                    (atm_no := ob_atom.GetAtomicNum()),
                     pdb_atoms[idx].coord,
                     ob_atom.GetHyb(),
                     ob_atom.GetHvyDegree(),
@@ -39,9 +39,9 @@ class Atoms:
             self._atoms = [
                 Atom(
                     index,
-                    (idx:=atom.GetIndex()),
+                    (idx := atom.GetIndex()),
                     molecule_type,
-                    self.featurizer.atom_codes[(atm_no:=atom.GetAtomicNum())],
+                    self.featurizer.atom_codes[(atm_no := atom.GetAtomicNum())],
                     atm_no,
                     np.array([atom.GetX(), atom.GetY(), atom.GetZ()]),
                     atom.GetHyb(),
@@ -83,12 +83,12 @@ class Atoms:
     @coords.setter
     def coords(self, coords):
         self._coords = coords
-        
+
         for idx, coord in enumerate(coords):
             self._atoms[idx].coord = coord
 
     def crop(self, condition):
-        
+
         croped_bonds = []
         for atom in self._atoms:
             if not condition(atom):
@@ -98,9 +98,9 @@ class Atoms:
                 )
 
         croped_bonds = set(croped_bonds)
-        
+
         self._atoms = [atom for atom in self._atoms if condition(atom)]
-        
+
         for index, atom in enumerate(self._atoms):
             atom.idx = index
 
@@ -108,7 +108,7 @@ class Atoms:
             bond.atom_a.bonds.remove(bond)
             bond.atom_b.bonds.remove(bond)
             self.bonds.remove(bond)
-            
+
         self._update_features()
         self._update_edges()
 
@@ -117,7 +117,6 @@ class Atoms:
         self.features = torch.tensor([
             atom.features(self.featurizer) for atom in self._atoms
         ], dtype=torch.float)
-
 
     def _update_edges(self):
         self.edge_index = torch.vstack(
@@ -132,7 +131,6 @@ class Atoms:
             for bond in self.bonds
         ])
 
-        
     def __len__(self):
         return len(self._atoms)
 
@@ -154,7 +152,7 @@ class Atom:
             hetro_degree=None, partial_charge=None,
             VDWr=None, smarts=None, pdb_atom=None,
             residue=None
-            
+
     ):
         self.idx = idx
         self.atom_idx = atom_idx
@@ -173,8 +171,8 @@ class Atom:
             self.acceptor,\
             self.donor,\
             self.ring = np.array(
-            smarts, dtype=bool
-        )
+                smarts, dtype=bool
+            )
 
         self.residue = residue
         self.bonds = []
