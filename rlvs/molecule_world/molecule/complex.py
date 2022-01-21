@@ -42,6 +42,13 @@ class Complex:
         inter_molecular_interactions = [
             BondEncoder.generate_encoded_bond_types(edge)
             for edge in self.all_inter_molecular_interactions
+            if edge.distance <= ComplexConstants.DISTANCE_THRESHOLD
+         ]
+ 
+        inter_molecular_interactions = [
+            edge for edge in inter_molecular_interactions
+            if edge.bond_type is not None and edge.bond_type != 0
+            
         ]
 
         for edge in inter_molecular_interactions:
