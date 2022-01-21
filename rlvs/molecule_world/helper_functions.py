@@ -5,6 +5,7 @@ from rlvs.constants import ComplexConstants
 
 ob.obErrorLog.SetOutputLevel(0)
 RANDOM_POS_SIGN = 1
+box_size = 0.1
 
 
 def smiles_to_OB(smile_string, prepare=False):
