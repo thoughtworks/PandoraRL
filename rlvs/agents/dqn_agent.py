@@ -31,6 +31,7 @@ class DQNAgentGNN:
     BUFFER_SIZE = AgentConstants.BUFFER_SIZE
     EXPLORATION_EPISODES = AgentConstants.EXPLORATION_EPISODES
     LEARN_INTERVAL = 4
+    COPY_INTERVAL = 10
 
     def __init__(
             self, env, weights_path,
@@ -167,7 +168,7 @@ class DQNAgentGNN:
 
                 if (num_steps := num_steps % self.LEARN_INTERVAL) == 0:
                     if self.memory.has_samples(self.BATCH_SIZE):
-                        sync_counter = (sync_counter + 1) % 5
+                        sync_counter = (sync_counter + 1) % self.COPY_INTERVAL
                         loss = self.learn(sync_counter == 0)
 
                         self.metrices.cache_loss(i_episode, loss)
