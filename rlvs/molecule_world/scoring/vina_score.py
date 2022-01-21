@@ -118,6 +118,7 @@ class VinaScore:
         return hybnd
 
     def total_energy(self):
+        return 0
         valid_pairs = filter_by_distance(self.protein, self.ligand, distance_threshold=8)
 
         subset_by_distance = lambda var, distance, threshold: var[distance < threshold] 
