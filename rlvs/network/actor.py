@@ -52,29 +52,24 @@ class ActorGNN(nn.Module):
         self.action_layer_in.weight.data = fanin_init(self.action_layer_in.weight.data.size())
         self.action_layer_out.weight.data.uniform_(-init_w, init_w)
 
-    @timeit("actor_forward")
     def forward(self, complex_):
         complex_data, complex_edge_index, \
             complex_edge_attr, complex_batch = complex_.x, complex_.edge_index,\
             complex_.edge_attr, complex_.batch
-
         complex_data = self.node_encoder(complex_data)
         complex_edge_attr = self.edge_encoder(complex_edge_attr)
 
-        complex_data = F.relu(
-            self.complex_gcn_in1(complex_data, complex_edge_index, complex_edge_attr)
-        )
-        complex_data, complex_edge_index, complex_edge_attr, \
-            complex_batch,  perm, score = self.pool1(
-                complex_data, complex_edge_index, complex_edge_attr, complex_batch
-            )
-        complex_data = F.relu(
-            self.complex_gcn_in2(complex_data, complex_edge_index, complex_edge_attr)
-        )
+        complex_data = self.layers[0].conv(complex_data, complex_edge_index, complex_edge_attr)
 
-        # complex_data = self.complex_gcn_in(complex_data, complex_edge_index, complex_edge_attr)
+        for layer in self.layers[1:]:
+            complex_data = layer(complex_data, complex_edge_index, complex_edge_attr)
 
-        molecule_data = gap(complex_data, complex_batch)
+        complex_data = self.layers[0].act(self.layers[0].norm(complex_data))
+        complex_data = F.dropout(complex_data, p=0.1, training=self.training)
+        molecule_data = torch.cat([
+            gmp(complex_data, complex_batch),
+            gap(complex_data, complex_batch)
+        ], dim=1)
         action = F.relu(self.action_layer_in(molecule_data))
         action = self.action_layer_out(action)
         action = torch.tanh(action)

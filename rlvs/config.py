@@ -8,6 +8,7 @@ class Config:
 
         # pre initialize to avoid errors
         self.single_step = [1, 1, 1, 1, 1, 1]
+        self.training_algorithm = "dqn"
         self.node_features = [
             'atom_type_encoding',
             'atom_named_features',

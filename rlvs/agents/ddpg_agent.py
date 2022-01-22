@@ -101,55 +101,60 @@ class DDPGAgentGNN:
         })
 
     def update_network(self):
+        value_losses = []
+        policy_losses = []
+        batches = self.memory.sample(self.BATCH_SIZE)
+        for batch in batches:
+            complex_batched = batchify(batch.states)
+            next_complex_batched = batchify(batch.next_states)
 
-        batch = self.memory.sample(self.BATCH_SIZE)
+            actions = batch.actions
+            rewards = batch.rewards
+            terminals = batch.terminals
 
-        complex_batched = batchify(batch.states)
-        next_complex_batched = batchify(batch.next_states)
+            # Prepare for the target q batch
+            next_q_values = self._critiq_target([
+                next_complex_batched,
+                self._actor_target(next_complex_batched),
+            ])
 
-        actions = batch.actions
-        rewards = batch.rewards
-        terminals = batch.terminals
+            with torch.no_grad():
+                target_q_batch = to_tensor(
+                    rewards
+                ) + self.CRITIQ_LEARNING_RATE * to_tensor(
+                    terminals.astype(np.float)
+                ) * next_q_values
 
-        # Prepare for the target q batch
-        next_q_values = self._critiq_target([
-            next_complex_batched,
-            self._actor_target(next_complex_batched),
-        ])
+                self._critiq.zero_grad()
 
-        with torch.no_grad():
-            target_q_batch = to_tensor(
-                rewards
-            ) + self.CRITIQ_LEARNING_RATE * to_tensor(
-                terminals.astype(np.float)
-            ) * next_q_values
+            q_batch = self._critiq([complex_batched, to_tensor(actions)])
 
-            self._critiq.zero_grad()
+            value_loss = criterion(q_batch, target_q_batch)
+            value_loss.backward()
+            value_losses.append(value_loss)
+            self._critiq_optim.step()
 
-        q_batch = self._critiq([complex_batched, to_tensor(actions)])
+            # Actor update
+            self._actor.zero_grad()
 
-        value_loss = criterion(q_batch, target_q_batch)
-        value_loss.backward()
-        self._critiq_optim.step()
+            # critic policy update
+            policy_loss = -self._critiq([
+                complex_batched,
+                self._actor(complex_batched)
+            ])
 
-        # Actor update
-        self._actor.zero_grad()
-
-        # critic policy update
-        policy_loss = -self._critiq([
-            complex_batched,
-            self._actor(complex_batched)
-        ])
-
-        policy_loss = policy_loss.mean()
-        policy_loss.backward()
-        self._actor_optim.step()
+            policy_loss = policy_loss.mean()
+            policy_loss.backward()
+            policy_losses.append(policy_loss)
+            self._actor_optim.step()
 
         # Target update
         soft_update(self._actor_target, self._actor, self.TAU)
         soft_update(self._critiq_target, self._critiq, self.TAU)
-        print("Value Loss: ", value_loss, " policy loss: ", policy_loss)
-        return to_numpy(value_loss), to_numpy(policy_loss)
+        average_value_loss = torch.mean(torch.tensor(value_losses))
+        average_policy_loss = torch.mean(torch.tensor(policy_losses))
+        print("Value Loss: ", average_value_loss, " policy loss: ", average_policy_loss)
+        return to_numpy(average_value_loss), to_numpy(average_policy_loss)
 
     def get_predicted_action(self, data, step=None, decay_epsilon=True):
         # Explore AdaptiveParamNoiseSpec, with normalized action space
