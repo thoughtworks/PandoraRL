@@ -124,8 +124,8 @@ class Metric:
 
         return self.episode_loss.get(episode, [])
 
-    def plot_rmsd_trend(self, episode, root_path, test=False):
-        marker = ',' if test else '.'
+    def plot_rmsd_trend(self, episode, root_path, test=False, actions=False):
+        marker = ',' if actions else '.'
         plt.figure(figsize=(10, 7))
         file_name = f'{root_path}_{episode}_rmsd_trend.png' if not test \
             else f'{root_path}_{episode}_test_rmsd_trend.png'
@@ -137,7 +137,7 @@ class Metric:
                 label=f'{idx}_{metric.molecule}', zorder=1
             )
 
-            if test:
+            if actions:
                 self.__plot_rmsd_actions(
                     plt, metric.rmsds, metric.actions
                 )

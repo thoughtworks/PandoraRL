@@ -221,7 +221,12 @@ class DQNAgentGNN:
 
                 if config.run_tests:
                     self.test(10, train_episode=i_episode, save=False)
-                    self.metrices.plot_rmsd_trend(i_episode, self.weights_path, test=True)
+                    self.metrices.plot_rmsd_trend(
+                        i_episode,
+                        self.weights_path,
+                        test=True,
+                        actions=True
+                    )
 
                 Metric.save(self.metrices, self.weights_path)
 
