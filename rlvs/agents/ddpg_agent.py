@@ -12,7 +12,8 @@ from rlvs.constants import AgentConstants
 
 from .metrices import Metric
 from .memory import Memory
-from .utils import soft_update, hard_update, to_tensor, to_numpy, batchify, USE_CUDA
+from .utils import soft_update, hard_update, to_tensor, to_numpy, batchify, \
+    FLOAT, LONG, INT32, USE_CUDA, use_device
 from .noise import OrnsteinUhlenbeckActionNoise
 import logging
 
@@ -108,10 +109,11 @@ class DDPGAgentGNN:
             complex_batched = batchify(batch.states)
             next_complex_batched = batchify(batch.next_states)
 
-            actions = batch.actions
-            rewards = batch.rewards
-            terminals = batch.terminals
-
+            actions = to_tensor(batch.actions, dtype=LONG)
+            rewards = to_tensor(batch.rewards)
+            terminals = to_tensor(batch.terminals, dtype=INT32)
+            complex_batched = use_device(complex_batched)
+            next_complex_batched = use_device(next_complex_batched)
             # Prepare for the target q batch
             next_q_values = self._critiq_target([
                 next_complex_batched,
@@ -119,15 +121,15 @@ class DDPGAgentGNN:
             ])
 
             with torch.no_grad():
-                target_q_batch = to_tensor(
-                    rewards
-                ) + self.CRITIQ_LEARNING_RATE * to_tensor(
-                    terminals.astype(np.float)
-                ) * next_q_values
+                target_q_batch = (
+                    rewards + self.CRITIQ_LEARNING_RATE * terminals * next_q_values
+                ).type(FLOAT)
 
                 self._critiq.zero_grad()
 
-            q_batch = self._critiq([complex_batched, to_tensor(actions)])
+            complex_batched.cpu()
+            next_complex_batched.cpu()
+            q_batch = self._critiq([complex_batched, actions])
 
             value_loss = criterion(q_batch, target_q_batch)
             value_loss.backward()
