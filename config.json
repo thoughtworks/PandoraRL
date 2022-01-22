@@ -14,6 +14,7 @@
   "edge_features": [
     "encoding"
   ],
+  "training_algorithm": "dqn",
   "train_dataset": [
     "SARSVarients",
     "MERSVariants"
