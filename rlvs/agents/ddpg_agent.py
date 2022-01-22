@@ -127,8 +127,6 @@ class DDPGAgentGNN:
 
                 self._critiq.zero_grad()
 
-            complex_batched.cpu()
-            next_complex_batched.cpu()
             q_batch = self._critiq([complex_batched, actions])
 
             value_loss = criterion(q_batch, target_q_batch)
@@ -149,6 +147,8 @@ class DDPGAgentGNN:
             policy_loss.backward()
             policy_losses.append(policy_loss)
             self._actor_optim.step()
+            complex_batched.cpu()
+            next_complex_batched.cpu()
 
         # Target update
         soft_update(self._actor_target, self._actor, self.TAU)
