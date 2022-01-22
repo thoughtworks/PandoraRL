@@ -210,14 +210,11 @@ class DDPGAgentGNN:
 
             while not (terminal or (episode_length == max_episode_length)):
                 data = m_complex_t.data
-
-                if num_steps <= self.warm_up_steps:
-                    predicted_action = self.random_action()
-                else:
-                    predicted_action = self.get_predicted_action(
-                        data, episode_length
-                    )
-
+                data = use_device(data)
+                predicted_action = self.get_predicted_action(
+                    data, episode_length
+                )
+                data.cpu()
                 action = self.get_action(predicted_action)
 
                 reward, terminal = self.env.step(action)
