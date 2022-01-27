@@ -14,7 +14,7 @@ from .metrices import Metric
 from .memory import Memory
 from .utils import soft_update, hard_update, to_tensor, to_numpy, batchify, \
     FLOAT, LONG, INT32, USE_CUDA, use_device
-from .noise import OrnsteinUhlenbeckActionNoise
+from .noise import OrnsteinUhlenbeckActionNoise, GausianNoise
 import logging
 
 criterion = nn.MSELoss()
@@ -44,7 +44,7 @@ class DDPGAgentGNN:
         self.action_bounds = env.action_space.action_bounds
         self.memory = Memory(self.BUFFER_SIZE)
         self.env = env
-        self.exploration_noise = OrnsteinUhlenbeckActionNoise(size=self.env.action_space.n_outputs)
+        self.exploration_noise = GausianNoise(size=self.env.action_space.n_outputs)
         self.warm_up_steps = warmup
         self.is_training = is_training
 
@@ -101,10 +101,25 @@ class DDPGAgentGNN:
             'done': done
         })
 
-    def update_network(self):
-        value_losses = []
-        policy_losses = []
-        batches = self.memory.sample(self.BATCH_SIZE)
+    def compute_q_loss(self, state, action, reward, next_state, terminal):
+        q_value = self._critiq([state, action])
+        with torch.no_grad():
+            q_target_value = self._critiq_target([
+                next_state,
+                self._actor_target(next_state)
+            ])
+
+            expected_q = reward + self.GAMMA * (1 - terminal) * q_target_value
+        return ((q_value - expected_q) ** 2)
+
+    def compute_policy_loss(self, state):
+        return -self._critiq([
+            state, self._actor(state)
+        ])
+
+    def batch_update(self, batches, loss_function):
+        training_loss = None
+
         for batch in batches:
             complex_batched = batchify(batch.states)
             next_complex_batched = batchify(batch.next_states)
@@ -114,49 +129,42 @@ class DDPGAgentGNN:
             terminals = to_tensor(batch.terminals, dtype=INT32)
             complex_batched = use_device(complex_batched)
             next_complex_batched = use_device(next_complex_batched)
-            # Prepare for the target q batch
-            next_q_values = self._critiq_target([
-                next_complex_batched,
-                self._actor_target(next_complex_batched),
-            ])
 
-            with torch.no_grad():
-                target_q_batch = (
-                    rewards + self.CRITIQ_LEARNING_RATE * terminals * next_q_values
-                ).type(FLOAT)
-
-                self._critiq.zero_grad()
-
-            q_batch = self._critiq([complex_batched, actions])
-
-            value_loss = criterion(q_batch, target_q_batch)
-            value_loss.backward()
-            value_losses.append(value_loss)
-            self._critiq_optim.step()
-
-            # Actor update
-            self._actor.zero_grad()
-
-            # critic policy update
-            policy_loss = -self._critiq([
+            loss = loss_function(
                 complex_batched,
-                self._actor(complex_batched)
-            ])
-
-            policy_loss = policy_loss.mean()
-            policy_loss.backward()
-            policy_losses.append(policy_loss)
-            self._actor_optim.step()
+                actions,
+                rewards,
+                next_complex_batched,
+                terminals
+            )
+            training_loss = loss if training_loss is None else training_loss + loss
             complex_batched.cpu()
             next_complex_batched.cpu()
+
+        return training_loss / len(batches)
+
+    def update_network(self):
+        batches = self.memory.sample(self.BATCH_SIZE)
+        
+        self._critiq_optim.zero_grad()
+        mean_q_loss = self.batch_update(batches, self.compute_q_loss)
+        mean_q_loss.backward()
+        self._critiq_optim.step()
+
+        self._actor_optim.zero_grad()
+        mean_policy_loss = self.batch_update(
+            batches,
+            lambda state, action, reward, next_state, done: self.compute_policy_loss(state)
+        )
+        mean_policy_loss.backward()
+        self._actor_optim.step()
 
         # Target update
         soft_update(self._actor_target, self._actor, self.TAU)
         soft_update(self._critiq_target, self._critiq, self.TAU)
-        average_value_loss = torch.mean(torch.tensor(value_losses))
-        average_policy_loss = torch.mean(torch.tensor(policy_losses))
-        print("Value Loss: ", average_value_loss, " policy loss: ", average_policy_loss)
-        return to_numpy(average_value_loss), to_numpy(average_policy_loss)
+
+        print("Value Loss: ", mean_q_loss, " policy loss: ", mean_policy_loss)
+        return to_numpy(mean_q_loss), to_numpy(mean_policy_loss)
 
     def get_predicted_action(self, data, step=None, decay_epsilon=True):
         # Explore AdaptiveParamNoiseSpec, with normalized action space
@@ -164,11 +172,13 @@ class DDPGAgentGNN:
         action = to_numpy(
             self._actor(data)[0]
         )
+        noise = self.exploration_noise.generate(step)
+        print(action, noise, self.eps)
 
         if step is not None:
             action += self.is_training * max(
                 self.eps, 0
-            ) * self.exploration_noise.generate(step)
+            ) * noise #self.exploration_noise.generate(step)
 
         if decay_epsilon:
             self.eps -= self.decay_epsilon
@@ -204,9 +214,9 @@ class DDPGAgentGNN:
 
             episode_return, episode_length, terminal = 0, 0, False
 
-            self.exploration_noise = OrnsteinUhlenbeckActionNoise(
-                size=self.env.action_space.n_outputs
-            )
+            # self.exploration_noise = GausianNoise(
+            #     size=self.env.action_space.n_outputs
+            # )
 
             while not (terminal or (episode_length == max_episode_length)):
                 data = m_complex_t.data

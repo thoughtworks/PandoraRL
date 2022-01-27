@@ -17,3 +17,13 @@ class OrnsteinUhlenbeckActionNoise(object):
         x = self.x0 + self.theta * (self.mu - self.x0) * self.dt + sigma * np.sqrt(self.dt) * np.random.normal(size=self.size)
         self.x0 = x
         return x
+
+
+class GausianNoise:
+    def __init__(self, mu=0, sigma=0.01, size=1):
+        self.mu = mu
+        self.sigma = sigma
+        self.size = size
+
+    def generate(self, step=None):
+        return np.random.normal(loc=self.mu, scale=self.sigma, size=self.size)
