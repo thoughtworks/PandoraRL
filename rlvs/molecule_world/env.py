@@ -1,10 +1,6 @@
 import numpy as np
 from .molecule.complex import Complex
-from .molecule.molecule import Molecule
 from .datastore.datasets import DataStore
-from deepchem.feat.mol_graphs import MultiConvMol, ConvMol
-import tensorflow as tf
-from .helper_functions import *
 from rlvs.constants import ComplexConstants, Rewards
 
 
@@ -66,7 +62,7 @@ class Env:
             self._complex.update_tensor()
             reward = self._complex.score()
             terminal = self._complex.perfect_fit
-        except:
+        except Exception:
             reward = -1
             terminal = True
 

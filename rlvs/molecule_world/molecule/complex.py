@@ -1,19 +1,15 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import copy
 import torch
 
-from rlvs.agents.utils import batchify, interacting_edges, \
-    molecule_median_distance, timeit
+from rlvs.agents.utils import batchify
 from torch_geometric.data import Data
 from rlvs.constants import ComplexConstants
 from rlvs.molecule_world.scoring import VinaScore
 
-from .named_atom import H
 from .inter_molecular_bond import InterMolecularBond, BondEncoder
-from .types import BondType
 
 import logging
+
 
 class Complex:
     def __init__(self, protein, ligand, original_ligand):
@@ -37,18 +33,18 @@ class Complex:
         self.protein.crop(self.ligand.get_centroid(), x, y, z)
         self.all_inter_molecular_interactions = self.all_inter_molecular_bonds()
         self.update_edges()
-    
+
     def update_edges(self):
         inter_molecular_interactions = [
             BondEncoder.generate_encoded_bond_types(edge)
             for edge in self.all_inter_molecular_interactions
             if edge.distance <= ComplexConstants.DISTANCE_THRESHOLD
          ]
- 
+
         inter_molecular_interactions = [
             edge for edge in inter_molecular_interactions
             if edge.bond_type is not None and edge.bond_type != 0
-            
+
         ]
 
         for edge in inter_molecular_interactions:
@@ -69,9 +65,6 @@ class Complex:
             for bond in inter_molecular_interactions
         ])
 
-        
-
-    
     def vina_score(self):
         return self.vina.total_energy()
 

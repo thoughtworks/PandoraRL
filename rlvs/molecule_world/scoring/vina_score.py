@@ -4,6 +4,8 @@ from ..molecule.inter_molecular_bond import HydrogenBond, HydrophobicBond
 from ..molecule.types import BondType
 from rlvs.agents.utils import filter_by_distance, to_numpy
 from ..molecule.named_atom import H
+
+
 class VinaScore:
     W1 = -0.0356
     W2 = -0.00516
@@ -21,13 +23,11 @@ class VinaScore:
         s1 = 0.5
         return np.exp(-((surface_dist - o1)/s1)**2)
 
-    
     def gauss2(self, surface_dist):
         o1 = 3
         s1 = 2
-        
+
         return np.exp(-((surface_dist - o1)/s1)**2)
-    
 
     def repulsion(self, surface_dist):
         rep = np.zeros(surface_dist.shape)
@@ -60,13 +60,14 @@ class VinaScore:
             )
         ]
 
-
     def hydrophobic(self, surface_dist, possible_hydrophobic_bonds):
         p1 = 0.5
         p2 = 1.5
 
         hyph = np.zeros(surface_dist.shape)
-        valid_hydrophobic_bond_ids = [h_bond_pair.idx for h_bond_pair in possible_hydrophobic_bonds]
+        valid_hydrophobic_bond_ids = [
+            h_bond_pair.idx for h_bond_pair in possible_hydrophobic_bonds
+        ]
 
         hyph[valid_hydrophobic_bond_ids] = np.where(
             surface_dist[valid_hydrophobic_bond_ids] < p1, 1,
@@ -75,7 +76,7 @@ class VinaScore:
                     surface_dist[valid_hydrophobic_bond_ids] >= p1
                 ) & (
                     surface_dist[valid_hydrophobic_bond_ids] < p2
-                ), p2 - surface_dist[valid_hydrophobic_bond_ids]/(p2 -p1),
+                ), p2 - surface_dist[valid_hydrophobic_bond_ids]/(p2 - p1),
                 0
             )
         )
@@ -89,8 +90,8 @@ class VinaScore:
 
         valid_hydrogen_bond_idx = [
             h_bond_pair.idx for h_bond_pair in possible_hydrogen_bonds
-             for h_bond in h_bond_pair.donor.hydrogens
-             if (
+            for h_bond in h_bond_pair.donor.hydrogens
+            if (
                      h_bond.distance < Vina.DONOR_HYDROGEN_DISTANCE
                      and h_bond.saperation(
                          h_bond_pair.acceptor, H
@@ -121,17 +122,18 @@ class VinaScore:
         return 0
         valid_pairs = filter_by_distance(self.protein, self.ligand, distance_threshold=8)
 
-        subset_by_distance = lambda var, distance, threshold: var[distance < threshold] 
+        def subset_by_distance(var, distance, threshold):
+            return var[distance < threshold]
 
         if len(valid_pairs) == 0:
             return 0
-        
+
         feature_lists = np.array([
             [to_numpy(self.protein.atoms.features[y]), to_numpy(self.ligand.atoms.features[x])]
             for x, y in valid_pairs
         ])
 
-        coords =  np.array([
+        coords = np.array([
             [self.protein.atoms.coords[y], self.ligand.atoms.coords[x]]
             for x, y in valid_pairs
         ])
@@ -170,8 +172,3 @@ class VinaScore:
 #                       )
 
         return total_energy
-        
-
-      
-            
-
