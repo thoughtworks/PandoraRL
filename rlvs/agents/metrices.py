@@ -186,8 +186,6 @@ class Metric:
         x = np.array(range(len(scores)))
         y = np.array(scores)
 
-        if np.any(y < 0):  # Special case for vina score. ()
-            y *= -1
         xmean = np.mean(x)
         ymean = np.mean(y)
         slope = np.sum((x - xmean)*(y - ymean))/np.sum((x - xmean)**2)
