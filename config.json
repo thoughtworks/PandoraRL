@@ -1,12 +1,12 @@
 {
   "single_step": [1, 1, 1, 1, 1, 1],
   "node_features":[
-            "atom_type_encoding",
-            "atom_named_features",
-            "is_heavy_atom",
-            "VDWr",
-            "molecule_type",
-            "smarts_pattern_encoding",
+    "atom_type_encoding",
+    "atom_named_features",
+    "is_heavy_atom",
+    "VDWr",
+    "molecule_type",
+    "smarts_pattern_encoding",
     "kd_hydophobocitya",
     "interaction_strengths",
     "conformational_similarity"
@@ -23,8 +23,9 @@
     "SARSTest",
     "SARSCov2"
   ],
+  "reward_function": "vina",
   "run_tests": true,
-  "divergence_slope": 0.005,
+  "divergence_slope": 0.00005,
   "test_from_episode": 70
   
 }
