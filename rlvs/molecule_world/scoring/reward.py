@@ -15,6 +15,7 @@ class Reward:
 
     def __init__(self, pl_complex):
         self.pl_complex = pl_complex
+        self.score = None
 
     @classmethod
     def get_reward_function(cls, pl_complex):
@@ -33,7 +34,11 @@ class VinaReward(Reward):
         self.vina_score = VinaScore(pl_complex.protein, pl_complex.ligand)
 
     def __call__(self):
-        return self.vina_score.total_energy()
+        self.score = self.vina_score.total_energy()
+        return 1.05 ** (-2 * self.score)
+
+    def __str__(self):
+        return f'VINA Score: {self.score}'
 
 
 class RMSDReward(Reward):
@@ -42,7 +47,10 @@ class RMSDReward(Reward):
         self.rmsd = RMSD(pl_complex.ligand)
 
     def __call__(self):
-        rmsd = self.rmsd(self.pl_complex.original_ligand)
-        rmsd_score = np.sinh(rmsd + np.arcsinh(0))**-1
+        self.score = self.rmsd(self.pl_complex.original_ligand)
+        rmsd_score = np.sinh(self.score + np.arcsinh(0))**-1
 
         return 200 if self.pl_complex.perfect_fit else rmsd_score
+
+    def __str__(self):
+        return f'RMSD: {np.round(self.score, 4)}'

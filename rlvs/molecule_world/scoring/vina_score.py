@@ -119,7 +119,6 @@ class VinaScore:
         return hybnd
 
     def total_energy(self):
-        return 0
         valid_pairs = filter_by_distance(self.protein, self.ligand, distance_threshold=8)
 
         def subset_by_distance(var, distance, threshold):
@@ -128,8 +127,8 @@ class VinaScore:
         if len(valid_pairs) == 0:
             return 0
 
-        feature_lists = np.array([
-            [to_numpy(self.protein.atoms.features[y]), to_numpy(self.ligand.atoms.features[x])]
+        van_der_waal_r = np.array([
+            [self.protein.atoms[y].VDWr, self.protein.atoms[x].VDWr]
             for x, y in valid_pairs
         ])
 
@@ -140,11 +139,9 @@ class VinaScore:
 
         distances = np.linalg.norm(coords[:, 0] - coords[:, 1], axis=1)
 
-        surface_dist = distances - (feature_lists[
-            :, 0, Features.VDWr
-        ] + feature_lists[
-            :, 1, Features.VDWr
-        ])
+        surface_dist = distances - (
+            van_der_waal_r[:, 0] + van_der_waal_r[:, 1]
+        )
 
         gauss1 = np.sum(self.gauss1(surface_dist))
         gauss2 = np.sum(self.gauss2(surface_dist))

@@ -84,6 +84,7 @@ class GraphEnv:
             self._complex = complex
 
         self.reward = Reward.get_reward_function(self._complex)
+        self.reward()
         self.input_shape = self._complex.protein.get_atom_features().shape[1]
         self.edge_shape = self._complex.inter_molecular_edge_attr.shape[1]
 
@@ -98,6 +99,7 @@ class GraphEnv:
         while True:
             self._complex = DataStore.next(False)
             self.reward = Reward.get_reward_function(self._complex)
+            self.reward()
             original_vina_score = self._complex.vina.total_energy()
             self._complex.randomize_ligand(self.action_space.n_outputs, test=test)
             print(
