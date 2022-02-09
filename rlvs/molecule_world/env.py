@@ -2,6 +2,7 @@ import numpy as np
 from .molecule.complex import Complex
 from .datastore.datasets import DataStore
 from rlvs.constants import ComplexConstants, Rewards
+from rlvs.molecule_world.scoring import Reward
 
 
 class ActionSpace:
@@ -82,8 +83,13 @@ class GraphEnv:
         else:
             self._complex = complex
 
+        self.reward = Reward.get_reward_function(self._complex)
         self.input_shape = self._complex.protein.get_atom_features().shape[1]
         self.edge_shape = self._complex.inter_molecular_edge_attr.shape[1]
+
+    @property
+    def is_legal_state(self):
+        return self._complex.ligand_centroid_saperation < ComplexConstants.LEGAL_SAPERATION
 
     def reset(self, test=False):
         self._complex.reset_ligand()
@@ -91,16 +97,17 @@ class GraphEnv:
         print("RESET RMSD", self._complex.rmsd)
         while True:
             self._complex = DataStore.next(False)
+            self.reward = Reward.get_reward_function(self._complex)
             original_vina_score = self._complex.vina.total_energy()
             self._complex.randomize_ligand(self.action_space.n_outputs, test=test)
             print(
                 "Complex: ", self._complex.protein.path,
                 "Original VinaScore:", original_vina_score,
-                "Randomized RMSD:", (rmsd := np.round(self._complex.rmsd, 4)),
+                "Randomized RMSD:", (np.round(self._complex.rmsd, 4)),
                 "Randomized Vina Score:", self._complex.vina.total_energy()
             )
-            self._complex.previous_rmsd = rmsd
-            if rmsd < ComplexConstants.RMSD_THRESHOLD:
+
+            if self.is_legal_state:
                 break
 
             self._complex.reset_ligand()
@@ -112,12 +119,14 @@ class GraphEnv:
 
     def step(self, action):
         terminal = False
-        try:
-            self._complex.update_pose(*action)
-            reward = self._complex.score()
-            # terminal = self._complex.perfect_fit
-        except Exception as e:
-            print(e)
+        self._complex.update_pose(*action)
+        reward = self.reward()
+
+        if not self.is_legal_state:
+            print(
+                f'Illegal state Centroid saperation:{self._complex.ligand_centroid_saperation}'
+            )
+
             reward = Rewards.PENALTY
             terminal = True
 

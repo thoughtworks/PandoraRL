@@ -4,7 +4,7 @@ import torch
 from rlvs.agents.utils import batchify
 from torch_geometric.data import Data
 from rlvs.constants import ComplexConstants
-from rlvs.molecule_world.scoring import VinaScore
+from rlvs.molecule_world.scoring import VinaScore, Reward, RMSD
 
 from .inter_molecular_bond import InterMolecularBond, BondEncoder
 
@@ -16,9 +16,9 @@ class Complex:
         self.protein = protein
         self.ligand = ligand
         self.original_ligand = original_ligand
-        self.previous_rmsd = 0
 
         self.vina = VinaScore(protein, ligand)
+
         self.all_inter_molecular_interactions = self.all_inter_molecular_bonds()
         self.update_edges()
 
@@ -90,14 +90,6 @@ class Complex:
             ) for l_idx, p_idx in adg_mat
         ]
 
-    def score(self):
-        rmsd = self.ligand.rmsd(self.original_ligand)
-        rmsd_score = np.sinh(rmsd + np.arcsinh(0))**-1
-        if rmsd > ComplexConstants.RMSD_THRESHOLD:
-            raise Exception(f"BAD State: VinaScore: {self.vina_score()}, rmsd: {rmsd}")
-
-        return 200 if self.perfect_fit else rmsd_score
-
     def randomize_ligand(self, action_shape, test=False):
         self.ligand.randomize(ComplexConstants.BOUNDS, action_shape, test=test)
 
@@ -107,6 +99,13 @@ class Complex:
     @property
     def rmsd(self):
         return self.ligand.rmsd(self.original_ligand)
+
+    @property
+    def ligand_centroid_saperation(self):
+        original_ligand_centroid = RMSD.centroid(self.original_ligand.get_coords())
+        current_ligand_centroid = RMSD.centroid(self.ligand.get_coords())
+
+        return np.linalg.norm(original_ligand_centroid - current_ligand_centroid)
 
     @property
     def perfect_fit(self):

@@ -56,6 +56,7 @@ class Config:
         self.run_tests = True
         self.test_from_episode = 70
         self.divergence_slope = 0.005
+        self.reward_function = 'rmsd'
 
         config = {}
         with open(config_path, 'r') as config_f:

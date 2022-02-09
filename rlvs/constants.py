@@ -4,6 +4,7 @@ from rlvs.molecule_world.molecule import NamedAtom
 class ComplexConstants:
     GOOD_FIT = 0.1
     RMSD_THRESHOLD = 4
+    LEGAL_SAPERATION = 8
     DISTANCE_THRESHOLD = 4
     VINA_SCORE_THRESHOLD = 200
     BOUNDS = 4
