@@ -206,9 +206,9 @@ class DDPGAgentGNN:
 
             molecule_index = 0
             protein_name = self.env._complex.protein.path.split('/')[-1]
-            self.metrices.init_rmsd(
+            self.metrices.init_score(
                 i_episode, protein_name,
-                self.env._complex.rmsd,
+                self.env.reward.score,
                 self.env._complex.ligand.get_centroid()
             )
 
@@ -230,7 +230,7 @@ class DDPGAgentGNN:
                 reward, terminal = self.env.step(action)
                 d_store = False if episode_length == max_episode_length else terminal
 
-                self.metrices.cache_rmsd(i_episode, self.env._complex.rmsd, molecule_index)
+                self.metrices.cache_score(i_episode, self.env.reward.score, molecule_index)
                 self.metrices.cache_action_reward(
                     i_episode, action, reward, molecule_index
                 )
@@ -257,17 +257,17 @@ class DDPGAgentGNN:
 
                 if (num_steps + 1) % 10 == 0 and i_episode > 100:
                     self.env.save_complex_files(f'{self.complex_path}_{i_episode}_{num_steps}')
-                    self.metrices.plot_rmsd_trend(i_episode, self.complex_path)
+                    self.metrices.plot_score_trend(i_episode, self.complex_path)
                     Metric.save(self.metrices, self.complex_path)
 
                 if m_complex_t.perfect_fit:
                     molecule_index += 1
                     m_complex_t, state_t = self.env.reset()
                     protein_name = self.env._complex.protein.path.split('/')[-1]
-                    self.metrices.init_rmsd(
+                    self.metrices.init_score(
                         i_episode,
                         protein_name,
-                        self.env._complex.rmsd,
+                        self.env.reward.score,
                         self.env._complex.ligand.get_centroid()
                     )
 
@@ -314,14 +314,14 @@ class DDPGAgentGNN:
             "Action:", np.round(np.array(action), 4),
             "Reward:", np.round(reward, 4),
             "E_i:", episode_length,
-            "RMSD: ", self.env._complex.rmsd,
+            self.env.reward,
             "E:", i_episode
         )
         logging.info(
             f"Action: {np.round(np.array(action), 4)},\
               Reward: {np.round(reward, 4)}, \
               E_i: {episode_length}, E: {i_episode}, \
-              RMSD: {np.round(self.env._complex.rmsd, 4)}"
+              {self.env.reward}"
         )
 
     def save_weights(self, path):

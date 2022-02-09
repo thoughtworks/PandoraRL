@@ -140,9 +140,9 @@ class DQNAgentGNN:
             m_complex_t, state_t = self.env.reset()
             molecule_index = 0
             protein_name = self.env._complex.protein.path.split('/')[-1]
-            self.metrices.init_rmsd(
+            self.metrices.init_score(
                 i_episode, protein_name,
-                self.env._complex.rmsd,
+                self.env.reward.score,
                 self.env._complex.ligand.get_centroid()
             )
 
@@ -156,7 +156,7 @@ class DQNAgentGNN:
                 molecule_action = self.env.action_space.get_action(action)
                 reward, terminal = self.env.step(molecule_action)
 
-                self.metrices.cache_rmsd(i_episode, self.env._complex.rmsd, molecule_index)
+                self.metrices.cache_score(i_episode, self.env.reward.score, molecule_index)
                 self.metrices.cache_action_reward(
                     i_episode, action, reward, molecule_index
                 )
@@ -183,10 +183,10 @@ class DQNAgentGNN:
                     m_complex_t, state_t = self.env.reset()
                     protein_name = self.env._complex.protein.path.split('/')[-1]
 
-                    self.metrices.init_rmsd(
+                    self.metrices.init_score(
                         i_episode,
                         protein_name,
-                        self.env._complex.rmsd,
+                        self.env.reward.score,
                         self.env._complex.ligand.get_centroid()
                     )
 
@@ -217,11 +217,11 @@ class DQNAgentGNN:
                not self.metrices.has_diverged(i_episode):
                 self.save_weights(self.weights_path, i_episode)
                 self.env.save_complex_files(f'{self.complex_path}_{i_episode}')
-                self.metrices.plot_rmsd_trend(i_episode, self.weights_path)
+                self.metrices.plot_score_trend(i_episode, self.weights_path)
 
                 if config.run_tests:
                     self.test(10, train_episode=i_episode, save=False)
-                    self.metrices.plot_rmsd_trend(
+                    self.metrices.plot_score_trend(
                         i_episode,
                         self.weights_path,
                         test=True,
@@ -238,9 +238,9 @@ class DQNAgentGNN:
         while i < number_of_tests:
             m_complex_t, state_t = self.env.reset(test=True)
             protein_name = self.env._complex.protein.path.split('/')[-1]
-            self.metrices.init_rmsd(
+            self.metrices.init_score(
                 train_episode, protein_name,
-                self.env._complex.rmsd,
+                self.env.reward.score,
                 self.env._complex.ligand.get_centroid(),
                 test=True
             )
@@ -254,8 +254,8 @@ class DQNAgentGNN:
                 data.cpu()
                 molecule_action = self.env.action_space.get_action(action)
                 reward, terminal = self.env.step(molecule_action)
-                self.metrices.cache_rmsd(
-                    train_episode, self.env._complex.rmsd, i, test=True
+                self.metrices.cache_score(
+                    train_episode, self.env.reward.score, i, test=True
                 )
 
                 self.metrices.cache_action_reward(
@@ -278,7 +278,7 @@ class DQNAgentGNN:
             "Action:", np.round(np.array(action), 4),
             "Reward:", np.round(reward, 10),
             "E_i:", episode_length,
-            "RMSD: ", self.env._complex.rmsd,
+            self.env.reward,
             "E:", i_episode,
             "loss", loss
         )
@@ -286,7 +286,7 @@ class DQNAgentGNN:
             f"{test_log} Action: {np.round(np.array(action), 4)}, \
             Reward: {np.round(reward, 4)}, \
             E_i: {episode_length}, E: {i_episode},\
-            RMSD: {np.round(self.env._complex.rmsd, 4)}, LOSS: {loss}"
+            {self.env.reward}, LOSS: {loss}"
         )
 
     def save_weights(self, path, episode):

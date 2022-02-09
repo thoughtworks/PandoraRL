@@ -6,33 +6,33 @@ from rlvs.config import Config
 
 
 class MoleculeMetric:
-    def __init__(self, episode, molecule, initial_rmsd, initial_coord):
+    def __init__(self, episode, molecule, initial_score, initial_coord):
         self.episode = episode
         self.molecule = molecule
         self.initial_coord = initial_coord
         self.actions = []
         self.rewards = []
         self.divergence = False
-        self.rmsds = [initial_rmsd]
+        self.scores = [initial_score]
 
     @property
-    def initial_rmsd(self):
-        return self.rmsds[0]
+    def initial_score(self):
+        return self.scores[0]
 
     @property
-    def final_rmsd(self):
-        return self.rmsds[-1]
+    def final_score(self):
+        return self.scores[-1]
 
     @property
-    def max_rmsd(self):
-        return max(self.rmsds)
+    def max_score(self):
+        return max(self.scores)
 
     @property
-    def min_rmsd(self):
-        return min(self.rmsds)
+    def min_score(self):
+        return min(self.scores)
 
-    def update_rmsd(self, rmsd):
-        self.rmsds.append(rmsd)
+    def update_score(self, score):
+        self.scores.append(score)
 
     def update_action_reward(self, action, reward):
         self.actions.append(action)
@@ -43,14 +43,14 @@ class MoleculeMetric:
 
     def get_data_frame(self):
         '''
-        episode, molecule, action, rmsd
+        episode, molecule, action, score
         '''
 
         df = pd.DataFrame({
             'episode': self.episode,
             'molecule': self.molecule,
             'action': [-1]+self.actions,
-            'rmsd': self.rmsds
+            'score': self.scores
         })
 
         return df
@@ -73,13 +73,13 @@ class Metric:
 
         return cls.__instance
 
-    def init_rmsd(self, episode, molecule, initial_rmsd, initial_coord, test=False):
+    def init_score(self, episode, molecule, initial_score, initial_coord, test=False):
         metric = self.molecule_metrices if not test else self.test_metrices
         if episode not in metric:
             metric[episode] = []
 
         metric[episode].append(
-            MoleculeMetric(episode, molecule, initial_rmsd, initial_coord)
+            MoleculeMetric(episode, molecule, initial_score, initial_coord)
         )
 
     def cache_loss(self, episode, loss):
@@ -88,33 +88,33 @@ class Metric:
         episode_loss.append(loss)
         self.episode_loss[episode] = episode_loss
 
-    def cache_rmsd(self, episode, rmsd, molecule_index, test=False):
+    def cache_score(self, episode, score, molecule_index, test=False):
         metric = self.molecule_metrices if not test else self.test_metrices
         if episode not in metric:
-            raise Exception(f"RMSD metric for {episode} not initialised")
+            raise Exception(f"SCORE metric for {episode} not initialised")
 
         if molecule_index >= len(metric[episode]):
-            raise Exception(f"RMSD metric for {molecule_index} not initialised")
+            raise Exception(f"SCORE metric for {molecule_index} not initialised")
 
-        metric[episode][molecule_index].update_rmsd(rmsd)
+        metric[episode][molecule_index].update_score(score)
 
     def cache_action_reward(self, episode, action, reward, molecule_index, test=False):
         metric = self.molecule_metrices if not test else self.test_metrices
         if episode not in metric:
-            raise Exception(f"RMSD metric for {episode} not initialised")
+            raise Exception(f"SCORE metric for {episode} not initialised")
 
         if molecule_index >= len(metric[episode]):
-            raise Exception(f"RMSD metric for {molecule_index} not initialised")
+            raise Exception(f"SCORE metric for {molecule_index} not initialised")
 
         metric[episode][molecule_index].update_action_reward(action, reward)
 
     def cache_divergence(self, episode, divergence, molecule_index, test=False):
         metric = self.molecule_metrices if not test else self.test_metrices
         if episode not in metric:
-            raise Exception(f"RMSD metric for {episode} not initialised")
+            raise Exception(f"SCORE metric for {episode} not initialised")
 
         if molecule_index >= len(metric[episode]):
-            raise Exception(f"RMSD metric for {molecule_index} not initialised")
+            raise Exception(f"SCORE metric for {molecule_index} not initialised")
 
         metric[episode][molecule_index].diverged(divergence)
 
@@ -124,33 +124,33 @@ class Metric:
 
         return self.episode_loss.get(episode, [])
 
-    def plot_rmsd_trend(self, episode, root_path, test=False, actions=False):
+    def plot_score_trend(self, episode, root_path, test=False, actions=False):
         marker = ',' if actions else '.'
         plt.figure(figsize=(10, 7))
-        file_name = f'{root_path}_{episode}_rmsd_trend.png' if not test \
-            else f'{root_path}_{episode}_test_rmsd_trend.png'
+        file_name = f'{root_path}_{episode}_score_trend.png' if not test \
+            else f'{root_path}_{episode}_test_score_trend.png'
         metric = self.molecule_metrices if not test else self.test_metrices
         molecule_metrics = metric[episode]
         for idx, metric in enumerate(molecule_metrics):
             plt.plot(
-                metric.rmsds, marker=marker, linewidth=1,
+                metric.scores, marker=marker, linewidth=1,
                 label=f'{idx}_{metric.molecule}', zorder=1
             )
 
             if actions:
-                self.__plot_rmsd_actions(
-                    plt, metric.rmsds, metric.actions
+                self.__plot_score_actions(
+                    plt, metric.scores, metric.actions
                 )
 
         plt.legend(
             loc='upper right', bbox_to_anchor=(1.3, 1.05), shadow=True
         )
         plt.xlabel('iterations')
-        plt.ylabel('rmsd')
+        plt.ylabel('score')
         plt.savefig(file_name, bbox_inches='tight', dpi=600)
         plt.close()
 
-    def __plot_rmsd_actions(self, plt, rmsds, actions):
+    def __plot_score_actions(self, plt, scores, actions):
         action_markers = [
             "p", "*", "v", "^", "<", ">", "d", "X", "s", "P", "+", "x"
         ]
@@ -162,7 +162,7 @@ class Metric:
             acc[actions[idx]] = sym
             return acc
 
-        plot_points = reduce(agg, enumerate(rmsds[1:]), {})
+        plot_points = reduce(agg, enumerate(scores[1:]), {})
         for act in plot_points:
             x, y = zip(*plot_points[act])
             plt.scatter(x, y, marker=action_markers[act], zorder=2, s=2)
@@ -182,13 +182,16 @@ class Metric:
         if len(molecule_metric) > 1:
             return any(metric.divergence for metric in molecule_metric)
 
-        rmsds = molecule_metric[0].rmsds
-        x = np.array(range(len(rmsds)))
-        y = np.array(rmsds)
+        scores = molecule_metric[0].scores
+        x = np.array(range(len(scores)))
+        y = np.array(scores)
+
+        if np.any(y < 0):  # Special case for vina score. ()
+            y *= -1
         xmean = np.mean(x)
         ymean = np.mean(y)
         slope = np.sum((x - xmean)*(y - ymean))/np.sum((x - xmean)**2)
-        print("RMSD Slope:", slope)
+        print("SCORE Slope:", slope)
         return slope > config.divergence_slope
 
     def generate_data_frame(self, test=False):
