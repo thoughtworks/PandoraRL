@@ -93,6 +93,9 @@ class Featurizer():
     def VDWr(self, atom):
         return [atom.VDWr]
 
+    def coord(self, atom):
+        return atom.coord
+
     def molecule_type(self, atom):
         return [atom.molecule_type]
 
