@@ -176,6 +176,7 @@ class Metric:
         plt.close()
 
     def has_diverged(self, episode):
+        return episode % 10 == 0
         config = Config.get_instance()
         molecule_metric = self.molecule_metrices[episode]
 

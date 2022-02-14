@@ -90,7 +90,7 @@ class GraphEnv:
 
     @property
     def is_legal_state(self):
-        return self._complex.ligand_centroid_saperation < ComplexConstants.LEGAL_SAPERATION
+        return self.reward.is_legal
 
     def reset(self, test=False):
         self._complex.reset_ligand()

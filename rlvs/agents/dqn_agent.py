@@ -178,7 +178,7 @@ class DQNAgentGNN:
 
                 self.log(action, reward, episode_length, i_episode, loss)
 
-                if m_complex_t.perfect_fit:
+                if self.env.reward.perfect_fit:
                     molecule_index += 1
                     m_complex_t, state_t = self.env.reset()
                     protein_name = self.env._complex.protein.path.split('/')[-1]

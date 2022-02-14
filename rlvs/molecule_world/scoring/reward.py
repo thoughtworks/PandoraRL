@@ -3,6 +3,7 @@ from .rmsd import RMSD
 from .vina_score import VinaScore
 
 from rlvs.config import Config
+from rlvs.constants import ComplexConstants
 
 
 class Reward:
@@ -27,6 +28,14 @@ class Reward:
     def __call__(self):
         pass
 
+    @property
+    def is_legal(self):
+        pass
+
+    @property
+    def perfect_fit(self):
+        pass
+
 
 class VinaReward(Reward):
     def __init__(self, pl_complex):
@@ -35,10 +44,19 @@ class VinaReward(Reward):
 
     def __call__(self):
         self.score = self.vina_score.total_energy()
-        return 1.05 ** (-2 * self.score)
+        # return 1.05 ** (-2 * self.score)
+        return -self.score
 
     def __str__(self):
         return f'VINA Score: {self.score}'
+
+    @property
+    def is_legal(self):
+        return self.score is not None and self.score <= ComplexConstants.VINA_SCORE_THRESHOLD
+
+    @property
+    def perfect_fit(self):
+        return self.score is not None and self.score <= ComplexConstants.VINA_GOOD_FIT
 
 
 class RMSDReward(Reward):
@@ -54,3 +72,11 @@ class RMSDReward(Reward):
 
     def __str__(self):
         return f'RMSD: {np.round(self.score, 4)}'
+
+    @property
+    def is_legal(self):
+        return self.score is not None and self.score <= ComplexConstants.RMSD_THRESHOLD
+
+    @property
+    def perfect_fit(self):
+        return self.score is not None and self.score <= ComplexConstants.GOOD_FIT
