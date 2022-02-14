@@ -125,7 +125,7 @@ class VinaScore:
             return var[distance < threshold]
 
         if len(valid_pairs) == 0:
-            return 0
+            return 999
 
         van_der_waal_r = np.array([
             [self.protein.atoms[y].VDWr, self.protein.atoms[x].VDWr]
