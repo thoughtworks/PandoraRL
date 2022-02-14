@@ -128,7 +128,7 @@ class DQNAgentGNN:
 
     def play(self, num_train_episodes):
         num_steps = 0
-        max_episode_length = 100
+        max_episode_length = 1000
         max_reward = 0
         i_episode = 0
         losses = []

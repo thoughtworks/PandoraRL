@@ -145,7 +145,7 @@ class DDPGAgentGNN:
 
     def update_network(self):
         batches = self.memory.sample(self.BATCH_SIZE)
-        
+
         self._critiq_optim.zero_grad()
         mean_q_loss = self.batch_update(batches, self.compute_q_loss)
         mean_q_loss.backward()
@@ -178,7 +178,7 @@ class DDPGAgentGNN:
         if step is not None:
             action += self.is_training * max(
                 self.eps, 0
-            ) * noise #self.exploration_noise.generate(step)
+            ) * noise  # self.exploration_noise.generate(step)
 
         if decay_epsilon:
             self.eps -= self.decay_epsilon
@@ -195,7 +195,7 @@ class DDPGAgentGNN:
     def play(self, num_train_episodes):
         returns = []
         num_steps = 0
-        max_episode_length = 100
+        max_episode_length = 1000
         max_reward = 0
         i_episode = 0
 
