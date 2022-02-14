@@ -53,6 +53,10 @@ class Complex:
         for edge in inter_molecular_interactions:
             edge.update_interaction_strengths()
 
+        if len(inter_molecular_interactions) == 0:
+            self.inter_molecular_edges = None
+            return
+
         self.inter_molecular_edges = torch.vstack([
             bond.edge for bond in inter_molecular_interactions
         ]).t().contiguous()
@@ -115,17 +119,21 @@ class Complex:
     @property
     def data(self):
         batched = batchify([self.protein, self.ligand], data=False)
-        edge_index = torch.hstack([
-            batched.edge_index,
-            self.inter_molecular_edges
+        if self.inter_molecular_edges is None:
+            edge_index = batched.edge_index
+            edge_attr = batched.edge_attr
+
+        else:
+            edge_index = torch.hstack([
+                batched.edge_index,
+                self.inter_molecular_edges
+            ])
+            edge_attr = torch.vstack([
+                batched.edge_attr,
+                self.inter_molecular_edge_attr
             ])
 
         pos = batched.x[:, :3]
-
-        edge_attr = torch.vstack([
-            batched.edge_attr,
-            self.inter_molecular_edge_attr
-        ])
 
         batch = torch.tensor([0] * batched.x.shape[0])
 
