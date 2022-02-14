@@ -214,7 +214,8 @@ class DQNAgentGNN:
             )
 
             if i_episode >= config.test_from_episode and \
-               not self.metrices.has_diverged(i_episode):
+               i_episode % 10 == 0:
+#               not self.metrices.has_diverged(i_episode):
                 self.save_weights(self.weights_path, i_episode)
                 self.env.save_complex_files(f'{self.complex_path}_{i_episode}')
                 self.metrices.plot_score_trend(i_episode, self.weights_path)
