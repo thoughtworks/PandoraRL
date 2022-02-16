@@ -77,7 +77,7 @@ class GraphEnv:
         self.action_space = ActionSpace(action_bounds)
 
         if complex is None:
-            DataStore.init(crop=True, test=test)
+            DataStore.init(crop=True)
             self._complex = DataStore.next(False)
             self._complex.randomize_ligand(self.action_space.n_outputs)
         else:
@@ -97,7 +97,7 @@ class GraphEnv:
         self._complex.update_edges()
         print("RESET RMSD", self._complex.rmsd)
         while True:
-            self._complex = DataStore.next(False)
+            self._complex = DataStore.next(False, test=test)
             self.reward = Reward.get_reward_function(self._complex)
             self.reward()
             original_vina_score = self._complex.vina.total_energy()

@@ -318,15 +318,16 @@ class DataStore:
       'HIVTest': HIVTest
     }
     DATA_STORES = []
+    TEST_DATA_STORES = []
     DATA = []
+    TEST_DATA = []
 
     @classmethod
-    def init(cls, crop=True, test=False):
+    def init(cls, crop=True):
         config = Config.get_instance()
         cls.DATA_STORES = [cls.REGISTRY[data_store]() for data_store in config.train_dataset]
+        cls.TEST_DATA_STORES = [cls.REGISTRY[data_store]() for data_store in config.test_dataset]
 
-        if test:
-            cls.DATA_STORES = [cls.REGISTRY[data_store]() for data_store in config.test_dataset]
         cls.load(crop)
         # cls.scaler = cls.normalize()
 
@@ -338,9 +339,19 @@ class DataStore:
             for complex in store._complexes
         ]
 
+        cls.TEST_DATA = [
+            store.get_molecules(complex, crop)
+            for store in cls.TEST_DATA_STORES
+            for complex in store._complexes
+        ]
+
     @classmethod
-    def next(cls, crop=True):
-        return cls.DATA[np.random.randint(0, len(cls.DATA))]
+    def next(cls, crop=True, test=False):
+        data = cls.DATA
+        if test:
+            data = cls.TEST_DATA
+
+        return data[np.random.randint(0, len(data))]
 
     @classmethod
     def normalize(cls):
