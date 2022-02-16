@@ -5,7 +5,7 @@ from rlvs.constants import ComplexConstants
 
 ob.obErrorLog.SetOutputLevel(0)
 RANDOM_POS_SIGN = 1
-box_size = ComplexConstants.RMSD_THRESHOLD  # 0.1
+box_size = 0.1
 
 
 def smiles_to_OB(smile_string, prepare=False):
@@ -38,6 +38,7 @@ def randomizer(action_shape, test=False):
 
     if not test:
         pose = np.random.uniform(-box_size, box_size, (action_shape,))
+        box_size = min(box_size + 0.1, ComplexConstants.RMSD_THRESHOLD)
     else:
         pose = np.random.uniform(
             -ComplexConstants.RMSD_THRESHOLD,  ComplexConstants.RMSD_THRESHOLD, (action_shape,)
